@@ -1,0 +1,10 @@
+{
+    "N_tr": 5,
+    "N_co": 45,
+    "T": 30,
+    "T0": 20,
+    "d": 2,
+    "noise_std": 1,
+    "treatment_effect": 1,
+    "seed": 0
+}
