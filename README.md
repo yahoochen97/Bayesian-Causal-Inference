@@ -34,7 +34,7 @@ f(x,t) = g(x) + h(t) + e
 
 where g(x) is the covariate effect and h(t) is the time trend. We place two Gaussian Process priors on g and h, so the outcome induces to another GP:
 
-<img src="https://latex.codecogs.com/png.latex?f(x,t) \sim GP(\mu_g(x)+\mu_h(t), K_g(x,x)+K_h(t,t)+\sigma^2 I) " /> 
+<img src="https://latex.codecogs.com/png.latex?f(x,t)\simGP(\mu_g(x)+\mu_h(t),K_g(x,x)+K_h(t,t)+\sigma^2I) " /> 
 
 The hyperparameters are optimized using the likelihood of all observations in control group and observations in treatment group until intervention.
 
@@ -46,7 +46,7 @@ x_{it}=1+a*b+a+b+e
 
 where there is one unobserved confounder a following N(0,1). The loadings are b_co ~ U[-1,1] and b_tr ~ U[-0.6, 1.4]. The error e follows N(0,1
 
-<img src="https://latex.codecogs.com/png.latex?y_{it} = delta*D + \sum((2d+1)*x_{itd}) + \alpha_t + \beta + e " /> 
+<img src="https://latex.codecogs.com/png.latex?y_{it}=delta*D +\sum((2d+1)*x_{itd})+\alpha_t+\beta+e" /> 
 
 
 where the time trend $`\alpha_t`$ = [sin(t) + t]/5 and group effects are $`\beta_{co}`$ ~ U[-1,1] and $`\beta_{tr}`$ ~ U[-0.6, 1.4]. The error e ~ N(0, 1).
