@@ -44,7 +44,7 @@ The hyperparameters are optimized using the likelihood of all observations in co
 x_{it}=1+a*b+a+b+e
 ```
 
-where there is one unobserved confounder a following N(0,1). The loadings are b_co ~ U[-1,1] and b_tr ~ U[-0.6, 1.4]. The error e follows N(0,1
+where there is one unobserved confounder a following N(0,1). The loadings are b_co ~ U[-1,1] and b_tr ~ U[-0.6, 1.4]. The error e follows N(0,1)
 
 <img src="https://latex.codecogs.com/png.latex?y_{it}=\delta*D_{it}+\sum((2d+1)*x_{itd})+\alpha_t+\beta+e"/> 
 
