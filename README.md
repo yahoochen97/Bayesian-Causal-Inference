@@ -46,7 +46,7 @@ x_{it}=1+a*b+a+b+e
 
 where there is one unobserved confounder a following N(0,1). The loadings are b_co ~ U[-1,1] and b_tr ~ U[-0.6, 1.4]. The error e follows N(0,1
 
-<img src="https://latex.codecogs.com/png.latex?y_{it}=\delta*D+\sum((2d+1)*x_{itd})+\alpha_t+\beta+e"/> 
+<img src="https://latex.codecogs.com/png.latex?y_{it}=\delta*D_{it}+\sum((2d+1)*x_{itd})+\alpha_t+\beta+e"/> 
 
 
 where the time trend alpha_t = [sin(t) + t]/5 and group effects are beta_co ~ U[-1,1] and beta_tr ~ U[-0.6, 1.4]. The error e ~ N(0, 1).
