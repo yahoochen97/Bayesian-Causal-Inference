@@ -18,6 +18,7 @@ def generate_synthetic_data(N_tr, N_co, T, T0, d, Delta, noise_std, seed):
         - X_co: time-dependent covariates for control group, N_co*T*(d+1) tensor, last column is time
         - Y_tr: observations for treatment group, N_tr*T tensor
         - Y_co: observations for control group, N_co*T tensor
+        - T_tr: N_tr*1 tensor, treatment time for treatment units
     '''
     torch.manual_seed(seed)
 
@@ -35,6 +36,9 @@ def generate_synthetic_data(N_tr, N_co, T, T0, d, Delta, noise_std, seed):
     b_co = 2*torch.rand(N_co,d) - 1
     b_tr = 2*torch.rand(N_tr,d) - 0.6
 
+    # for k in range(d):
+    #     a[:, k] *= 2*k+1
+
     for i in range(N_tr):
         for t in range(T):
             for k in range(d):
@@ -46,29 +50,41 @@ def generate_synthetic_data(N_tr, N_co, T, T0, d, Delta, noise_std, seed):
                 X_co[i, t, k] += 1 + a[t,k] + b_co[i,k] + a[t,k]*b_co[i,k]
 
     # here assume y_it = delta*D + sum((2d+1)*x_itd) + alpha_t + beta + e
-    # alpha_t = [sin(t) + t]/5
+    # alpha_tr = [sin(t) + 2*t]
+    # alpha_co = [cos(t) + t]
     # beta_co ~ U[-1,1], beta_tr ~ U[-0.6, 1.4]
     # e ~ N(0, noise_std)
     Y_tr = torch.randn(N_tr, T) * noise_std
     Y_co = torch.randn(N_co, T) * noise_std
 
-    alpha = (torch.sin(train_t) + train_t) / 5        
+    alpha_tr = (torch.sin(train_t) + 2*train_t) 
+    alpha_co = (torch.cos(train_t) + train_t)       
     beta_co = 2*torch.rand(N_co,d) - 1
     beta_tr = 2*torch.rand(N_co,d) - 1
 
     for i in range(N_tr):
         for t in range(T):
-            Y_tr[i,t] += alpha[t]
+            Y_tr[i,t] += alpha_tr[t]
             for k in range(d):
                 Y_tr[i,t] += (2*k+1)*X_tr[i,t,k] + beta_tr[i,k]
 
     for i in range(N_co):
         for t in range(T):
-            Y_co[i,t] += alpha[t]
+            Y_co[i,t] += alpha_co[t]
             for k in range(d):         
                 Y_co[i,t] += (2*k+1)*X_co[i,t,k] + beta_co[i,k]
 
+    # Indicator matrix whether treated or not
+    # W = torch.zeros(Y_tr.shape)
     ATT = torch.zeros(Y_tr.shape)
+    # for i in range(N_tr):
+    #     if T0+i < T:
+    #         W[i,(T0+i):] = 1
+    #         ATT[:,(T0+i):] += Delta*(train_t[(T0+i):]-T0-i)
+    #     else:
+    #         W[i,T0:] = 1
+    #         ATT[:,T0:] += Delta*(train_t[T0:]-T0)
+        
     ATT[:,T0:] += Delta*(train_t[T0:]-T0)
     Y_tr = Y_tr + ATT
 

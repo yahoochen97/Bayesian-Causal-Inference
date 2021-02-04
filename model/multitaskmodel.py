@@ -16,7 +16,8 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         self.num_task = 2 # treatment/control
         self.d = list(train_x[0].shape)[1] - 1 # dim of covariates
         self.mean_module = ModuleList([gpytorch.means.LinearMean(self.d+1) for _ in range(self.num_task)])
-        self.x_covar_module = gpytorch.kernels.RBFKernel(active_dims=tuple([i for i in range(self.d)]))
+        self.x_covar_module = gpytorch.kernels.RBFKernel(ard_num_dims=self.d, \
+            active_dims=tuple([i for i in range(self.d)]))
         self.t_covar_module = gpytorch.kernels.PeriodicKernel(active_dims=torch.tensor([self.d])) \
             + gpytorch.kernels.RBFKernel(active_dims=torch.tensor([self.d]))
         self.task_covar_module = gpytorch.kernels.IndexKernel(num_tasks=self.num_task, rank=1)

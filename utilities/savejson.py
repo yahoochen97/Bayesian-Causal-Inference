@@ -13,6 +13,8 @@ def savejson(model, likelihood, json_file):
     weights = []
     biases = []
 
+    x_ls = model.x_covar_module.lengthscale
+
     for i in range(num_task):
         weight = model.mean_module[i].weights.data.numpy().tolist()
         bias = model.mean_module[i].bias.data.numpy().tolist()
@@ -29,6 +31,7 @@ def savejson(model, likelihood, json_file):
     results['mean weights'] = weights
     results['mean biases'] = biases
     results['time periodic ls'] = ls.data.numpy().tolist()
+    results['covariate ls'] = x_ls.data.numpy().tolist()
     results['noise std'] = torch.sqrt(noise).data.numpy().tolist()
 
     with open(json_file, "w") as f:

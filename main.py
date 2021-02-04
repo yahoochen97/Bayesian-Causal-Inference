@@ -3,12 +3,13 @@ import json
 import gpytorch
 from model.multitaskmodel import MultitaskGPModel
 from utilities.savejson import savejson
-from utilities.visualize import visualize
+from utilities.visualize import visualize_multitask
 from utilities.synthetic import generate_synthetic_data
+from model.fixedeffect import TwoWayFixedEffectModel
 import os
 
 smoke_test = ('CI' in os.environ)
-training_iterations = 2 if smoke_test else 200
+training_iterations = 2 if smoke_test else 500
 
 
 def train(train_x, train_i, train_y, model, likelihood, optimizer):
@@ -45,6 +46,9 @@ def main():
     seed = data["seed"]
 
     X_tr, X_co, Y_tr, Y_co, ATT = generate_synthetic_data(N_tr, N_co, T, T0, d, Delta, noise_std, seed)
+
+    # fit = TwoWayFixedEffectModel(X_tr, X_co, Y_tr, Y_co, ATT, T0)
+    # return 
     
     train_x_tr = X_tr[:,:T0].reshape(-1,d+1)
     train_x_co = X_co.reshape(-1,d+1)
@@ -70,13 +74,12 @@ def main():
         model.load_state_dict(state_dict)
     else:
         model, likelihood = train(train_x, train_i, train_y, model, likelihood, optimizer)
-
-    torch.save(model.state_dict(), 'results/model_state.pth')
+        torch.save(model.state_dict(), 'results/model_state.pth')
 
     json_file = "results/optimizedhyps.json"
     savejson(model, likelihood, json_file)
 
-    visualize(X_tr, X_co, Y_tr, Y_co, ATT, model, likelihood)
+    visualize_multitask(X_tr, X_co, Y_tr, Y_co, ATT, model, likelihood, T0)
 
 
 if __name__ == "__main__":
