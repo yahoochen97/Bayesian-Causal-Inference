@@ -3,12 +3,11 @@ __pycache__
 .vscode
 *.csv
 *.ipynb
-*.mat
-.vscode
 .ipynb_checkpoints
 data/localnews_replication
 data/.RData
 data/.Rhistory
 data/preprocess.R
 data/*.pdf
-data/segments_d.csv
+data/segments_dd.csv
+results
