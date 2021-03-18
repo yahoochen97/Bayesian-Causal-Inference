@@ -36,9 +36,6 @@ def generate_synthetic_data(N_tr, N_co, T, T0, d, Delta, noise_std, seed):
     b_co = 2*torch.rand(N_co,d) - 1
     b_tr = 2*torch.rand(N_tr,d) - 0.6
 
-    # for k in range(d):
-    #     a[:, k] *= 2*k+1
-
     for i in range(N_tr):
         for t in range(T):
             for k in range(d):
@@ -49,43 +46,35 @@ def generate_synthetic_data(N_tr, N_co, T, T0, d, Delta, noise_std, seed):
             for k in range(d):
                 X_co[i, t, k] += 1 + a[t,k] + b_co[i,k] + a[t,k]*b_co[i,k]
 
-    # here assume y_it = delta*D + sum((2d+1)*x_itd) + alpha_t + beta + e
-    # alpha_tr = [sin(t) + 2*t]
-    # alpha_co = [cos(t) + t]
+    # here assume y_it = delta*D + sum((d+1)*x_itd) + alpha_t + beta + e
+    # alpha_tr = [sin(t) + 2*t]/5 + e
+    # alpha_co = [cos(t) + t]/5 + e
     # beta_co ~ U[-1,1], beta_tr ~ U[-0.6, 1.4]
     # e ~ N(0, noise_std)
     Y_tr = torch.randn(N_tr, T) * noise_std
     Y_co = torch.randn(N_co, T) * noise_std
 
-    alpha_tr = (torch.sin(train_t) + 2*train_t) 
-    alpha_co = (torch.cos(train_t) + train_t)       
+    alpha_tr = (torch.sin(train_t) + 2*train_t)/5 + torch.randn(train_t.size()) * noise_std
+    alpha_co = (torch.cos(train_t) + train_t)/5 + torch.randn(train_t.size()) * noise_std
     beta_co = 2*torch.rand(N_co,d) - 1
-    beta_tr = 2*torch.rand(N_co,d) - 1
+    beta_tr = 2*torch.rand(N_co,d) - 0.6
 
     for i in range(N_tr):
         for t in range(T):
             Y_tr[i,t] += alpha_tr[t]
             for k in range(d):
-                Y_tr[i,t] += (2*k+1)*X_tr[i,t,k] + beta_tr[i,k]
+                Y_tr[i,t] += (k+1)*X_tr[i,t,k] + beta_tr[i,k]
 
     for i in range(N_co):
         for t in range(T):
             Y_co[i,t] += alpha_co[t]
             for k in range(d):         
-                Y_co[i,t] += (2*k+1)*X_co[i,t,k] + beta_co[i,k]
+                Y_co[i,t] += (k+1)*X_co[i,t,k] + beta_co[i,k]
 
-    # Indicator matrix whether treated or not
-    # W = torch.zeros(Y_tr.shape)
+    # ATT matrix
     ATT = torch.zeros(Y_tr.shape)
-    # for i in range(N_tr):
-    #     if T0+i < T:
-    #         W[i,(T0+i):] = 1
-    #         ATT[:,(T0+i):] += Delta*(train_t[(T0+i):]-T0-i)
-    #     else:
-    #         W[i,T0:] = 1
-    #         ATT[:,T0:] += Delta*(train_t[T0:]-T0)
         
-    ATT[:,T0:] += Delta*(train_t[T0:]-T0)
+    ATT[:,T0:] += Delta*(train_t[T0:]-T0) # + torch.randn(ATT.size())[:,T0:] * noise_std
     Y_tr = Y_tr + ATT
 
     X_tr = torch.cat([X_tr, torch.unsqueeze(train_t.expand(N_tr, T),dim=2)], dim=2)

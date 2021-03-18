@@ -6,5 +6,10 @@
     "d": 5,
     "noise_std": 1,
     "treatment_effect": 1,
-    "seed": 0
+    "seed": 0,
+    "sigma_a": 0.01,
+    "sigma_b": 0.1,
+    "sigma_L": 0.1,
+    "sigma_noise": 0.05,
+    "sigma_beta": 0.1
 }
