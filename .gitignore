@@ -1,7 +1,6 @@
 .DS_Store
 __pycache__
 .vscode
-*.csv
 *.ipynb
 .ipynb_checkpoints
 data/localnews_replication
@@ -11,3 +10,5 @@ data/preprocess.R
 data/*.pdf
 data/segments_dd.csv
 results
+*.txt
+*.pkl
