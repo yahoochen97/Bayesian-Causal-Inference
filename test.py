@@ -5,6 +5,7 @@ import pyro
 from pyro.infer.mcmc import NUTS, MCMC
 from matplotlib import pyplot as plt
 import os
+import dill as pickle
 
 from gpytorch.priors import LogNormalPrior, NormalPrior, UniformPrior
 
@@ -24,7 +25,7 @@ def main():
     num_samples = 2 if smoke_test else 100
     warmup_steps = 2 if smoke_test else 200
 
-    train_x = torch.linspace(0, 1, 100)
+    train_x = torch.linspace(0, 1, 10)
     train_y = torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.2
 
     # Use a positive constraint instead of usual GreaterThan(1e-4) so that LogNormal has support over full range.
@@ -40,10 +41,10 @@ def main():
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
 
     def pyro_model(x, y):
-            model.pyro_sample_from_prior()
-            output = model(x)
-            loss = mll.pyro_factor(output, y)
-            return y
+        model.pyro_sample_from_prior()
+        output = model(x)
+        loss = mll.pyro_factor(output, y)
+        return y
 
     nuts_kernel = NUTS(pyro_model, adapt_step_size=True)
     mcmc_run = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, disable_progbar=smoke_test)
@@ -51,10 +52,15 @@ def main():
 
 def train(mcmc_run, train_x, train_y):
     mcmc_run.run(train_x, train_y)
+    pickle.dump(mcmc_run, open("results/test_mcmc.pkl", "wb"))
 
 if __name__ == "__main__":
     mcmc_run, train_x, train_y = main()
-    train(mcmc_run, train_x, train_y)
+    # train(mcmc_run, train_x, train_y)
+
+    mcmc_run = pickle.load(open("results/test_mcmc.pkl",'rb'))
+
+    print(mcmc_run.diagnostics())
 
     # model.pyro_load_from_samples(mcmc_run.get_samples())
     # model.eval()

@@ -6,7 +6,8 @@ import pickle
 from pyro.infer.mcmc import NUTS, MCMC
 from model.multitaskmodel import MultitaskGPModel
 from utilities.savejson import savejson
-from utilities.visualize import visualize_synthetic, visualize_localnews, visualize_localnews_MCMC, plot_prior
+from utilities.visualize import visualize_synthetic, plot_posterior
+from utilities.visualize import visualize_localnews, visualize_localnews_MCMC, plot_prior
 from utilities.synthetic import generate_synthetic_data
 from model.fixedeffect import TwoWayFixedEffectModel
 import os
@@ -15,12 +16,13 @@ import numpy as np
 import argparse
 import datetime
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+import dill as pickle
 
 
 smoke_test = ('CI' in os.environ)
 training_iterations = 2 if smoke_test else 200
-num_samples = 2 if smoke_test else 800
-warmup_steps = 2 if smoke_test else 200
+num_samples = 2 if smoke_test else 1
+warmup_steps = 2 if smoke_test else 2
 
 
 def train(train_x, train_i, train_y, model, likelihood, mll, optimizer):
@@ -221,11 +223,13 @@ def localnews(INFERENCE):
         # for param_name, param in model.named_parameters():
         #     print(f'Parameter name: {param_name:42} value = {param.detach().numpy()}')
         with open('results/localnews_MCMC.pkl', 'rb') as f:
-            mcmc_samples = pickle.load(f)
+            mcmc_run = pickle.load(f)
+        mcmc_samples = mcmc_run.get_samples()
         model.pyro_load_from_samples(mcmc_samples)
+        plot_posterior(mcmc_samples)
         visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
                 likelihood, T0, date_le, station_le, num_samples)
-        return
+        
     elif INFERENCE=='MAP':
         model.task_covar_module._set_rho(0.0)
         model.t_covar_module.outputscale = 0.05**2 
@@ -240,9 +244,11 @@ def localnews(INFERENCE):
         mcmc_run = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, disable_progbar=smoke_test)
         mcmc_run.run(train_x, train_i, train_y)
         # save the posterior
-        with open('results/localnews_' + INFERENCE+ '.pkl', 'wb') as f:
-            pickle.dump(mcmc_run.get_samples(), f)
+        # with open('results/localnews_' + INFERENCE+ '.pkl', 'wb') as f:
+        #     pickle.dump(mcmc_run.get_samples(), f)
+        pickle.dump(mcmc_run, open("results/localnews_MCMC.pkl", "wb"))
         torch.save(model.state_dict(), 'results/localnews_' + INFERENCE +'_model_state.pth')
+        
     else:
         model.load_strict_shapes(False)
         state_dict = torch.load('results/localnews_MAP_model_state.pth')

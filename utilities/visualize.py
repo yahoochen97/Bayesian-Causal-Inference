@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 import scipy.special as sps 
+import seaborn as sns
 
 
 # Define plotting function
@@ -43,6 +44,23 @@ def plot_prior(model):
     ax[1][1].legend(["rho"])
     fig.suptitle("Gamma prior")
     plt.savefig("results/gammaprior.png")
+    plt.show()
+
+    return 
+
+
+def plot_posterior(mcmc_samples):
+    param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior",
+    "t_covar_module.base_kernel.lengthscale_prior", "task_covar_module.rho_prior"]
+    labels = ["noise", "os","ls","rho"]
+    fig, axes = plt.subplots(nrows=2, ncols=2)
+    for i in range(4):
+         samples = mcmc_samples[param_list[i]].numpy().reshape(-1)
+         sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
+         axes[int(i/2)][int(i%2)].legend([labels[i]])
+
+    fig.suptitle("Gamma posterior")
+    plt.savefig("results/gammaposterior.png")
     plt.show()
 
     return 
