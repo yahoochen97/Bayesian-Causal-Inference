@@ -128,6 +128,12 @@ def synthetic(INFERENCE):
 
 
 def localnews(INFERENCE):
+    device = torch.device('cpu')
+    torch.set_default_tensor_type(torch.DoubleTensor)
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+        torch.set_default_tensor_type(torch.cuda.DoubleTensor)
+
     with open('model/conf.json') as f:
         configs = json.load(f)
     sigma_noise = configs["sigma_noise"]
@@ -158,15 +164,15 @@ def localnews(INFERENCE):
     T0 = date_le.transform(np.array([datetime.date(2017, 9, 1)]))
     
     train_condition = (data.post!=1) | (data.sinclair2017!=1)
-    train_x = torch.Tensor(X[train_condition]).double()
-    train_y = torch.Tensor(Y[train_condition]).double()
+    train_x = torch.Tensor(X[train_condition], device=device)
+    train_y = torch.Tensor(Y[train_condition], device=device)
 
     idx = data.sinclair2017.to_numpy()
-    train_i = torch.from_numpy(idx[train_condition])
+    train_i = torch.from_numpy(idx[train_condition]).to(device)
 
-    test_x = torch.Tensor(X).double()
-    test_y = torch.Tensor(Y).double()
-    test_i = torch.from_numpy(idx)
+    test_x = torch.Tensor(X, device=device)
+    test_y = torch.Tensor(Y, device=device)
+    test_i = torch.from_numpy(idx).to(device)
     # fit = TwoWayFixedEffectModel(X_tr, X_co, Y_tr, Y_co, ATT, T0)
     # return
     
@@ -183,14 +189,14 @@ def localnews(INFERENCE):
     # model.mean_module[1].constant.requires_grad = False
     model.c_covar_module.raw_c2.requires_grad = False
 
-    model.i_mean_module.bias.data.fill_(torch.mean(train_y[train_i==0]).double())
-    slope = torch.mean(train_y[train_i==1]).double()-torch.mean(train_y[train_i==0]).double()
+    model.i_mean_module.bias.data.fill_(torch.mean(train_y[train_i==0]))
+    slope = torch.mean(train_y[train_i==1])-torch.mean(train_y[train_i==0])
     model.i_mean_module.weights.data.fill_(slope)
     model.i_mean_module.weights.requires_grad = False
     model.i_mean_module.bias.requires_grad = False
 
-    model.double()
-    likelihood.double()
+    model.to(device)
+    likelihood.to(device)
 
     # plot_prior(model)
     # return
@@ -255,6 +261,13 @@ def localnews(INFERENCE):
         model.load_state_dict(state_dict)
         for param_name, param in model.named_parameters():
             print(f'Parameter name: {param_name:42} value = {param.detach().numpy()}')
+
+    device = torch.device('cpu')
+    torch.set_default_tensor_type(torch.DoubleTensor)
+    train_x, train_y, train_i = train_x.to(device), train_y.to(device), train_i.to(device)
+    test_x, test_y, test_i = test_x.to(device), test_y.to(device), test_i.to(device)
+    model.to(device)
+    likelihood.to(device)
 
     visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
          likelihood, T0, date_le, station_le)
