@@ -172,6 +172,8 @@ def visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i,
      # Set into eval mode
     model.eval()
     likelihood.eval()
+    for i in range(1,len(model.x_covar_module)):
+        model.x_covar_module[i].c2 = torch.tensor(0.0**2)
 
     T = list(torch.unique(test_x[:,-1]).shape)[0]
     N = torch.unique(train_i).shape[0]
