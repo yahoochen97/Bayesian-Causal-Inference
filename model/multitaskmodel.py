@@ -25,10 +25,8 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
             sigma_beta = configs["sigma_beta"]
 
         # define priors
-        outputscale_prior = [gpytorch.priors.GammaPrior(concentration=1,rate=2),\
-            gpytorch.priors.GammaPrior(concentration=1,rate=5)]
-        lengthscale_prior = [gpytorch.priors.GammaPrior(concentration=3,rate=1/5),\
-            gpytorch.priors.GammaPrior(concentration=1,rate=1/2)]
+        outputscale_prior = gpytorch.priors.GammaPrior(concentration=1,rate=2)
+        lengthscale_prior = gpytorch.priors.GammaPrior(concentration=3,rate=1/5)
         rho_prior = gpytorch.priors.UniformPrior(-1, 1)
             
         # self.T = T
@@ -47,9 +45,8 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         #     + gpytorch.kernels.RBFKernel(active_dims=torch.tensor([self.d]))
         # self.t_covar_module = gpytorch.kernels.SpectralMixtureKernel(num_mixtures=num_mixtures, \
         #     active_dims=torch.tensor([self.d]))
-        self.t_covar_module = ModuleList(gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(\
-            active_dims=torch.tensor([self.d]), lengthscale_prior=lengthscale_prior[i])\
-                 ,outputscale_prior=outputscale_prior[i]) for i in range(1))
+        self.t_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(\
+            active_dims=torch.tensor([self.d]), lengthscale_prior=lengthscale_prior),outputscale_prior=outputscale_prior)
         # self.c_covar_module = constantKernel(num_tasks=2)
         # self.indicator_module = myIndicatorKernel(num_tasks=2)
         self.indicator_module = ModuleList([myIndicatorKernel(num_tasks=v+1) for v in X_max_v])
@@ -95,14 +92,21 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         # self.task_covar_module.rho.data.fill_(0.5)
 
         # covar_x = self.x_covar_module(x)
-        covar_t = self.t_covar_module[0](x) # + self.t_covar_module[1](x)
+        covar_t = self.t_covar_module(x)
         covar_i = self.task_covar_module(i)
         covar = covar_t.mul(covar_i)
         for j in range(len(self.X_max_v)):
-        # for j in range(1):
-            covar_c = self.x_covar_module[j](x[:,j].long())
-            indicator = self.indicator_module[j](x[:,j].long())
-            covar += covar_c.mul(indicator) # + covar_x.mul(covar_i) 
+            if len(x.shape)==2:
+                covar_c = self.x_covar_module[j](x[:,j].long())
+                indicator = self.indicator_module[j](x[:,j].long())
+            else:
+                num_samples = x.shape[0]
+                n = x.shape[1]
+                covar_c = self.x_covar_module[j].forward(x[:,:,j].reshape(num_samples,n).long(),\
+                    x[:,:,j].reshape(num_samples,n).long())
+                indicator = self.indicator_module[j].forward(x[:,:,j].reshape(num_samples,n,1).long(),\
+                x[:,:,j].reshape(num_samples,n,1).long())
+            covar += indicator.mul(covar_c) # + covar_x.mul(covar_i) 
 
         return gpytorch.distributions.MultivariateNormal(mean_i.double(), covar.double())
 

@@ -22,7 +22,7 @@ def ax_plot(ax, test_t, X, Y, m, lower, upper, LABEL):
 
 def plot_prior(model):
     param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior", "t_covar_module.base_kernel.lengthscale_prior"]
-    xmax = [1,1,30]
+    xmax = [4,4,60]
     labels = ["noise", "os","ls"]
     fig, ax = plt.subplots(nrows=2, ncols=2)
     for i in range(3):
@@ -61,7 +61,6 @@ def plot_posterior(mcmc_samples):
 
     fig.suptitle("Gamma posterior")
     plt.savefig("results/gammaposterior.png")
-    plt.show()
 
     return 
 
@@ -188,36 +187,36 @@ def visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i,
     lower, upper = f_pred.confidence_region()
     
     station_ids = data.station_id.unique()
-    for station_id in station_ids:
-         mask = (data.station_id==station_id).to_numpy()
-         test_t = test_x[mask, -1]
-         idx = np.argsort(test_t)
-         test_t = test_t[[idx]]
-         lower_i = lower[mask][idx]
-         upper_i = upper[mask][idx]
-         m_i = f_pred.mean[mask][idx]
-         # print(torch.sqrt(f_pred.variance[mask][idx][-10:]))
-         # station_id = station_le.inverse_transform([i])[0]
-         treatment = data[mask].sinclair2017.unique()[0]
-         LABEL = "treated" if treatment else "control"
-         y_i = test_y[mask][[idx]]
+#     for station_id in station_ids:
+#          mask = (data.station_id==station_id).to_numpy()
+#          test_t = test_x[mask, -1]
+#          idx = np.argsort(test_t)
+#          test_t = test_t[[idx]]
+#          lower_i = lower[mask][idx]
+#          upper_i = upper[mask][idx]
+#          m_i = f_pred.mean[mask][idx]
+#          # print(torch.sqrt(f_pred.variance[mask][idx][-10:]))
+#          # station_id = station_le.inverse_transform([i])[0]
+#          treatment = data[mask].sinclair2017.unique()[0]
+#          LABEL = "treated" if treatment else "control"
+#          y_i = test_y[mask][[idx]]
 
-     #     lower_i = 1/(1+torch.exp(-lower_i))
-     #     upper_i = 1/(1+torch.exp(-upper_i))
-     #     m_i = 1/(1+torch.exp(-m_i))
-     #     y_i = 1/(1+torch.exp(-y_i))
+#      #     lower_i = 1/(1+torch.exp(-lower_i))
+#      #     upper_i = 1/(1+torch.exp(-upper_i))
+#      #     m_i = 1/(1+torch.exp(-m_i))
+#      #     y_i = 1/(1+torch.exp(-y_i))
         
-         plt.scatter(1+test_t.detach().numpy(), y_i.detach().numpy(),\
-            color='grey', s=1, label=LABEL + " " + str(station_id))
-         plt.plot(1+test_t.detach().numpy(), m_i.detach().numpy(),\
-               'k--', linewidth=1.0, label='Estimated Y(0)')
-         plt.fill_between(1+test_t.detach().numpy(), lower_i.detach().numpy(),\
-               upper_i.detach().numpy(), alpha=0.5)
-         plt.legend(loc=2)
-         plt.title("{} Unit {}".format(LABEL, station_id))
-         plt.axvline(x=T0, color='red', linewidth=1.0)
-         plt.savefig("results/localnews_{}.png".format(station_id))
-         plt.close()
+#          plt.scatter(1+test_t.detach().numpy(), y_i.detach().numpy(),\
+#             color='grey', s=1, label=LABEL + " " + str(station_id))
+#          plt.plot(1+test_t.detach().numpy(), m_i.detach().numpy(),\
+#                'k--', linewidth=1.0, label='Estimated Y(0)')
+#          plt.fill_between(1+test_t.detach().numpy(), lower_i.detach().numpy(),\
+#                upper_i.detach().numpy(), alpha=0.5)
+#          plt.legend(loc=2)
+#          plt.title("{} Unit {}".format(LABEL, station_id))
+#          plt.axvline(x=T0, color='red', linewidth=1.0)
+#          plt.savefig("results/localnews_{}.png".format(station_id))
+#          plt.close()
 
     result = pd.DataFrame({
          "t":test_x[:,-1],
@@ -257,6 +256,9 @@ def visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, te
     # Set into eval mode
     model.eval()
     likelihood.eval()
+
+    for i in range(1,len(model.x_covar_module)):
+        model.x_covar_module[i].c2 = torch.tensor(0.0**2)
 
     T = list(torch.unique(test_x[:,-1]).shape)[0]
     N = torch.unique(train_i).shape[0]
