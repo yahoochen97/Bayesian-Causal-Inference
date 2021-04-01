@@ -21,9 +21,9 @@ import dill as pickle
 
 smoke_test = ('CI' in os.environ)
 training_iterations = 2 if smoke_test else 100
-num_samples = 2 if smoke_test else 500
-warmup_steps = 2 if smoke_test else 500
-gpytorch.settings.cg_tolerance(2)
+num_samples = 2 if smoke_test else 1000
+warmup_steps = 2 if smoke_test else 1000
+# gpytorch.settings.cg_tolerance(1)
 
 
 def train(train_x, train_i, train_y, model, likelihood, mll, optimizer):
@@ -36,7 +36,7 @@ def train(train_x, train_i, train_y, model, likelihood, mll, optimizer):
         output = model(train_x, train_i)
         loss = -mll(output, train_y.double())
         loss.backward()
-        print('Iter %d/%d - Loss: %.3f' % (i + 1, training_iterations, train_x.shape[0]*loss.item()))
+        print('Iter %d/%d - Loss: %.3f' % (i + 1, training_iterations, loss.item()))
         # print(f'Parameter name: task_covar_module.rho value = {model.task_covar_module.rho.detach().numpy()}')
         # print(f'Parameter name: task_covar_module.raw_rho value = {model.task_covar_module.raw_rho.detach().numpy()}')
         optimizer.step()
@@ -162,6 +162,7 @@ def localnews(INFERENCE):
     ids = data.station_id.to_numpy().reshape(-1,)
     station_le.fit(ids)
     ids = station_le.transform(ids)
+    # group/weekday/station effects
     X = np.concatenate((Group, X.reshape(-1,1),ids.reshape(-1,1),ds), axis=1)
     X_max_v = [np.max(X[:,i]).astype(int) for i in range(X.shape[1]-1)]
     Y = data.national_politics.to_numpy()
@@ -180,7 +181,7 @@ def localnews(INFERENCE):
     # fit = TwoWayFixedEffectModel(X_tr, X_co, Y_tr, Y_co, ATT, T0)
     # return
     
-    noise_prior = gpytorch.priors.GammaPrior(concentration=1,rate=2)
+    noise_prior = gpytorch.priors.GammaPrior(concentration=1,rate=5)
     likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_prior=noise_prior,\
         noise_constraint=gpytorch.constraints.Positive())
     model = MultitaskGPModel((train_x, train_i), train_y, X_max_v, likelihood)
@@ -231,11 +232,29 @@ def localnews(INFERENCE):
         os.mkdir("results")
 
     if INFERENCE=='MCMCLOAD':
+        plot_prior(model)
         with open('results/localnews_MCMC.pkl', 'rb') as f:
             mcmc_run = pickle.load(f)
         mcmc_samples = mcmc_run.get_samples()
+
+        mlls = np.zeros(num_samples)
+        param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior",
+         "t_covar_module.base_kernel.lengthscale_prior", "task_covar_module.rho_prior"]
+        for i in range(1000):
+            print(i)
+            model.task_covar_module._set_rho(np.min([1,mcmc_samples[param_list[3]].numpy().reshape(-1)[i]]))
+            model.t_covar_module.outputscale = mcmc_samples[param_list[1]].numpy().reshape(-1)[i]**2 
+            model.t_covar_module.base_kernel.lengthscale = mcmc_samples[param_list[2]].numpy().reshape(-1)[i]
+            model.likelihood.noise_covar.noise = mcmc_samples[param_list[0]].numpy().reshape(-1)[i]**2
+            output = model(train_x, train_i)
+            mlls[i] = mll(output, train_y.double())
+            print(mlls[i])
+        import seaborn as sns
+        from matplotlib import pyplot as plt
+        sns.distplot(mlls)
+        plt.show()
+        return
         plot_posterior(mcmc_samples)
-        idx = np.random.choice(num_samples, 10, replace=False)
         return
         for k, d in mcmc_samples.items():
             mcmc_samples[k] = d[idx]
@@ -288,23 +307,24 @@ def localnews(INFERENCE):
          likelihood, T0, date_le, station_le)
         return
     elif INFERENCE=='MCMC':
-        model.task_covar_module._set_rho(0.0)
-        model.t_covar_module.outputscale = 0.05**2 
-        model.t_covar_module.base_kernel.lengthscale = 14
-        model.likelihood.noise_covar.noise = 0.05**2
+        pyro.set_rng_seed(1)
+        model.task_covar_module._set_rho(0.5)
+        model.t_covar_module.outputscale = 0.02**2 
+        model.t_covar_module.base_kernel.lengthscale = 30
+        model.likelihood.noise_covar.noise = 0.04**2
 
         nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True)
-        hmc_kernel = HMC(pyro_model, step_size=1)
-        mcmc_run = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, disable_progbar=smoke_test)
+        hmc_kernel = HMC(pyro_model, step_size=0.1, num_steps=2, adapt_step_size=True)
+        mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps, disable_progbar=smoke_test)
         mcmc_run.run(train_x, train_i, train_y)
         # save the posterior
         # with open('results/localnews_' + INFERENCE+ '.pkl', 'wb') as f:
         #     pickle.dump(mcmc_run.get_samples(), f)
         pickle.dump(mcmc_run, open("results/localnews_MCMC.pkl", "wb"))
         torch.save(model.state_dict(), 'results/localnews_' + INFERENCE +'_model_state.pth')
+        return
         visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
                 likelihood, T0, date_le, station_le, num_samples)
-        return
     else:
         model.load_strict_shapes(False)
         state_dict = torch.load('results/localnews_MAP_model_state.pth')

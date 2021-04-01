@@ -22,7 +22,7 @@ def ax_plot(ax, test_t, X, Y, m, lower, upper, LABEL):
 
 def plot_prior(model):
     param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior", "t_covar_module.base_kernel.lengthscale_prior"]
-    xmax = [4,4,60]
+    xmax = [1,1,60]
     labels = ["noise", "os","ls"]
     fig, ax = plt.subplots(nrows=2, ncols=2)
     for i in range(3):
@@ -44,8 +44,7 @@ def plot_prior(model):
     ax[1][1].legend(["rho"])
     fig.suptitle("Gamma prior")
     plt.savefig("results/gammaprior.png")
-    plt.show()
-
+    plt.close()
     return 
 
 
@@ -61,6 +60,18 @@ def plot_posterior(mcmc_samples):
 
     fig.suptitle("Gamma posterior")
     plt.savefig("results/gammaposterior.png")
+    plt.show()
+
+#     fig, axes = plt.subplots(nrows=3, ncols=3)
+#     for i in range(9):
+#          s = 100*(i+1)
+#          e = 100*(i+2)
+#          samples = mcmc_samples[param_list[3]].numpy().reshape(-1)[s:e]
+#          sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
+#          axes[int(i/3)][int(i%3)].legend([str(s)+":"+str(e)])
+
+#     fig.suptitle("Rho posterior")
+#     plt.savefig("results/gammaposteriorrho.png")
 
     return 
 
