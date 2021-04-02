@@ -154,7 +154,7 @@ def localnews(INFERENCE):
     ohe = OneHotEncoder() 
     ohe = LabelEncoder()
     X = data.drop(columns=["station_id", "date", "national_politics", "sinclair2017",
-    "post","affiliation","callsign"]) # , "weekday","affiliation","callsign"
+    "post","affiliation","callsign"]).to_numpy().reshape(-1,) # , "weekday","affiliation","callsign"
     Group = data.sinclair2017.to_numpy().reshape(-1,1)
     ohe.fit(X)
     X = ohe.transform(X)
@@ -315,7 +315,7 @@ def localnews(INFERENCE):
          "task_covar_module.rho_prior": model.task_covar_module.raw_rho.detach()}
 
         nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True)
-        hmc_kernel = HMC(pyro_model, step_size=1e-1, num_steps=10, adapt_step_size=True)
+        hmc_kernel = HMC(pyro_model, step_size=1e-1, num_steps=4, adapt_step_size=True)
         mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps, initial_params=initial_params)
         mcmc_run.run(train_x, train_i, train_y)
         # save the posterior
