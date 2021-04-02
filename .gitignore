@@ -12,3 +12,4 @@ data/segments_dd.csv
 results
 *.txt
 *.pkl
+*.prof

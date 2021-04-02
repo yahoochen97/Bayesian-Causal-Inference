@@ -60,12 +60,11 @@ def plot_posterior(mcmc_samples):
 
     fig.suptitle("Gamma posterior")
     plt.savefig("results/gammaposterior.png")
-    plt.show()
 
 #     fig, axes = plt.subplots(nrows=3, ncols=3)
 #     for i in range(9):
-#          s = 100*(i+1)
-#          e = 100*(i+2)
+#          s = 100*(i)
+#          e = 100*(i+1)
 #          samples = mcmc_samples[param_list[3]].numpy().reshape(-1)[s:e]
 #          sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
 #          axes[int(i/3)][int(i%3)].legend([str(s)+":"+str(e)])

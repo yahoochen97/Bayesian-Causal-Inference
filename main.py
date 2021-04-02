@@ -20,9 +20,9 @@ import dill as pickle
 
 
 smoke_test = ('CI' in os.environ)
-training_iterations = 2 if smoke_test else 100
-num_samples = 2 if smoke_test else 1000
-warmup_steps = 2 if smoke_test else 1000
+training_iterations = 2 if smoke_test else 200
+num_samples = 2 if smoke_test else 200
+warmup_steps = 2 if smoke_test else 100
 # gpytorch.settings.cg_tolerance(1)
 
 
@@ -36,7 +36,7 @@ def train(train_x, train_i, train_y, model, likelihood, mll, optimizer):
         output = model(train_x, train_i)
         loss = -mll(output, train_y.double())
         loss.backward()
-        print('Iter %d/%d - Loss: %.3f' % (i + 1, training_iterations, loss.item()))
+        print('Iter %d/%d - LL: %.3f' % (i + 1, training_iterations, -loss.item()))
         # print(f'Parameter name: task_covar_module.rho value = {model.task_covar_module.rho.detach().numpy()}')
         # print(f'Parameter name: task_covar_module.raw_rho value = {model.task_covar_module.raw_rho.detach().numpy()}')
         optimizer.step()
@@ -181,7 +181,8 @@ def localnews(INFERENCE):
     # fit = TwoWayFixedEffectModel(X_tr, X_co, Y_tr, Y_co, ATT, T0)
     # return
     
-    noise_prior = gpytorch.priors.GammaPrior(concentration=1,rate=5)
+    noise_prior = gpytorch.priors.GammaPrior(concentration=1,rate=10)
+    # noise_prior = gpytorch.priors.UniformPrior(0.001,0.2)
     likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_prior=noise_prior,\
         noise_constraint=gpytorch.constraints.Positive())
     model = MultitaskGPModel((train_x, train_i), train_y, X_max_v, likelihood)
@@ -237,23 +238,21 @@ def localnews(INFERENCE):
             mcmc_run = pickle.load(f)
         mcmc_samples = mcmc_run.get_samples()
 
-        mlls = np.zeros(num_samples)
-        param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior",
-         "t_covar_module.base_kernel.lengthscale_prior", "task_covar_module.rho_prior"]
-        for i in range(1000):
-            print(i)
-            model.task_covar_module._set_rho(np.min([1,mcmc_samples[param_list[3]].numpy().reshape(-1)[i]]))
-            model.t_covar_module.outputscale = mcmc_samples[param_list[1]].numpy().reshape(-1)[i]**2 
-            model.t_covar_module.base_kernel.lengthscale = mcmc_samples[param_list[2]].numpy().reshape(-1)[i]
-            model.likelihood.noise_covar.noise = mcmc_samples[param_list[0]].numpy().reshape(-1)[i]**2
-            output = model(train_x, train_i)
-            mlls[i] = mll(output, train_y.double())
-            print(mlls[i])
-        import seaborn as sns
-        from matplotlib import pyplot as plt
-        sns.distplot(mlls)
-        plt.show()
-        return
+        # mlls = np.zeros(num_samples)
+        # param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior",
+        #  "t_covar_module.base_kernel.lengthscale_prior", "task_covar_module.rho_prior"]
+        # for i in range(500,800):
+        #     model.task_covar_module._set_rho(np.min([1,mcmc_samples[param_list[3]].numpy().reshape(-1)[i]]))
+        #     model.t_covar_module.outputscale = mcmc_samples[param_list[1]].numpy().reshape(-1)[i]**2 
+        #     model.t_covar_module.base_kernel.lengthscale = mcmc_samples[param_list[2]].numpy().reshape(-1)[i]
+        #     model.likelihood.noise_covar.noise = mcmc_samples[param_list[0]].numpy().reshape(-1)[i]**2
+        #     output = model(train_x, train_i)
+        #     mlls[i] = mll(output, train_y.double())
+        # import seaborn as sns
+        # from matplotlib import pyplot as plt
+        # sns.distplot(mlls[500:800])
+        # plt.show()
+        # return
         plot_posterior(mcmc_samples)
         return
         for k, d in mcmc_samples.items():
@@ -264,10 +263,10 @@ def localnews(INFERENCE):
         return
         
     elif INFERENCE=='MAP':
-        model.task_covar_module._set_rho(0.0)
-        model.t_covar_module.outputscale = 0.01**2 
-        model.t_covar_module.base_kernel.lengthscale = 30
-        model.likelihood.noise_covar.noise = 0.05**2
+        model.task_covar_module._set_rho(0.9)
+        model.t_covar_module.outputscale = 0.02**2 
+        model.t_covar_module.base_kernel.lengthscale = 3
+        model.likelihood.noise_covar.noise = 0.035**2
 
         # k = 50
         # rhos = np.linspace(-0.99,0.99,k)
@@ -299,23 +298,25 @@ def localnews(INFERENCE):
         # plt.close()
         # return
         
-
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.01)  # Includes GaussianLikelihood parameters
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
         model, likelihood = train(train_x, train_i, train_y, model, likelihood, mll, optimizer)
         torch.save(model.state_dict(), 'results/localnews_' +  INFERENCE + '_model_state.pth')
         visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
          likelihood, T0, date_le, station_le)
         return
     elif INFERENCE=='MCMC':
-        pyro.set_rng_seed(1)
-        model.task_covar_module._set_rho(0.5)
+        model.task_covar_module._set_rho(0.9)
         model.t_covar_module.outputscale = 0.02**2 
-        model.t_covar_module.base_kernel.lengthscale = 30
-        model.likelihood.noise_covar.noise = 0.04**2
+        model.t_covar_module.base_kernel.lengthscale = 3
+        model.likelihood.noise_covar.noise = 0.035**2
+        initial_params = {"likelihood.noise_covar.noise_prior": model.likelihood.raw_noise.detach(), 
+         "t_covar_module.outputscale_prior": model.t_covar_module.raw_outputscale.detach(),
+         "t_covar_module.base_kernel.lengthscale_prior": model.t_covar_module.base_kernel.raw_lengthscale.detach(),
+         "task_covar_module.rho_prior": model.task_covar_module.raw_rho.detach()}
 
         nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True)
-        hmc_kernel = HMC(pyro_model, step_size=0.1, num_steps=2, adapt_step_size=True)
-        mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps, disable_progbar=smoke_test)
+        hmc_kernel = HMC(pyro_model, step_size=1e-1, num_steps=10, adapt_step_size=True)
+        mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps, initial_params=initial_params)
         mcmc_run.run(train_x, train_i, train_y)
         # save the posterior
         # with open('results/localnews_' + INFERENCE+ '.pkl', 'wb') as f:
