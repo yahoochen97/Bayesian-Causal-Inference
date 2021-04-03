@@ -9,6 +9,9 @@ import dill as pickle
 from matplotlib import pyplot as plt
 import scipy.special as sps 
 import seaborn as sns
+import pymc3 as pm
+import sampyl as smp
+import numpy as np
 
 from gpytorch.priors import LogNormalPrior, NormalPrior, UniformPrior
 
@@ -26,32 +29,77 @@ class ExactGPModel(gpytorch.models.ExactGP):
 def main():
     smoke_test = ('CI' in os.environ)
     num_samples = 2 if smoke_test else 500
-    warmup_steps = 2 if smoke_test else 100
+    warmup_steps = 2 if smoke_test else 500
 
-    train_x = torch.linspace(0, 1, 20)
-    train_y = torch.cos(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.1
+    train_x = torch.linspace(0, 1, 100)
+    train_y = torch.sin(train_x * (2 * math.pi)) + torch.randn(train_x.size()) * 0.1
 
     # Use a positive constraint instead of usual GreaterThan(1e-4) so that LogNormal has support over full range.
     likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_constraint=gpytorch.constraints.Positive())
     model = ExactGPModel(train_x, train_y, likelihood)
 
     model.mean_module.register_prior("mean_prior", UniformPrior(-1, 1), "constant")
-    model.covar_module.base_kernel.register_prior("lengthscale_prior", UniformPrior(0.01, 2.0), "lengthscale")
-    model.covar_module.register_prior("outputscale_prior", UniformPrior(0.01, 2), "outputscale")
-    model.likelihood.register_prior("noise_prior", UniformPrior(0.001, 0.3), "noise")
+    model.covar_module.base_kernel.register_prior("lengthscale_prior", UniformPrior(0.01, 4), "lengthscale")
+    model.covar_module.register_prior("outputscale_prior", UniformPrior(0.01, 4), "outputscale")
+    likelihood.register_prior("noise_prior", UniformPrior(0.0001, 0.04), "noise")
+    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+
+    def logp(params):
+        if type(params) is not np.ndarray:
+            c = params[0]._value
+            ls = params[1]._value
+            os = params[2]._value
+            noise = params[3]._value
+        else:
+            c = params[0]
+            ls = params[1]
+            os = params[2]
+            noise = params[3]
+        model.mean_module.constant.data.fill_(torch.tensor(c))
+        model.covar_module.base_kernel.raw_lengthscale.data.fill_(ls)
+        model.covar_module.raw_outputscale.data.fill_(os)
+        model.likelihood.raw_noise.data.fill_(noise)
+        output = model(train_x)
+        ll = mll(output, train_y)
+        return ll.detach().numpy()
 
     model.mean_module.constant.data.fill_(0.0)
-    model.covar_module.base_kernel.lengthscale = 0.5
-    model.covar_module.outputscale = 1
+    model.covar_module.base_kernel.lengthscale = 1
+    model.covar_module.outputscale = 0.5**2
     model.likelihood.noise = 0.05**2
 
-    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+    start = {'params': np.array([model.mean_module.constant.item(),\
+          model.covar_module.base_kernel.raw_lengthscale.item(),\
+              model.covar_module.raw_outputscale.item(),  model.likelihood.raw_noise.detach().item()])}
+
+    hmc = smp.Hamiltonian(logp, start, step_size=0.1, n_steps=10)
+    chain = hmc.sample(3000, burn=1000)
+
+    labels = ["mean", "ls","os","noise"]
+    fig, axes = plt.subplots(nrows=2, ncols=2)
+    for i in range(4):
+        if i == 0:
+            samples = chain.params[:,i].reshape(-1)
+        else:
+            samples = 1/(1+np.exp(-1*chain.params[:,i].reshape(-1)))
+        sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
+        axes[int(i/2)][int(i%2)].legend([labels[i]])
+    plt.show()
+    return
+
+
+    # model.mean_module.register_prior("mean_prior", UniformPrior(-1, 1), "constant")
+    # model.covar_module.base_kernel.register_prior("lengthscale_prior", UniformPrior(0.01, 0.5), "lengthscale")
+    # model.covar_module.base_kernel.register_prior("period_length_prior", UniformPrior(0.05, 2.5), "period_length") 
+    # model.covar_module.register_prior("outputscale_prior", UniformPrior(0.5, 2), "outputscale")
+    # likelihood.register_prior("noise_prior", UniformPrior(0.001, 0.2), "noise")
+
 
     def pyro_model(x, y):
         model.pyro_sample_from_prior()
         output = model(x)
         loss = mll.pyro_factor(output, y)
-        return y
+        return loss
 
     nuts_kernel = NUTS(pyro_model, adapt_step_size=True)
     hmc_kernel = HMC(pyro_model, step_size=0.1, num_steps=10, adapt_step_size=True)
@@ -62,7 +110,9 @@ def train(mcmc_run, train_x, train_y):
     mcmc_run.run(train_x, train_y)
     pickle.dump(mcmc_run, open("results/test_mcmc.pkl", "wb"))
 
+
 if __name__ == "__main__":
+
     mcmc_run, train_x, train_y = main()
     train(mcmc_run, train_x, train_y)
     mcmc_run = pickle.load(open("results/test_mcmc.pkl",'rb'))
@@ -76,7 +126,6 @@ if __name__ == "__main__":
          sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
          axes[int(i/2)][int(i%2)].legend([labels[i]])
     plt.show()
-
 
     # model.pyro_load_from_samples(mcmc_run.get_samples())
     # model.eval()
