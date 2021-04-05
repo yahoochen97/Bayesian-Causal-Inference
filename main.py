@@ -2,7 +2,6 @@ import torch
 import json
 import gpytorch
 import pyro
-import pickle
 from pyro.infer.mcmc import NUTS, MCMC, HMC
 from model.multitaskmodel import MultitaskGPModel
 from utilities.savejson import savejson
@@ -17,13 +16,13 @@ import argparse
 import datetime
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import dill as pickle
+import sampyl as smp
 
 
 smoke_test = ('CI' in os.environ)
 training_iterations = 2 if smoke_test else 200
-num_samples = 2 if smoke_test else 200
-warmup_steps = 2 if smoke_test else 100
-# gpytorch.settings.cg_tolerance(1)
+num_samples = 2 if smoke_test else 1000
+warmup_steps = 2 if smoke_test else 1000
 
 
 def train(train_x, train_i, train_y, model, likelihood, mll, optimizer):
@@ -67,10 +66,6 @@ def synthetic(INFERENCE):
 
     train_x = torch.cat([train_x_tr, train_x_co])
     train_y = torch.cat([train_y_tr, train_y_co])
-    # train_i_tr = [torch.full_like(Y_tr[i,:T0].reshape(-1), dtype=torch.long, fill_value=i)
-    #         for i in range(X_tr.shape[0])] 
-    # train_i_co = [torch.full_like(Y_co[i].reshape(-1), dtype=torch.long, fill_value=i+N_tr)
-    #         for i in range(X_co.shape[0])]
 
     # treat group 1, control group 0
     train_i_tr = torch.full_like(train_y_tr, dtype=torch.long, fill_value=1)
@@ -86,13 +81,6 @@ def synthetic(INFERENCE):
 
     # "Loss" for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
-
-    # initialize parameter
-    # model.task_covar_module.covar_factor = torch.nn.Parameter(torch.zeros(1,2))
-    
-    B = model.task_covar_module.covar_factor
-    v = model.task_covar_module.raw_var
-    print(torch.matmul(B,B.T)+torch.exp(v))
 
     def pyro_model(x, i, y):
         model.pyro_sample_from_prior()
@@ -118,13 +106,6 @@ def synthetic(INFERENCE):
         mcmc_run.run(train_x, train_i, train_y)
         torch.save(model.state_dict(), 'results/synthetic_' + INFERENCE +'_model_state.pth')
 
-    B = model.task_covar_module.covar_factor
-    v = model.task_covar_module.raw_var
-    print(torch.matmul(B,B.T)+torch.exp(v))
-
-    # json_file = "results/optimizedhyps.json"
-    # savejson(model, likelihood, json_file)
-
     visualize_synthetic(X_tr, X_co, Y_tr, Y_co, ATT, model, likelihood, T0)
 
 
@@ -140,11 +121,7 @@ def localnews(INFERENCE):
     sigma_noise = configs["sigma_noise"]
 
     data = pd.read_csv("data/localnews.csv",index_col=[0])
-    # data.national_politics = np.log(data.national_politics/(1-data.national_politics))
     data.date = data.date.apply(lambda x: datetime.datetime.strptime(x, '%m/%d/%Y').date())
-    # data = data.sort_values(by=['date'])
-    # data = data[(data.date<=datetime.date(2017, 9, 10)) & (data.date>=datetime.date(2017, 8, 20))]
-    # data = data[data.station_id.isin([1345,1350])]
     N = data.station_id.unique().shape[0]
 
     date_le = LabelEncoder()
@@ -182,21 +159,14 @@ def localnews(INFERENCE):
     # return
     
     noise_prior = gpytorch.priors.GammaPrior(concentration=1,rate=10)
-    # noise_prior = gpytorch.priors.UniformPrior(0.001,0.2)
+    noise_prior = gpytorch.priors.UniformPrior(0, 0.04)
     likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_prior=noise_prior,\
         noise_constraint=gpytorch.constraints.Positive())
     model = MultitaskGPModel((train_x, train_i), train_y, X_max_v, likelihood)
 
-    # fix some parameters
-    # model.c_covar_module._set_c2(torch.var(train_y))
     model.x_covar_module[0].c2 = torch.var(train_y)
     for i in range(1,len(X_max_v)):
         model.x_covar_module[i].c2 = torch.tensor(0.05**2)
-    # model.mean_module[0].constant.data.fill_(torch.mean(train_y[train_i==0]).double()) 
-    # model.mean_module[1].constant.data.fill_(torch.mean(train_y[train_i==1]).double())
-    # model.mean_module[0].constant.requires_grad = False
-    # model.mean_module[1].constant.requires_grad = False
-    # model.c_covar_module.raw_c2.requires_grad = False
 
     model.i_mean_module.bias.data.fill_(torch.mean(train_y[train_i==0]))
     slope = torch.mean(train_y[train_i==1])-torch.mean(train_y[train_i==0])
@@ -222,6 +192,26 @@ def localnews(INFERENCE):
         loss = mll.pyro_factor(output, y)
         return y
 
+    def logp(rho, ls, os, noise):
+        if type(rho) is not float:
+            rho = rho._value
+        if type(ls) is not float:
+            ls = ls._value
+        if type(os) is not float:
+            os = os._value
+        if type(noise) is not float:
+            noise = noise._value
+
+        model.task_covar_module.raw_rho.data.fill_(rho)
+        model.t_covar_module.raw_outputscale.data.fill_(os) 
+        model.t_covar_module.base_kernel.raw_lengthscale.data.fill_(ls)
+        model.likelihood.raw_noise.data.fill_(noise)
+
+        output = model(train_x, train_i)
+        ll = mll(output, train_y)*train_x.shape[0]
+
+        return ll.detach().numpy()
+
     if torch.cuda.is_available():
         train_x = train_x.cuda()
         train_i = train_i.cuda()
@@ -233,27 +223,12 @@ def localnews(INFERENCE):
         os.mkdir("results")
 
     if INFERENCE=='MCMCLOAD':
-        plot_prior(model)
+        # plot_prior(model)
         with open('results/localnews_MCMC.pkl', 'rb') as f:
             mcmc_run = pickle.load(f)
-        mcmc_samples = mcmc_run.get_samples()
-
-        # mlls = np.zeros(num_samples)
-        # param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior",
-        #  "t_covar_module.base_kernel.lengthscale_prior", "task_covar_module.rho_prior"]
-        # for i in range(500,800):
-        #     model.task_covar_module._set_rho(np.min([1,mcmc_samples[param_list[3]].numpy().reshape(-1)[i]]))
-        #     model.t_covar_module.outputscale = mcmc_samples[param_list[1]].numpy().reshape(-1)[i]**2 
-        #     model.t_covar_module.base_kernel.lengthscale = mcmc_samples[param_list[2]].numpy().reshape(-1)[i]
-        #     model.likelihood.noise_covar.noise = mcmc_samples[param_list[0]].numpy().reshape(-1)[i]**2
-        #     output = model(train_x, train_i)
-        #     mlls[i] = mll(output, train_y.double())
-        # import seaborn as sns
-        # from matplotlib import pyplot as plt
-        # sns.distplot(mlls[500:800])
-        # plt.show()
-        # return
-        plot_posterior(mcmc_samples)
+        plot_posterior(mcmc_run)
+        # mcmc_samples = mcmc_run.get_samples()
+        # plot_posterior(mcmc_samples)
         return
         for k, d in mcmc_samples.items():
             mcmc_samples[k] = d[idx]
@@ -267,36 +242,6 @@ def localnews(INFERENCE):
         model.t_covar_module.outputscale = 0.02**2 
         model.t_covar_module.base_kernel.lengthscale = 3
         model.likelihood.noise_covar.noise = 0.035**2
-
-        # k = 50
-        # rhos = np.linspace(-0.99,0.99,k)
-        # oss = np.linspace(0.001,0.499,k)
-
-        # model.t_covar_module.base_kernel.lengthscale = 7
-        # model.likelihood.noise_covar.noise = 0.035**2
-        # losses = np.zeros((k,k))
-        # for i in range(k):
-        #     for j in range(k):
-        #         print(i*k+j)
-        #         model.task_covar_module._set_rho(rhos[i])
-        #         model.t_covar_module.outputscale = oss[j]**2
-        #         model.train()
-        #         likelihood.train()
-        #         output = model(train_x, train_i)
-        #         loss = mll(output, train_y.double())*train_x.shape[0]
-        #         losses[i,j] = loss
-
-        # import seaborn as sns
-        # from matplotlib import pyplot as plt
-        # sns.set(rc={'figure.figsize':(20,16)})
-        # ax = sns.heatmap(losses, cmap="YlGnBu")
-        # cbar = ax.collections[0].colorbar
-        # cbar.ax.tick_params(labelsize=20)
-
-        # np.savetxt("results/heatmapls7.csv", losses, delimiter=",")
-        # plt.savefig("./results/heatmapls7.pdf")
-        # plt.close()
-        # return
         
         optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
         model, likelihood = train(train_x, train_i, train_y, model, likelihood, mll, optimizer)
@@ -309,21 +254,24 @@ def localnews(INFERENCE):
         model.t_covar_module.outputscale = 0.02**2 
         model.t_covar_module.base_kernel.lengthscale = 3
         model.likelihood.noise_covar.noise = 0.035**2
-        initial_params = {"likelihood.noise_covar.noise_prior": model.likelihood.raw_noise.detach(), 
-         "t_covar_module.outputscale_prior": model.t_covar_module.raw_outputscale.detach(),
-         "t_covar_module.base_kernel.lengthscale_prior": model.t_covar_module.base_kernel.raw_lengthscale.detach(),
-         "task_covar_module.rho_prior": model.task_covar_module.raw_rho.detach()}
+        initial_params =  {'rho': model.task_covar_module.raw_rho.item(),\
+            'ls':  model.t_covar_module.base_kernel.raw_lengthscale.item(),\
+            'os': model.t_covar_module.raw_outputscale.item(),\
+            'noise': model.likelihood.raw_noise.detach().item()
+        }
 
-        nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True)
-        hmc_kernel = HMC(pyro_model, step_size=1e-1, num_steps=4, adapt_step_size=True)
-        mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps, initial_params=initial_params)
-        mcmc_run.run(train_x, train_i, train_y)
-        # save the posterior
-        # with open('results/localnews_' + INFERENCE+ '.pkl', 'wb') as f:
-        #     pickle.dump(mcmc_run.get_samples(), f)
-        pickle.dump(mcmc_run, open("results/localnews_MCMC.pkl", "wb"))
-        torch.save(model.state_dict(), 'results/localnews_' + INFERENCE +'_model_state.pth')
+        # nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True)
+        # hmc_kernel = HMC(pyro_model, step_size=1e-1, num_steps=4, adapt_step_size=True)
+        # mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps, initial_params=initial_params)
+        # mcmc_run.run(train_x, train_i, train_y)
+        hmc = smp.Hamiltonian(logp, initial_params, step_size=0.5, n_steps=10)
+        nuts = smp.NUTS(logp, initial_params)
+        chain = hmc.sample(num=num_samples ,burn=warmup_steps)
+
+        plot_posterior(chain)
+        pickle.dump(chain, open("results/localnews_MCMC.pkl", "wb"))
         return
+
         visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
                 likelihood, T0, date_le, station_le, num_samples)
     else:
@@ -334,8 +282,6 @@ def localnews(INFERENCE):
         print(f'Parameter name: ls value = {model.t_covar_module.base_kernel.lengthscale.detach().numpy()}')
         print(f'Parameter name: os value = {np.sqrt(model.t_covar_module.outputscale.detach().numpy())}')
         print(f'Parameter name: noise value = {np.sqrt(model.likelihood.noise.detach().numpy())}')
-        # for param_name, param in model.named_parameters():
-        #     print(f'Parameter name: {param_name:42} value = {param.detach().numpy()}')
         visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
          likelihood, T0, date_le, station_le)
 

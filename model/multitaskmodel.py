@@ -20,6 +20,8 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         outputscale_prior = gpytorch.priors.GammaPrior(concentration=1,rate=10)
         lengthscale_prior = gpytorch.priors.GammaPrior(concentration=3,rate=1/5)
         rho_prior = gpytorch.priors.UniformPrior(-1, 1)
+        lengthscale_prior = gpytorch.priors.UniformPrior(0.1, 60)
+        outputscale_prior = gpytorch.priors.UniformPrior(0, 0.04)
             
         self.num_task = 2 # treatment/control
         self.X_max_v = X_max_v

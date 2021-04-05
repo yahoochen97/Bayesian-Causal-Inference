@@ -47,30 +47,46 @@ def plot_prior(model):
     plt.close()
     return 
 
+def plot_posterior(chain):
+    labels = ["rho", "ls","os","noise"]
+    fig, axes = plt.subplots(nrows=2, ncols=2)
+    for i in range(4):
+        samples = 1/(1+np.exp(-1*getattr(chain, labels[i]).reshape(-1)))
+        if i>=2:
+            samples = np.sqrt(samples)
+        sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
+        axes[int(i/2)][int(i%2)].legend([labels[i]])
 
-def plot_posterior(mcmc_samples):
+    fig.suptitle("Gamma posterior")
+    plt.savefig("results/gammaposterior.png")
+    plt.show()
+    return
+
+def plot_pyro_posterior(mcmc_samples):
     param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior",
     "t_covar_module.base_kernel.lengthscale_prior", "task_covar_module.rho_prior"]
     labels = ["noise", "os","ls","rho"]
     fig, axes = plt.subplots(nrows=2, ncols=2)
     for i in range(4):
          samples = mcmc_samples[param_list[i]].numpy().reshape(-1)
+         if labels[i] in ["noise", "os"]:
+              samples = np.sqrt(samples)
          sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
          axes[int(i/2)][int(i%2)].legend([labels[i]])
 
     fig.suptitle("Gamma posterior")
     plt.savefig("results/gammaposterior.png")
 
-#     fig, axes = plt.subplots(nrows=3, ncols=3)
-#     for i in range(9):
-#          s = 100*(i)
-#          e = 100*(i+1)
-#          samples = mcmc_samples[param_list[3]].numpy().reshape(-1)[s:e]
-#          sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
-#          axes[int(i/3)][int(i%3)].legend([str(s)+":"+str(e)])
+    fig, axes = plt.subplots(nrows=3, ncols=3)
+    for i in range(9):
+         s = 100*(i)
+         e = 100*(i+1)
+         samples = mcmc_samples[param_list[3]].numpy().reshape(-1)[s:e]
+         sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
+         axes[int(i/3)][int(i%3)].legend([str(s)+":"+str(e)])
 
-#     fig.suptitle("Rho posterior")
-#     plt.savefig("results/gammaposteriorrho.png")
+    fig.suptitle("Rho posterior")
+    plt.savefig("results/gammaposteriorrho.png")
 
     return 
 

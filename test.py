@@ -44,23 +44,30 @@ def main():
     likelihood.register_prior("noise_prior", UniformPrior(0.0001, 0.04), "noise")
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
 
-    def logp(params):
-        if type(params) is not np.ndarray:
-            c = params[0]._value
-            ls = params[1]._value
-            os = params[2]._value
-            noise = params[3]._value
-        else:
-            c = params[0]
-            ls = params[1]
-            os = params[2]
-            noise = params[3]
+    def logp(c, ls, os, noise):
+        if type(c) is not float:
+            c = c._value
+        if type(ls) is not float:
+            ls = ls._value
+        if type(os) is not float:
+            os = os._value
+        if type(noise) is not float:
+            noise = noise._value
+        #     c = params[0]._value
+        #     ls = params[1]._value
+        #     os = params[2]._value
+        #     noise = params[3]._value
+        # else:
+        #     c = params[0]
+        #     ls = params[1]
+        #     os = params[2]
+        #     noise = params[3]
         model.mean_module.constant.data.fill_(torch.tensor(c))
         model.covar_module.base_kernel.raw_lengthscale.data.fill_(ls)
         model.covar_module.raw_outputscale.data.fill_(os)
         model.likelihood.raw_noise.data.fill_(noise)
         output = model(train_x)
-        ll = mll(output, train_y)
+        ll = mll(output, train_y)*train_x.shape[0]
         return ll.detach().numpy()
 
     model.mean_module.constant.data.fill_(0.0)
@@ -72,19 +79,27 @@ def main():
           model.covar_module.base_kernel.raw_lengthscale.item(),\
               model.covar_module.raw_outputscale.item(),  model.likelihood.raw_noise.detach().item()])}
 
-    hmc = smp.Hamiltonian(logp, start, step_size=0.1, n_steps=10)
-    chain = hmc.sample(3000, burn=1000)
+    start = {'c': model.mean_module.constant.item(),\
+         'ls':  model.covar_module.base_kernel.raw_lengthscale.item(),\
+        'os': model.covar_module.raw_outputscale.item(),\
+        'noise': model.likelihood.raw_noise.detach().item()
+    }
 
-    labels = ["mean", "ls","os","noise"]
+    hmc = smp.Hamiltonian(logp, start, step_size=0.1, n_steps=10)
+    nuts = smp.NUTS(logp, start)
+    chain = hmc.sample(100, burn=10)
+
+    labels = ["c", "ls","os","noise"]
     fig, axes = plt.subplots(nrows=2, ncols=2)
     for i in range(4):
         if i == 0:
-            samples = chain.params[:,i].reshape(-1)
+            samples = getattr(chain, labels[i]).reshape(-1)
         else:
-            samples = 1/(1+np.exp(-1*chain.params[:,i].reshape(-1)))
+            samples = 1/(1+np.exp(-1*getattr(chain, labels[i]).reshape(-1)))
         sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
         axes[int(i/2)][int(i%2)].legend([labels[i]])
     plt.show()
+    pickle.dump(chain, open("results/test_mcmc.pkl", "wb"))
     return
 
 
