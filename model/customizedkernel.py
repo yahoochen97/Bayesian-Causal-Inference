@@ -77,27 +77,27 @@ class constantKernel(Kernel):
 
     def __init__(self, num_tasks, prior=None, var_constraint=None, **kwargs):
         super().__init__(**kwargs)
-        self.c2 = torch.ones(1)
+        # self.c2 = torch.ones(1)
         self.num_tasks = num_tasks
-        # self.register_parameter(
-        #     name="raw_c2", parameter=torch.nn.Parameter(torch.randn(*self.batch_shape, 1))
-        # )
+        self.register_parameter(
+            name="raw_c2", parameter=torch.nn.Parameter(torch.randn(*self.batch_shape, 1))
+        )
         
-        # if var_constraint is None:
-        #     var_constraint = Interval(0,1)
+        if var_constraint is None:
+            var_constraint = Positive()
 
-        # self.register_constraint("raw_c2", var_constraint)
+        self.register_constraint("raw_c2", var_constraint)
 
-    # @property
-    # def c2(self):
-    #     return self.raw_c2_constraint.transform(self.raw_c2)
+    @property
+    def c2(self):
+        return self.raw_c2_constraint.transform(self.raw_c2)
 
-    # @c2.setter
-    # def c2(self, value):
-    #     self._set_c2(value)
+    @c2.setter
+    def c2(self, value):
+        self._set_c2(value)
 
-    # def _set_c2(self, value):
-    #     self.initialize(raw_c2=self.raw_c2_constraint.inverse_transform(value))
+    def _set_c2(self, value):
+        self.initialize(raw_c2=self.raw_c2_constraint.inverse_transform(value))
 
 
     def forward(self, x1, x2, **params):

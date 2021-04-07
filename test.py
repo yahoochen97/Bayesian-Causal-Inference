@@ -28,7 +28,7 @@ class ExactGPModel(gpytorch.models.ExactGP):
 
 def main():
     smoke_test = ('CI' in os.environ)
-    num_samples = 2 if smoke_test else 500
+    num_samples = 2 if smoke_test else 1000
     warmup_steps = 2 if smoke_test else 500
 
     train_x = torch.linspace(0, 1, 100)
@@ -38,11 +38,23 @@ def main():
     likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_constraint=gpytorch.constraints.Positive())
     model = ExactGPModel(train_x, train_y, likelihood)
 
-    model.mean_module.register_prior("mean_prior", UniformPrior(-1, 1), "constant")
-    model.covar_module.base_kernel.register_prior("lengthscale_prior", UniformPrior(0.01, 4), "lengthscale")
-    model.covar_module.register_prior("outputscale_prior", UniformPrior(0.01, 4), "outputscale")
-    likelihood.register_prior("noise_prior", UniformPrior(0.0001, 0.04), "noise")
+    model.mean_module.register_prior("mean_prior", UniformPrior(-2, 2), "constant")
+    model.covar_module.base_kernel.register_prior("lengthscale_prior", UniformPrior(0.01, 9), "lengthscale")
+    model.covar_module.register_prior("outputscale_prior", UniformPrior(0.01, 9), "outputscale")
+    likelihood.register_prior("noise_prior", UniformPrior(0.0001, 0.09), "noise")
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+
+    def pyro_model(x, y):
+        model.pyro_sample_from_prior()
+        output = model(x)
+        loss = mll(output, y)*y.shape[0]
+        pyro.factor("gp_mll", loss)
+        # loss = mll.pyro_factor(output, y)
+
+    nuts_kernel = NUTS(pyro_model, adapt_step_size=True)
+    hmc_kernel = HMC(pyro_model, step_size=0.05, num_steps=10, adapt_step_size=False)
+    mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps, disable_progbar=smoke_test)
+    return mcmc_run, train_x, train_y
 
     def logp(c, ls, os, noise):
         if type(c) is not float:
@@ -110,16 +122,6 @@ def main():
     # likelihood.register_prior("noise_prior", UniformPrior(0.001, 0.2), "noise")
 
 
-    def pyro_model(x, y):
-        model.pyro_sample_from_prior()
-        output = model(x)
-        loss = mll.pyro_factor(output, y)
-        return loss
-
-    nuts_kernel = NUTS(pyro_model, adapt_step_size=True)
-    hmc_kernel = HMC(pyro_model, step_size=0.1, num_steps=10, adapt_step_size=True)
-    mcmc_run = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, disable_progbar=smoke_test)
-    return mcmc_run, train_x, train_y
 
 def train(mcmc_run, train_x, train_y):
     mcmc_run.run(train_x, train_y)
@@ -138,6 +140,8 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(nrows=2, ncols=2)
     for i in range(4):
          samples = mcmc_samples[param_list[i]].numpy().reshape(-1)
+         if i<=1:
+             samples = np.sqrt(samples)
          sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
          axes[int(i/2)][int(i%2)].legend([labels[i]])
     plt.show()

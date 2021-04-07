@@ -166,11 +166,6 @@ def visualize_synthetic(X_tr, X_co, Y_tr, Y_co, ATT, model, likelihood, T0):
     test_y_co = Y_co.reshape(-1)
     test_t = X_tr[0,:,-1] # torch.arange(T, dtype=torch.float)
 
-#     test_i_tr = torch.cat([torch.full_like(Y_tr[i].reshape(-1), dtype=torch.long, fill_value=0)
-#             for i in range(N_tr)])
-#     test_i_co = torch.cat([torch.full_like(Y_co[i].reshape(-1), dtype=torch.long, fill_value=1)
-#             for i in range(N_co)])
-# treat group 1, control group 0
     test_i_tr = torch.full_like(test_y_tr, dtype=torch.long, fill_value=1)
     test_i_co = torch.full_like(test_y_co, dtype=torch.long, fill_value=0)    
 
@@ -192,85 +187,47 @@ def visualize_synthetic(X_tr, X_co, Y_tr, Y_co, ATT, model, likelihood, T0):
 
     visualize(test_t, X_tr, Y_tr, m_tr, lower_tr, upper_tr, X_co, Y_co, m_co, lower_co, upper_co, ATT, T0)
 
-def visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i, model, likelihood,\
-      T0, date_le, station_le):
+def visualize_localnews(data, test_x, test_y, test_g, model, likelihood,\
+      T0, station_le):
      # Set into eval mode
     model.eval()
     likelihood.eval()
     for i in range(1,len(model.x_covar_module)):
         model.x_covar_module[i].c2 = torch.tensor(0.0**2)
 
-    T = list(torch.unique(test_x[:,-1]).shape)[0]
-    N = torch.unique(train_i).shape[0]
-    d = list(train_x.shape)[1] - 1
-    # test_t = torch.arange(T, dtype=torch.float)
+    model.unit_t_covar_module.outputscale = 0
 
      # Make predictions
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
-         f_pred = model(test_x, test_i)
+         f_pred = model(test_x)
 
     # Get lower and upper confidence bounds
     lower, upper = f_pred.confidence_region()
     
     station_ids = data.station_id.unique()
-#     for station_id in station_ids:
-#          mask = (data.station_id==station_id).to_numpy()
-#          test_t = test_x[mask, -1]
-#          idx = np.argsort(test_t)
-#          test_t = test_t[[idx]]
-#          lower_i = lower[mask][idx]
-#          upper_i = upper[mask][idx]
-#          m_i = f_pred.mean[mask][idx]
-#          # print(torch.sqrt(f_pred.variance[mask][idx][-10:]))
-#          # station_id = station_le.inverse_transform([i])[0]
-#          treatment = data[mask].sinclair2017.unique()[0]
-#          LABEL = "treated" if treatment else "control"
-#          y_i = test_y[mask][[idx]]
-
-#      #     lower_i = 1/(1+torch.exp(-lower_i))
-#      #     upper_i = 1/(1+torch.exp(-upper_i))
-#      #     m_i = 1/(1+torch.exp(-m_i))
-#      #     y_i = 1/(1+torch.exp(-y_i))
-        
-#          plt.scatter(1+test_t.detach().numpy(), y_i.detach().numpy(),\
-#             color='grey', s=1, label=LABEL + " " + str(station_id))
-#          plt.plot(1+test_t.detach().numpy(), m_i.detach().numpy(),\
-#                'k--', linewidth=1.0, label='Estimated Y(0)')
-#          plt.fill_between(1+test_t.detach().numpy(), lower_i.detach().numpy(),\
-#                upper_i.detach().numpy(), alpha=0.5)
-#          plt.legend(loc=2)
-#          plt.title("{} Unit {}".format(LABEL, station_id))
-#          plt.axvline(x=T0, color='red', linewidth=1.0)
-#          plt.savefig("results/localnews_{}.png".format(station_id))
-#          plt.close()
-
     result = pd.DataFrame({
          "t":test_x[:,-1],
-         "i": test_i,
+         "g": test_g,
          "upper": upper,
          "lower": lower,
          "m": f_pred.mean,
          "y": test_y,
          "sinclair2017": data.sinclair2017})
-    result = result.groupby(['t','i'], as_index=False)['lower','upper','m','y'].mean()
+    result = result.groupby(['t','g'], as_index=False)[['lower','upper','m','y']].mean()
     fill_alpha = [0.2, 0.5]
     mean_color = ["blue", "slateblue"]
     y_color = ["purple", "deeppink"]
-    for i in [0,1]:
-         test_t = np.unique(result[result.i==i].t)
-         lower_i = result[result.i==i].lower.to_numpy()
-         upper_i = result[result.i==i].upper.to_numpy()
-         m_i = result[result.i==i].m.to_numpy()
-         y_i = result[result.i==i].y.to_numpy()
-         LABEL = "Acquired" if i==1 else "Not Acquired"
-     #     lower_i = 1/(1+np.exp(-lower_i))
-     #     upper_i = 1/(1+np.exp(-upper_i))
-     #     m_i = 1/(1+np.exp(-m_i))
-     #     y_i = 1/(1+np.exp(-y_i))
+    for g in [0,1]:
+         test_t = np.unique(result[result.g==g].t)
+         lower_g = result[result.g==g].lower.to_numpy()
+         upper_g = result[result.g==g].upper.to_numpy()
+         m_g = result[result.g==g].m.to_numpy()
+         y_g = result[result.g==g].y.to_numpy()
+         LABEL = "Acquired" if g==1 else "Not Acquired"
 
-         plt.scatter(x=1+test_t, y=y_i, c=y_color[i], s=1, label=LABEL + " avg")
-         plt.plot(1+test_t, m_i, c=mean_color[i], linewidth=0.5, label=LABEL +' estimated Y(0)')
-         plt.fill_between(1+test_t, lower_i, upper_i, color='grey', alpha=fill_alpha[i], label=LABEL + " 95% CI")
+         plt.scatter(x=1+test_t, y=y_g, c=y_color[g], s=1, label=LABEL + " avg")
+         plt.plot(1+test_t, m_g, c=mean_color[g], linewidth=0.5, label=LABEL +' estimated Y(0)')
+         plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[g], label=LABEL + " 95% CI")
          # plt.legend(loc=2)
          plt.title("Averaged " + LABEL + " Group Trends ")
          plt.axvline(x=T0, color='red', linewidth=0.5, linestyle="--")
@@ -278,7 +235,7 @@ def visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i,
          plt.close()
 
 def visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
-                likelihood, T0, date_le, station_le, num_samples):
+                likelihood, T0, station_le, num_samples):
     # Set into eval mode
     model.eval()
     likelihood.eval()

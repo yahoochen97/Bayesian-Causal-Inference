@@ -5,7 +5,7 @@ import pyro
 from pyro.infer.mcmc import NUTS, MCMC, HMC
 from model.multitaskmodel import MultitaskGPModel
 from utilities.savejson import savejson
-from utilities.visualize import visualize_synthetic, plot_posterior
+from utilities.visualize import visualize_synthetic, plot_posterior, plot_pyro_posterior
 from utilities.visualize import visualize_localnews, visualize_localnews_MCMC, plot_prior
 from utilities.synthetic import generate_synthetic_data
 from model.fixedeffect import TwoWayFixedEffectModel
@@ -21,23 +21,21 @@ import sampyl as smp
 
 smoke_test = ('CI' in os.environ)
 training_iterations = 2 if smoke_test else 200
-num_samples = 2 if smoke_test else 1000
-warmup_steps = 2 if smoke_test else 1000
+num_samples = 2 if smoke_test else 500
+warmup_steps = 2 if smoke_test else 500
 
 
-def train(train_x, train_i, train_y, model, likelihood, mll, optimizer):
+def train(train_x, train_y, model, likelihood, mll, optimizer):
     # Find optimal model hyperparameters
     model.train()
     likelihood.train()
 
     for i in range(training_iterations):
         optimizer.zero_grad()
-        output = model(train_x, train_i)
-        loss = -mll(output, train_y.double())
+        output = model(train_x)
+        loss = -mll(output, train_y.double())*train_y.shape[0]
         loss.backward()
         print('Iter %d/%d - LL: %.3f' % (i + 1, training_iterations, -loss.item()))
-        # print(f'Parameter name: task_covar_module.rho value = {model.task_covar_module.rho.detach().numpy()}')
-        # print(f'Parameter name: task_covar_module.raw_rho value = {model.task_covar_module.raw_rho.detach().numpy()}')
         optimizer.step()
 
     return model, likelihood
@@ -116,22 +114,33 @@ def localnews(INFERENCE):
         device = torch.device('cuda')
         torch.set_default_tensor_type(torch.cuda.DoubleTensor)
 
-    with open('model/conf.json') as f:
-        configs = json.load(f)
-    sigma_noise = configs["sigma_noise"]
-
     data = pd.read_csv("data/localnews.csv",index_col=[0])
-    data.date = data.date.apply(lambda x: datetime.datetime.strptime(x, '%m/%d/%Y').date())
     N = data.station_id.unique().shape[0]
+    # ids = data[data.sinclair2017==0].station_id.unique()
+    # T = data.t.max()
+    # result = np.empty((len(ids),T))
+    # result[:] = np.NaN
+    # for i in range(len(ids)):
+    #     for j in range(T):
+    #         tmp = data[(data.sinclair2017==0) & (data.station_id==ids[i]) & (data.t==(j+1))]
+    #         if tmp.shape[0]:
+    #             result[i,j] = tmp.national_politics.to_numpy()[0]
+    # np.savetxt("data/control.csv", result, delimiter=",", fmt='%f')
+    # return
 
-    date_le = LabelEncoder()
-    ds = data.date
-    date_le.fit(ds)
-    ds = date_le.transform(ds).reshape((-1,1))
+    data.date = data.date.apply(lambda x: datetime.datetime.strptime(x, '%m/%d/%Y').date())
+    # data = data[(data.date<=datetime.date(2017, 9, 15)) & (data.date>=datetime.date(2017, 8, 15))]
+    # data = data[data.station_id.isin([1345,1350])]
+
+    # date_le = LabelEncoder()
+    # ds = data.date
+    # date_le.fit(ds)
+    # ds = date_le.transform(ds).reshape((-1,1))
+    ds = data.t.to_numpy().reshape((-1,1))
     ohe = OneHotEncoder() 
     ohe = LabelEncoder()
     X = data.drop(columns=["station_id", "date", "national_politics", "sinclair2017",
-    "post","affiliation","callsign"]).to_numpy().reshape(-1,) # , "weekday","affiliation","callsign"
+    "post","affiliation","callsign","t"]).to_numpy().reshape(-1,) # , "weekday","affiliation","callsign"
     Group = data.sinclair2017.to_numpy().reshape(-1,1)
     ohe.fit(X)
     X = ohe.transform(X)
@@ -143,17 +152,18 @@ def localnews(INFERENCE):
     X = np.concatenate((Group, X.reshape(-1,1),ids.reshape(-1,1),ds), axis=1)
     X_max_v = [np.max(X[:,i]).astype(int) for i in range(X.shape[1]-1)]
     Y = data.national_politics.to_numpy()
-    T0 = date_le.transform(np.array([datetime.date(2017, 9, 1)]))
+    # T0 = date_le.transform(np.array([datetime.date(2017, 9, 1)]))
+    T0 = data[data.date==datetime.date(2017, 9, 1)].t.to_numpy()[0]
     train_condition = (data.post!=1) | (data.sinclair2017!=1)
     train_x = torch.Tensor(X[train_condition], device=device)
     train_y = torch.Tensor(Y[train_condition], device=device)
 
     idx = data.sinclair2017.to_numpy()
-    train_i = torch.from_numpy(idx[train_condition]).to(device)
+    train_g = torch.from_numpy(idx[train_condition]).to(device)
 
     test_x = torch.Tensor(X).double()
     test_y = torch.Tensor(Y).double()
-    test_i = torch.from_numpy(idx)
+    test_g = torch.from_numpy(idx)
 
     # fit = TwoWayFixedEffectModel(X_tr, X_co, Y_tr, Y_co, ATT, T0)
     # return
@@ -162,21 +172,22 @@ def localnews(INFERENCE):
     noise_prior = gpytorch.priors.UniformPrior(0, 0.04)
     likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_prior=noise_prior,\
         noise_constraint=gpytorch.constraints.Positive())
-    model = MultitaskGPModel((train_x, train_i), train_y, X_max_v, likelihood)
+    model = MultitaskGPModel(train_x, train_y, X_max_v, likelihood)
 
     model.x_covar_module[0].c2 = torch.var(train_y)
+    model.x_covar_module[0].raw_c2.requires_grad = False
     for i in range(1,len(X_max_v)):
         model.x_covar_module[i].c2 = torch.tensor(0.05**2)
 
-    model.i_mean_module.bias.data.fill_(torch.mean(train_y[train_i==0]))
-    slope = torch.mean(train_y[train_i==1])-torch.mean(train_y[train_i==0])
-    model.i_mean_module.weights.data.fill_(slope)
-    model.i_mean_module.weights.requires_grad = False
-    model.i_mean_module.bias.requires_grad = False
+    model.g_mean_module.bias.data.fill_(torch.mean(train_y[train_g==0]))
+    slope = torch.mean(train_y[train_g==1])-torch.mean(train_y[train_g==0])
+    model.g_mean_module.weights.data.fill_(slope)
+    model.g_mean_module.weights.requires_grad = False
+    model.g_mean_module.bias.requires_grad = False
 
     torch.set_default_tensor_type(torch.DoubleTensor)
-    train_x, train_y, train_i = train_x.to(device), train_y.to(device), train_i.to(device)
-    test_x, test_y, test_i = test_x.to(device), test_y.to(device), test_i.to(device)
+    train_x, train_y = train_x.to(device), train_y.to(device)
+    test_x, test_y = test_x.to(device), test_y.to(device)
     model.to(device)
     likelihood.to(device)
 
@@ -189,8 +200,10 @@ def localnews(INFERENCE):
     def pyro_model(x, i, y):
         model.pyro_sample_from_prior()
         output = model(x, i)
-        loss = mll.pyro_factor(output, y)
-        return y
+        loss = mll(output, y)*y.shape[0]
+        pyro.factor("gp_mll", loss)
+        # loss = mll.pyro_factor(output, y)
+        # return y
 
     def logp(rho, ls, os, noise):
         if type(rho) is not float:
@@ -234,56 +247,60 @@ def localnews(INFERENCE):
             mcmc_samples[k] = d[idx]
         model.pyro_load_from_samples(mcmc_samples)
         visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
-                likelihood, T0, date_le, station_le, 10)
+                likelihood, T0, station_le, 10)
         return
         
     elif INFERENCE=='MAP':
-        model.task_covar_module._set_rho(0.9)
-        model.t_covar_module.outputscale = 0.02**2 
-        model.t_covar_module.base_kernel.lengthscale = 3
-        model.likelihood.noise_covar.noise = 0.035**2
+        model.task_covar_module._set_rho(0.0)
+        model.t_covar_module.outputscale = 0.05**2 
+        model.t_covar_module.base_kernel.lengthscale = 30
+        model.likelihood.noise_covar.noise = 0.05**2
+        model.unit_t_covar_module.outputscale = 0.05**2 
+        model.unit_t_covar_module.base_kernel.lengthscale = 30
         
         optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
-        model, likelihood = train(train_x, train_i, train_y, model, likelihood, mll, optimizer)
+        model, likelihood = train(train_x, train_y, model, likelihood, mll, optimizer)
         torch.save(model.state_dict(), 'results/localnews_' +  INFERENCE + '_model_state.pth')
-        visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
-         likelihood, T0, date_le, station_le)
+        visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, station_le)
         return
     elif INFERENCE=='MCMC':
-        model.task_covar_module._set_rho(0.9)
-        model.t_covar_module.outputscale = 0.02**2 
-        model.t_covar_module.base_kernel.lengthscale = 3
-        model.likelihood.noise_covar.noise = 0.035**2
-        initial_params =  {'rho': model.task_covar_module.raw_rho.item(),\
-            'ls':  model.t_covar_module.base_kernel.raw_lengthscale.item(),\
-            'os': model.t_covar_module.raw_outputscale.item(),\
-            'noise': model.likelihood.raw_noise.detach().item()
+        model.task_covar_module._set_rho(0.5)
+        model.t_covar_module.outputscale = 0.05**2 
+        model.t_covar_module.base_kernel.lengthscale = 14
+        model.likelihood.noise_covar.noise = 0.05**2
+        initial_params =  {'task_covar_module.rho_prior': model.task_covar_module.raw_rho.detach(),\
+            't_covar_module.base_kernel.lengthscale_prior':  model.t_covar_module.base_kernel.raw_lengthscale.detach(),\
+            't_covar_module.outputscale_prior': model.t_covar_module.raw_outputscale.detach(),\
+            'likelihood.noise_covar.noise_prior': model.likelihood.raw_noise.detach()
         }
 
-        # nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True)
-        # hmc_kernel = HMC(pyro_model, step_size=1e-1, num_steps=4, adapt_step_size=True)
-        # mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps, initial_params=initial_params)
-        # mcmc_run.run(train_x, train_i, train_y)
-        hmc = smp.Hamiltonian(logp, initial_params, step_size=0.5, n_steps=10)
-        nuts = smp.NUTS(logp, initial_params)
-        chain = hmc.sample(num=num_samples ,burn=warmup_steps)
-
-        plot_posterior(chain)
-        pickle.dump(chain, open("results/localnews_MCMC.pkl", "wb"))
+        nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True)
+        hmc_kernel = HMC(pyro_model, step_size=0.05, num_steps=20, adapt_step_size=False)
+        mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps)#, initial_params=initial_params)
+        mcmc_run.run(train_x, train_i, train_y)
+        # hmc = smp.Hamiltonian(logp, initial_params, step_size=0.5, n_steps=10)
+        # nuts = smp.NUTS(logp, initial_sparams)
+        # chain = hmc.sample(num=num_samples ,burn=warmup_steps)
+        pickle.dump(mcmc_run, open("results/localnews_MCMC.pkl", "wb"))
+        plot_pyro_posterior(mcmc_run.get_samples())
+        # plot_posterior(chain)
+        # pickle.dump(chain, open("results/localnews_MCMC.pkl", "wb"))
         return
 
-        visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
-                likelihood, T0, date_le, station_le, num_samples)
+        visualize_localnews_MCMC(data, train_x, train_y, train_g, test_x, test_y, test_i, model,\
+                likelihood, T0,  station_le, num_samples)
     else:
         model.load_strict_shapes(False)
         state_dict = torch.load('results/localnews_MAP_model_state.pth')
         model.load_state_dict(state_dict)
         print(f'Parameter name: rho value = {model.task_covar_module.rho.detach().numpy()}')
-        print(f'Parameter name: ls value = {model.t_covar_module.base_kernel.lengthscale.detach().numpy()}')
-        print(f'Parameter name: os value = {np.sqrt(model.t_covar_module.outputscale.detach().numpy())}')
+        print(f'Parameter name: group ls value = {model.t_covar_module.base_kernel.lengthscale.detach().numpy()}')
+        print(f'Parameter name: group os value = {np.sqrt(model.t_covar_module.outputscale.detach().numpy())}')
+        print(f'Parameter name: unit ls value = {model.unit_t_covar_module.base_kernel.lengthscale.detach().numpy()}')
+        print(f'Parameter name: unit os value = {np.sqrt(model.unit_t_covar_module.outputscale.detach().numpy())}')
         print(f'Parameter name: noise value = {np.sqrt(model.likelihood.noise.detach().numpy())}')
-        visualize_localnews(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
-         likelihood, T0, date_le, station_le)
+        print(f'Parameter name: wstd value = {np.sqrt(model.x_covar_module[1].c2.detach().numpy())}')
+        visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, station_le)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='python main.py --type localnews --inference MAP')
