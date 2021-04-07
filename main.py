@@ -258,10 +258,9 @@ def localnews(INFERENCE):
         model.unit_t_covar_module.outputscale = 0.05**2 
         model.unit_t_covar_module.base_kernel.lengthscale = 30
         
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
         model, likelihood = train(train_x, train_y, model, likelihood, mll, optimizer)
         torch.save(model.state_dict(), 'results/localnews_' +  INFERENCE + '_model_state.pth')
-        visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, station_le)
         return
     elif INFERENCE=='MCMC':
         model.task_covar_module._set_rho(0.5)

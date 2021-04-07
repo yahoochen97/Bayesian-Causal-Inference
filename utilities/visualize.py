@@ -195,16 +195,48 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood,\
     for i in range(1,len(model.x_covar_module)):
         model.x_covar_module[i].c2 = torch.tensor(0.0**2)
 
+    with torch.no_grad(), gpytorch.settings.fast_pred_var():
+         f_pred = model(test_x)
+
+    # Get lower and upper confidence bounds
+    lower, upper = f_pred.confidence_region()
+
+    station_ids = data.station_id.unique()
+    
+
+    for station_id in station_ids:
+         mask = (data.station_id==station_id).to_numpy()
+         test_t = test_x[mask, -1]
+         idx = np.argsort(test_t)
+         test_t = test_t[[idx]]
+         lower_i = lower[mask][idx]
+         upper_i = upper[mask][idx]
+         m_i = f_pred.mean[mask][idx]
+         treatment = data[mask].sinclair2017.unique()[0]
+         LABEL = "treated" if treatment else "control"
+         y_i = test_y[mask][[idx]]
+
+         plt.scatter(1+test_t.detach().numpy(), y_i.detach().numpy(),\
+               color='grey', s=1, label=LABEL + " " + str(station_id))
+         plt.plot(1+test_t.detach().numpy(), m_i.detach().numpy(),\
+               'k--', linewidth=1.0, label='Estimated Y(0)')
+         plt.fill_between(1+test_t.detach().numpy(), lower_i.detach().numpy(),\
+               upper_i.detach().numpy(), alpha=0.5)
+         plt.legend(loc=2)
+         plt.title("{} Unit {}".format(LABEL, station_id))
+         plt.axvline(x=T0, color='red', linewidth=1.0)
+         plt.savefig("results/localnews_{}.png".format(station_id))
+         plt.close()
+
     model.unit_t_covar_module.outputscale = 0
 
-     # Make predictions
+    # Make predictions
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
          f_pred = model(test_x)
 
     # Get lower and upper confidence bounds
     lower, upper = f_pred.confidence_region()
     
-    station_ids = data.station_id.unique()
     result = pd.DataFrame({
          "t":test_x[:,-1],
          "g": test_g,
