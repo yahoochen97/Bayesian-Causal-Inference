@@ -48,9 +48,9 @@ def plot_prior(model):
     return 
 
 def plot_posterior(chain):
-    labels = ["rho", "ls","os","noise"]
-    fig, axes = plt.subplots(nrows=2, ncols=2)
-    for i in range(4):
+    labels = ["noise", "group ls", "group os", "unit ls", "unit os", "rho"]
+    fig, axes = plt.subplots(nrows=2, ncols=3)
+    for i in range(6):
         samples = 1/(1+np.exp(-1*getattr(chain, labels[i]).reshape(-1)))
         if i>=2:
             samples = np.sqrt(samples)
@@ -63,16 +63,17 @@ def plot_posterior(chain):
     return
 
 def plot_pyro_posterior(mcmc_samples):
-    param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior",
-    "t_covar_module.base_kernel.lengthscale_prior", "task_covar_module.rho_prior"]
-    labels = ["noise", "os","ls","rho"]
-    fig, axes = plt.subplots(nrows=2, ncols=2)
-    for i in range(4):
+    param_list = ["likelihood.noise_covar.noise_prior","group_t_covar_module.base_kernel.lengthscale_prior",
+     "group_t_covar_module.outputscale_prior", "unit_t_covar_module.base_kernel.lengthscale_prior",
+     "unit_t_covar_module.outputscale_prior", "task_covar_module.rho_prior"]
+    labels = ["noise", "group ls", "group os", "unit ls", "unit os", "rho"]
+    fig, axes = plt.subplots(figsize=(20, 10), nrows=2, ncols=3)
+    for i in range(6):
          samples = mcmc_samples[param_list[i]].numpy().reshape(-1)
-         if labels[i] in ["noise", "os"]:
+         if labels[i] in ["noise", "group os", "unit os"]:
               samples = np.sqrt(samples)
-         sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
-         axes[int(i/2)][int(i%2)].legend([labels[i]])
+         sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
+         axes[int(i/3)][int(i%3)].legend([labels[i]])
 
     fig.suptitle("Gamma posterior")
     plt.savefig("results/gammaposterior.png")
@@ -187,12 +188,11 @@ def visualize_synthetic(X_tr, X_co, Y_tr, Y_co, ATT, model, likelihood, T0):
 
     visualize(test_t, X_tr, Y_tr, m_tr, lower_tr, upper_tr, X_co, Y_co, m_co, lower_co, upper_co, ATT, T0)
 
-def visualize_localnews(data, test_x, test_y, test_g, model, likelihood,\
-      T0, station_le):
-     # Set into eval mode
+def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, station_le):
+    # Set into eval mode
     model.eval()
     likelihood.eval()
-    for i in range(1,len(model.x_covar_module)):
+    for i in range(len(model.x_covar_module)):
         model.x_covar_module[i].c2 = torch.tensor(0.0**2)
 
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
@@ -203,7 +203,6 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood,\
 
     station_ids = data.station_id.unique()
     
-
     for station_id in station_ids:
          mask = (data.station_id==station_id).to_numpy()
          test_t = test_x[mask, -1]
@@ -216,6 +215,7 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood,\
          LABEL = "treated" if treatment else "control"
          y_i = test_y[mask][[idx]]
 
+         plt.rcParams["figure.figsize"] = (20,10)
          plt.scatter(1+test_t.detach().numpy(), y_i.detach().numpy(),\
                color='grey', s=1, label=LABEL + " " + str(station_id))
          plt.plot(1+test_t.detach().numpy(), m_i.detach().numpy(),\
@@ -257,6 +257,7 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood,\
          y_g = result[result.g==g].y.to_numpy()
          LABEL = "Acquired" if g==1 else "Not Acquired"
 
+         plt.rcParams["figure.figsize"] = (20,10)
          plt.scatter(x=1+test_t, y=y_g, c=y_color[g], s=1, label=LABEL + " avg")
          plt.plot(1+test_t, m_g, c=mean_color[g], linewidth=0.5, label=LABEL +' estimated Y(0)')
          plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[g], label=LABEL + " 95% CI")

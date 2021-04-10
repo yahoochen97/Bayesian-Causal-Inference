@@ -77,16 +77,18 @@ class constantKernel(Kernel):
 
     def __init__(self, num_tasks, prior=None, var_constraint=None, **kwargs):
         super().__init__(**kwargs)
-        # self.c2 = torch.ones(1)
         self.num_tasks = num_tasks
         self.register_parameter(
             name="raw_c2", parameter=torch.nn.Parameter(torch.randn(*self.batch_shape, 1))
         )
         
         if var_constraint is None:
-            var_constraint = Interval(0,1)
+            var_constraint = Positive()
 
         self.register_constraint("raw_c2", var_constraint)
+
+        if prior is not None:
+            self.register_prior("c2_prior", prior, lambda m: m.c2, lambda m, v: m._set_c2(v))
 
     @property
     def c2(self):
