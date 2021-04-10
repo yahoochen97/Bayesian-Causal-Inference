@@ -20,7 +20,7 @@ import sampyl as smp
 
 
 smoke_test = ('CI' in os.environ)
-training_iterations = 2 if smoke_test else 20
+training_iterations = 2 if smoke_test else 15
 num_samples = 2 if smoke_test else 500
 warmup_steps = 2 if smoke_test else 500
 
@@ -247,7 +247,7 @@ def localnews(INFERENCE):
             model.x_covar_module[i].c2 = torch.tensor(0.05**2)
         
         # optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
-        optimizer = torch.optim.LBFGS(model.parameters(), history_size=5, max_iter=5)
+        optimizer = torch.optim.LBFGS(model.parameters())
         model, likelihood = train(train_x, train_y, model, likelihood, mll, optimizer)
         torch.save(model.state_dict(), 'results/localnews_' +  INFERENCE + '_model_state.pth')
         return
