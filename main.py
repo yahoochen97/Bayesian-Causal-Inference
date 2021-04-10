@@ -250,6 +250,7 @@ def localnews(INFERENCE):
         optimizer = torch.optim.LBFGS(model.parameters())
         model, likelihood = train(train_x, train_y, model, likelihood, mll, optimizer)
         torch.save(model.state_dict(), 'results/localnews_' +  INFERENCE + '_model_state.pth')
+        visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, station_le)
         return
     elif INFERENCE=='MCMC':
         # model.group_index_module._set_rho(0.5)
