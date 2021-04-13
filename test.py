@@ -34,6 +34,53 @@ class ExactGPModel(gpytorch.models.ExactGP):
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
+def test_pyro():
+    # define data and model
+    train_x = torch.linspace(0, 1, 10).double()
+    train_y = torch.sin(train_x * (2 * math.pi)).double() + torch.randn(train_x.size()).double() * 0.1
+    likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_constraint=gpytorch.constraints.Positive())
+    model = ExactGPModel(train_x, train_y, likelihood)
+    mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+
+    model.mean_module.register_prior("mean_prior", UniformPrior(-1, 1), "constant")
+    model.covar_module.base_kernel.register_prior("lengthscale_prior", UniformPrior(0.0, 9.0), "lengthscale")
+    model.covar_module.register_prior("outputscale_prior", UniformPrior(0, 4), "outputscale")
+    likelihood.register_prior("noise_prior", UniformPrior(0.0, 0.25), "noise")
+
+    model.double()
+    likelihood.double()
+
+    # define pyro primitive
+    def pyro_model(x, y):
+        model.pyro_sample_from_prior()
+        output = model(x)
+        with gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
+            loss = mll(output, y)*y.shape[0]
+        pyro.factor("gp_mll", loss)
+
+    # initialize model parameters
+    model.mean_module.constant.data.fill_(0.0)
+    model.covar_module.outputscale = 0.5**2
+    model.covar_module.base_kernel.lengthscale = 1
+    model.likelihood.noise = 0.05**2
+
+    initial_params =  {'mean_module.mean_prior': model.mean_module.constant.detach(),\
+        'covar_module.base_kernel.lengthscale_prior':  model.covar_module.base_kernel.raw_lengthscale.detach(),\
+        'covar_module.outputscale_prior': model.covar_module.raw_outputscale.detach(),\
+        'likelihood.noise_prior': model.likelihood.raw_noise.detach()}
+
+    # define nuts and set up
+    
+    args = (train_x, train_y)
+    kwargs = {}
+    nuts_kernel = NUTS(pyro_model)
+    nuts_kernel.setup(0, *args, **kwargs)
+    
+    # evaluate potential function several times
+    for i in range(10):
+        print(nuts_kernel.potential_fn(initial_params).item())
+
+
 def main():
 
     train_x = torch.linspace(0, 1, 100).double()
@@ -118,7 +165,8 @@ def main():
     mcmc_run = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps)#, initial_params=initial_params)
     mcmc_run.run(train_x, train_y)
     for i in range(10):
-        print(mcmc_run.kernel.potential_fn(initial_params).item())
+        # with gpytorch.settings.verbose_linalg(True):
+            print(mcmc_run.kernel.potential_fn(initial_params).item())
 
     return model, likelihood, mll, mcmc_run, train_x, train_y
 
@@ -164,9 +212,9 @@ def train(mcmc_run, train_x, train_y):
 
 
 if __name__ == "__main__":
-
-    model, likelihood, mll, mcmc_run, train_x, train_y = main()
+    test_pyro()
     exit()
+    model, likelihood, mll, mcmc_run, train_x, train_y = main()
     # train(mcmc_run, train_x, train_y)
     # mcmc_run.run(train_x, train_y)
     mcmc_run = pickle.load(open("results/test_mcmc.pkl",'rb'))
