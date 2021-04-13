@@ -195,8 +195,6 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
     for i in range(len(model.x_covar_module)):
         model.x_covar_module[i].c2 = torch.tensor(0.0**2)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     with torch.no_grad(), gpytorch.settings.fast_pred_var():
          f_pred = model(test_x)
 
@@ -230,10 +228,6 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
          plt.savefig("results/localnews_{}.png".format(station_id))
          plt.close()
 
-=======
->>>>>>> parent of 3611a35... add unit-level process
-=======
->>>>>>> parent of 3611a35... add unit-level process
     model.unit_t_covar_module.outputscale = 0
 
      # Make predictions

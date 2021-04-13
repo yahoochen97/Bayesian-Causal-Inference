@@ -83,7 +83,7 @@ class constantKernel(Kernel):
         )
         
         if var_constraint is None:
-            var_constraint = Positive()
+            var_constraint = Positive() # Interval(0,0.01)
 
         self.register_constraint("raw_c2", var_constraint)
 

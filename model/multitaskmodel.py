@@ -13,16 +13,18 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         Inputs:
             - train_x:
             - train_y:
-            - likelihood: gpytorch.likelihood object
+            - likelihood:
         '''
         super(MultitaskGPModel, self).__init__(train_x, train_y, likelihood)
 
         # define priors
-        outputscale_prior = gpytorch.priors.GammaPrior(concentration=1,rate=10)
+        outputscale_prior = gpytorch.priors.GammaPrior(concentration=1,rate=100)
+        # outputscale_prior = gpytorch.priors.UniformPrior(0, 0.01)
         lengthscale_prior = gpytorch.priors.GammaPrior(concentration=3,rate=1/5)
         rho_prior = gpytorch.priors.UniformPrior(-1, 1)
-        unit_outputscale_prior = gpytorch.priors.GammaPrior(concentration=1,rate=10)
-        unit_lengthscale_prior = gpytorch.priors.GammaPrior(concentration=5,rate=1/5)
+        unit_outputscale_prior = gpytorch.priors.GammaPrior(concentration=1,rate=100)
+        # unit_outputscale_prior = gpytorch.priors.UniformPrior(0, 0.01)
+        unit_lengthscale_prior = gpytorch.priors.GammaPrior(concentration=4,rate=1/5)
         weekday_prior = gpytorch.priors.GammaPrior(concentration=1,rate=20)
         day_prior = gpytorch.priors.GammaPrior(concentration=1,rate=20)
         
@@ -46,7 +48,8 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
 
         # group-level time trend
         self.group_t_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(\
-            active_dims=torch.tensor([self.d]), lengthscale_prior=lengthscale_prior),outputscale_prior=outputscale_prior)
+            active_dims=torch.tensor([self.d]), lengthscale_prior=lengthscale_prior),\
+                outputscale_prior=outputscale_prior)
 
         # indicator covariances
         self.x_indicator_module = ModuleList([myIndicatorKernel(num_tasks=v+1) for v in X_max_v])
@@ -54,10 +57,23 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
 
         # unit-level zero-meaned time trend
         self.unit_t_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(\
-            active_dims=torch.tensor([self.d]), lengthscale_prior=unit_lengthscale_prior),outputscale_prior=unit_outputscale_prior)
+            active_dims=torch.tensor([self.d]), lengthscale_prior=unit_lengthscale_prior),\
+                outputscale_prior=unit_outputscale_prior)
+
         self.unit_indicator_module = myIndicatorKernel(num_tasks=len(train_x[:,-3].unique()))
 
     def forward(self, x):
+
+        if 0:
+            print(f'\nParameter name: rho value = {self.group_index_module.rho.detach().numpy()}')
+            print(f'Parameter name: group ls value = {self.group_t_covar_module.base_kernel.lengthscale.detach().numpy()}')
+            print(f'Parameter name: group os value = {np.sqrt(self.group_t_covar_module.outputscale.detach().numpy())}')
+            print(f'Parameter name: unit ls value = {self.unit_t_covar_module.base_kernel.lengthscale.detach().numpy()}')
+            print(f'Parameter name: unit os value = {np.sqrt(self.unit_t_covar_module.outputscale.detach().numpy())}')
+            print(f'Parameter name: noise value = {np.sqrt(self.likelihood.noise.detach().numpy())}')
+            print(f'Parameter name: weekday std value = {np.sqrt(self.x_covar_module[0].c2.detach().numpy())}')
+            print(f'Parameter name: day std value = {np.sqrt(self.x_covar_module[1].c2.detach().numpy())}')
+            print(f'Parameter name: unit std value = {np.sqrt(self.x_covar_module[2].c2.detach().numpy())}')
 
         if len(x.shape)==2:
             group = x[:,-2].reshape((-1,1)).long()
