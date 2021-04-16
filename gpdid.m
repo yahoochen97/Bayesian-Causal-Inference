@@ -65,12 +65,13 @@ theta.cov = [theta.cov; ...
              log(mean_sigma)];           % 5
 
 % nonlinear unit bias
-unit_error_covariance = {@covMask, {[1, 3], {@covSEard}}};
+unit_error_covariance = {@covProd, {{@covMask, {1, {@covSEiso}}}, ...
+                                    {@covMask, {3, {@covSEisoU}}}}};
 theta.cov = [theta.cov; ...
              log(unit_length_scale); ... % 6
-             log(0.01); ...              % 7
-             log(unit_output_scale)];    % 8
-
+             log(unit_output_scale); ... % 7
+             log(0.01)];                 % 8
+         
 % day bias, "news happens"
 day_bias_covariance = {@covMask, {4, {@covSEiso}}};
 theta.cov = [theta.cov; ...
@@ -99,8 +100,8 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5
               [], ...                               % 6:  unit length scale
-              @priorDelta, ...                      % 7
-              [], ...                               % 8:  unit output scale
+              [], ...                               % 7:  unit output scale
+              @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
               {@priorSmoothBox2, -9, -3, 5}, ...    % 10: weekday effect std
               @priorDelta, ...                      % 11
@@ -112,7 +113,7 @@ inference_method = {@infPrior, @infExact, prior};
 
 % find MAP
 p.method = 'LBFGS';
-p.length = 10;
+p.length = 100;
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);
 
@@ -126,7 +127,7 @@ jitter      = 0.1;
 
 % setup sampler
 ind = false(size(unwrap(theta)));
-ind([1:3, 6, 8, 10, 12, end - 1]) = true;
+ind([1:3, 6, 7, 10, 12, end - 1]) = true;
 
 theta_0 = unwrap(theta);
 theta_0 = theta_0(ind);
