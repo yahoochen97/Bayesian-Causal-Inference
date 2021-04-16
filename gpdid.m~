@@ -165,6 +165,8 @@ save("results/hmc.mat");
 diagnostics(hmc, chains);
 samples = vertcat(chains{:});
 
+save("results/hmc.mat");
+
 c = exp(samples);
 c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
 

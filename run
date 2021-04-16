@@ -1,4 +1,4 @@
 #!/bin/bash
 
 mkdir -p results
-bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnewsMCMC" "./onerun"
+bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J -o hmc.log "localnewsMCMC" "./onerun"

@@ -13,3 +13,4 @@ results
 *.txt
 *.pkl
 *.prof
+*.log

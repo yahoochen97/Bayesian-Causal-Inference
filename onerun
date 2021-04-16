@@ -6,4 +6,6 @@ export TMPDIR=/export/cluster-tmp/chenyehu
 module add seas-lab-vorobeychik
 module add gcc-6.5.0
 
-python main.py -t localnews -i MCMC
+# python main.py -t localnews -i MCMC
+
+matlab -nodisplay -nodesktop -r "gpdid; exit;"
