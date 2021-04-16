@@ -42,9 +42,9 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         # marginalize weekday/day/unit id effects
         self.x_covar_module = ModuleList([constantKernel(num_tasks=v+1) for v in self.X_max_v])
 
-        # self.x_covar_module = ModuleList([constantKernel(num_tasks=X_max_v[0]+1, prior=weekday_prior),
-        #         constantKernel(num_tasks=X_max_v[1]+1, prior=day_prior),
-        #         constantKernel(num_tasks=X_max_v[2]+1)])
+        self.x_covar_module = ModuleList([constantKernel(num_tasks=X_max_v[0]+1, prior=weekday_prior),
+                constantKernel(num_tasks=X_max_v[1]+1, prior=day_prior),
+                constantKernel(num_tasks=X_max_v[2]+1)])
 
         # group-level time trend
         self.group_t_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(\

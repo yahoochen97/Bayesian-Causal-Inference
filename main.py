@@ -141,6 +141,8 @@ def localnews(INFERENCE):
     data = pd.read_csv("data/localnews.csv",index_col=[0])
     N = data.station_id.unique().shape[0]
     data.date = data.date.apply(lambda x: datetime.datetime.strptime(x, '%m/%d/%Y').date())
+    data = data[(data.date<=datetime.date(2017, 9, 10)) & (data.date>=datetime.date(2017, 8, 20))]
+
     ds = data.t.to_numpy().reshape((-1,1))
     ohe = OneHotEncoder() 
     ohe = LabelEncoder()
@@ -263,9 +265,9 @@ def localnews(INFERENCE):
        
         # weekday/day/unit effects initialize to 0.0**2
 
-        for i in range(len(X_max_v)-1):
-            model.x_covar_module[i].c2 = torch.tensor(0.0**2)
-            model.x_covar_module[i].raw_c2.requires_grad = False
+        # for i in range(len(X_max_v)-1):
+        #     model.x_covar_module[i].c2 = torch.tensor(0.0**2)
+        #     model.x_covar_module[i].raw_c2.requires_grad = False
 
         initial_params =  {'group_index_module.rho_prior': model.group_index_module.raw_rho.detach(),\
             'group_t_covar_module.base_kernel.lengthscale_prior':  model.group_t_covar_module.base_kernel.raw_lengthscale.detach(),\
@@ -276,9 +278,9 @@ def localnews(INFERENCE):
             # 'x_covar_module.0.c2_prior': model.x_covar_module[0].raw_c2.detach(),
             # 'x_covar_module.1.c2_prior': model.x_covar_module[1].raw_c2.detach()}
 
-        nuts_kernel = NUTS(pyro_model, adapt_step_size=False, adapt_mass_matrix=True,\
+        nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True,\
             init_strategy=pyro.infer.autoguide.initialization.init_to_median(num_samples=20))
-        hmc_kernel = HMC(pyro_model, step_size=1e-4, num_steps=10, adapt_step_size=True,\
+        hmc_kernel = HMC(pyro_model, step_size=5e-2, num_steps=10, adapt_step_size=True,\
              init_strategy=pyro.infer.autoguide.initialization.init_to_median(num_samples=20))
         # hmc_kernel.initial_params = initial_params
         mcmc_run = MCMC(hmc_kernel, num_samples=num_samples, warmup_steps=warmup_steps)#, initial_params=initial_params)

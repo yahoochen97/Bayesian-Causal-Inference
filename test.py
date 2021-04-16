@@ -14,8 +14,8 @@ import sampyl as smp
 import numpy as np
 import theano.tensor as tt
 
-num_samples = 1
-warmup_steps = 1
+num_samples = 100
+warmup_steps = 100
 
 torch.set_default_tensor_type(torch.DoubleTensor)
 
@@ -64,10 +64,15 @@ def test_pyro():
     model.covar_module.base_kernel.lengthscale = 1
     model.likelihood.noise = 0.05**2
 
-    initial_params =  {'mean_module.mean_prior': model.mean_module.constant.detach(),\
-        'covar_module.base_kernel.lengthscale_prior':  model.covar_module.base_kernel.raw_lengthscale.detach(),\
-        'covar_module.outputscale_prior': model.covar_module.raw_outputscale.detach(),\
-        'likelihood.noise_prior': model.likelihood.raw_noise.detach()}
+    initial_params =  {'mean_module.mean_prior': torch.DoubleTensor([model.mean_module.constant.data]),\
+        'covar_module.base_kernel.lengthscale_prior':  torch.DoubleTensor([model.covar_module.base_kernel.raw_lengthscale.data]),\
+        'covar_module.outputscale_prior': torch.DoubleTensor([model.covar_module.raw_outputscale.data]),\
+        'likelihood.noise_prior': torch.DoubleTensor([model.likelihood.raw_noise.data])}
+
+    # transforms = {'mean_module.mean_prior': model.mean_module.mean_prior.transform,\
+    #     'covar_module.base_kernel.lengthscale_prior':  model.covar_module.base_kernel.lengthscale_prior.transform,\
+    #     'covar_module.outputscale_prior': model.covar_module.outputscale_prior.transform,\
+    #     'likelihood.noise_prior': model.likelihood.noise_prior.transform}
 
     # define nuts and set up
     
@@ -143,10 +148,10 @@ def main():
     # print(np.sqrt(model.likelihood.noise.detach().numpy()))
     
 
-    initial_params =  {'mean_module.mean_prior': model.mean_module.constant.detach(),\
-        'covar_module.base_kernel.lengthscale_prior':  model.covar_module.base_kernel.raw_lengthscale.detach(),\
-        'covar_module.outputscale_prior': model.covar_module.raw_outputscale.detach(),\
-        'likelihood.noise_prior': model.likelihood.raw_noise.detach()}
+    initial_params =  {'mean_module.mean_prior': torch.DoubleTensor([model.mean_module.constant.data]),\
+        'covar_module.base_kernel.lengthscale_prior':  torch.DoubleTensor([model.covar_module.base_kernel.raw_lengthscale.data]),\
+        'covar_module.outputscale_prior': torch.DoubleTensor([model.covar_module.raw_outputscale.data]),\
+        'likelihood.noise_prior': torch.DoubleTensor([model.likelihood.raw_noise.data])}
 
     def potential_fn(z):
         model.mean_module.constant.data.fill_(z['mean_module.mean_prior'].item())
@@ -163,10 +168,6 @@ def main():
     hmc_kernel = HMC(pyro_model, step_size=0.1, num_steps=10, adapt_step_size=True,\
              init_strategy=pyro.infer.autoguide.initialization.init_to_median(num_samples=20))
     mcmc_run = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps)#, initial_params=initial_params)
-    mcmc_run.run(train_x, train_y)
-    for i in range(10):
-        # with gpytorch.settings.verbose_linalg(True):
-            print(mcmc_run.kernel.potential_fn(initial_params).item())
 
     return model, likelihood, mll, mcmc_run, train_x, train_y
 
@@ -212,25 +213,23 @@ def train(mcmc_run, train_x, train_y):
 
 
 if __name__ == "__main__":
-    test_pyro()
-    exit()
     model, likelihood, mll, mcmc_run, train_x, train_y = main()
     # train(mcmc_run, train_x, train_y)
     # mcmc_run.run(train_x, train_y)
     mcmc_run = pickle.load(open("results/test_mcmc.pkl",'rb'))
-    # print(mcmc_run.diagnostics())
-    # mcmc_samples = mcmc_run.get_samples()
-    # param_list = ["likelihood.noise_prior", "covar_module.outputscale_prior",
-    # "covar_module.base_kernel.lengthscale_prior","mean_module.mean_prior"]
-    # labels = ["noise", "os","ls","mean"]
-    # fig, axes = plt.subplots(nrows=2, ncols=2)
-    # for i in range(4):
-    #      samples = mcmc_samples[param_list[i]].numpy().reshape(-1)
-    #      if i<=1:
-    #          samples = np.sqrt(samples)
-    #      sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
-    #      axes[int(i/2)][int(i%2)].legend([labels[i]])
-    # plt.show()
+    print(mcmc_run.diagnostics())
+    mcmc_samples = mcmc_run.get_samples()
+    param_list = ["likelihood.noise_prior", "covar_module.outputscale_prior",
+    "covar_module.base_kernel.lengthscale_prior","mean_module.mean_prior"]
+    labels = ["noise", "os","ls","mean"]
+    fig, axes = plt.subplots(nrows=2, ncols=2)
+    for i in range(4):
+         samples = mcmc_samples[param_list[i]].numpy().reshape(-1)
+         if i<=1:
+             samples = np.sqrt(samples)
+         sns.distplot(samples, ax=axes[int(i/2), int(i%2)])
+         axes[int(i/2)][int(i%2)].legend([labels[i]])
+    plt.show()
 
     model.pyro_load_from_samples(mcmc_run.get_samples())
     model.train()
