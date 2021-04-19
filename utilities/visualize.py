@@ -215,7 +215,7 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
          LABEL = "treated" if treatment else "control"
          y_i = test_y[mask][[idx]]
 
-         plt.rcParams["figure.figsize"] = (20,10)
+         plt.rcParams["figure.figsize"] = (15,10)
          plt.scatter(1+test_t.detach().numpy(), y_i.detach().numpy(),\
                color='grey', s=1, label=LABEL + " " + str(station_id))
          plt.plot(1+test_t.detach().numpy(), m_i.detach().numpy(),\
@@ -255,10 +255,14 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
          lower_g = result[result.g==g].lower.to_numpy()
          upper_g = result[result.g==g].upper.to_numpy()
          m_g = result[result.g==g].m.to_numpy()
+         if g==0:
+              m_g_0 = m_g
+         else:
+              m_g_1 = m_g
          y_g = result[result.g==g].y.to_numpy()
          LABEL = "Acquired" if g==1 else "Not Acquired"
 
-         plt.rcParams["figure.figsize"] = (20,10)
+         plt.rcParams["figure.figsize"] = (15,10)
          plt.scatter(x=1+test_t, y=y_g, c=y_color[g], s=1, label=LABEL + " avg")
          plt.plot(1+test_t, m_g, c=mean_color[g], linewidth=0.5, label=LABEL +' estimated Y(0)')
          plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[g], label=LABEL + " 95% CI")
@@ -267,6 +271,9 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
          plt.axvline(x=T0, color='red', linewidth=0.5, linestyle="--")
          plt.savefig("results/localnews_MAP_{}.png".format(LABEL))
          plt.close()
+
+#     plt.plot(test_t,m_g_0[2:] - m_g_1)
+#     plt.show()
 
 def visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
                 likelihood, T0, station_le, num_samples):
