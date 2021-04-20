@@ -16,7 +16,6 @@ import argparse
 import datetime
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import dill as pickle
-import sampyl as smp
 
 
 smoke_test = ('CI' in os.environ)
