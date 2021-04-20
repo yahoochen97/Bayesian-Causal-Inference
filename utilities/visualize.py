@@ -62,32 +62,34 @@ def plot_posterior(chain):
     plt.show()
     return
 
-def plot_pyro_posterior(mcmc_samples):
-    param_list = ["likelihood.noise_covar.noise_prior","group_t_covar_module.base_kernel.lengthscale_prior",
-     "group_t_covar_module.outputscale_prior", "unit_t_covar_module.base_kernel.lengthscale_prior",
-     "unit_t_covar_module.outputscale_prior", "task_covar_module.rho_prior"]
-    labels = ["noise", "group ls", "group os", "unit ls", "unit os", "rho"]
+def plot_pyro_posterior(mcmc_samples, transforms):
+#     param_list = ["likelihood.noise_covar.noise_prior","group_t_covar_module.base_kernel.lengthscale_prior",
+#      "group_t_covar_module.outputscale_prior", "unit_t_covar_module.base_kernel.lengthscale_prior",
+#      "unit_t_covar_module.outputscale_prior", "task_covar_module.rho_prior"]
+    labels = ["rho", "group ls", "group os", "unit ls", "unit os", "noise"]
     fig, axes = plt.subplots(figsize=(20, 10), nrows=2, ncols=3)
-    for i in range(6):
-         samples = mcmc_samples[param_list[i]].numpy().reshape(-1)
+    i = 0
+    for k, fn in transforms.items():
+         samples = fn(mcmc_samples["model$$$" + k]).numpy().reshape(-1)
          if labels[i] in ["noise", "group os", "unit os"]:
               samples = np.sqrt(samples)
          sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
          axes[int(i/3)][int(i%3)].legend([labels[i]])
+         i = i + 1
 
     fig.suptitle("Gamma posterior")
     plt.savefig("results/gammaposterior.png")
 
-    fig, axes = plt.subplots(nrows=3, ncols=3)
-    for i in range(9):
-         s = 100*(i)
-         e = 100*(i+1)
-         samples = mcmc_samples[param_list[3]].numpy().reshape(-1)[s:e]
-         sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
-         axes[int(i/3)][int(i%3)].legend([str(s)+":"+str(e)])
+#     fig, axes = plt.subplots(nrows=3, ncols=3)
+#     for i in range(9):
+#          s = 100*(i)
+#          e = 100*(i+1)
+#          samples = mcmc_samples[param_list[3]].numpy().reshape(-1)[s:e]
+#          sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
+#          axes[int(i/3)][int(i%3)].legend([str(s)+":"+str(e)])
 
-    fig.suptitle("Rho posterior")
-    plt.savefig("results/gammaposteriorrho.png")
+#     fig.suptitle("Rho posterior")
+#     plt.savefig("results/gammaposteriorrho.png")
 
     return 
 

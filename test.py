@@ -37,7 +37,7 @@ class ExactGPModel(gpytorch.models.ExactGP):
 
 def main():
 
-    train_x = torch.linspace(0, 1, 5000).double()
+    train_x = torch.linspace(0, 1, 1000).double()
     train_y = torch.sin(train_x * (2 * math.pi)).double() + torch.randn(train_x.size()).double() * 0.1
 
     # Use a positive constraint instead of usual GreaterThan(1e-4) so that LogNormal has support over full range.
