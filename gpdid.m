@@ -120,7 +120,7 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
 % make_intermediate_plot_unitw;
 
 % sampler parameters
-num_chains  = 5;
+num_chains  = 1;
 num_samples = 1000;
 burn_in     = 500;
 jitter      = 0.1;

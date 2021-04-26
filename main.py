@@ -5,7 +5,7 @@ import pyro
 from pyro.infer.mcmc import NUTS, MCMC, HMC
 from model.multitaskmodel import MultitaskGPModel
 from utilities.savejson import savejson
-from utilities.visualize import visualize_synthetic, plot_posterior, plot_pyro_posterior
+from utilities.visualize import visualize_synthetic, plot_posterior, plot_pyro_posterior,plot_pyro_prior
 from utilities.visualize import visualize_localnews, visualize_localnews_MCMC, plot_prior
 from utilities.synthetic import generate_synthetic_data
 from model.fixedeffect import TwoWayFixedEffectModel
@@ -19,8 +19,8 @@ import dill as pickle
 
 
 smoke_test = ('CI' in os.environ)
-training_iterations = 2 if smoke_test else 20
-num_samples = 2 if smoke_test else 3000
+training_iterations = 2 if smoke_test else 50
+num_samples = 2 if smoke_test else 1000
 warmup_steps = 2 if smoke_test else 1000
 
 
@@ -127,8 +127,10 @@ def localnews(INFERENCE):
     data.date = data.date.apply(lambda x: datetime.datetime.strptime(x, '%m/%d/%Y').date())
     # data = data[(data.date<=datetime.date(2017, 10, 1)) & (data.date>=datetime.date(2017, 8, 1))]
 
+    # print(data.shape)
+
     ds = data.t.to_numpy().reshape((-1,1))
-    ohe = OneHotEncoder() 
+    ohe = OneHotEncoder()
     ohe = LabelEncoder()
     X = data.drop(columns=["station_id", "date", "national_politics", "sinclair2017",
     "post","affiliation","callsign","t"]).to_numpy().reshape(-1,) # , "weekday","affiliation","callsign"
@@ -205,24 +207,27 @@ def localnews(INFERENCE):
             'group_t_covar_module.raw_outputscale': model.group_t_covar_module.raw_outputscale_constraint.transform,
             'unit_t_covar_module.base_kernel.raw_lengthscale': model.unit_t_covar_module.base_kernel.raw_lengthscale_constraint.transform,
             'unit_t_covar_module.raw_outputscale': model.unit_t_covar_module.raw_outputscale_constraint.transform,
-            'likelihood.noise_covar.raw_noise': model.likelihood.noise_covar.raw_noise_constraint.transform
-            # 'model.x_covar_module.0.raw_c2_constraint': model.x_covar_module[0].raw_c2_constraint.transform,
-            # 'model.x_covar_module.1.raw_c2_constraint': model.x_covar_module[1].raw_c2_constraint.transform,
-            #'model.x_covar_module.2.raw_c2_constraint': model.x_covar_module[2].raw_c2_constraint.transform
+            'likelihood.noise_covar.raw_noise': model.likelihood.noise_covar.raw_noise_constraint.transform,
+            'x_covar_module.0.raw_c2': model.x_covar_module[0].raw_c2_constraint.transform,
+            'x_covar_module.1.raw_c2': model.x_covar_module[1].raw_c2_constraint.transform
+            #'x_covar_module.2.raw_c2': model.x_covar_module[2].raw_c2_constraint.transform
         }
 
-    def pyro_model(x, y):
-        priors= {
-            'group_index_module.raw_rho': pyro.distributions.Normal(0, 10),
-            'group_t_covar_module.base_kernel.raw_lengthscale': pyro.distributions.Gamma(4, 1/5).expand([1, 1]),
-            'group_t_covar_module.raw_outputscale': pyro.distributions.Normal(-6, 2),
-            'unit_t_covar_module.base_kernel.raw_lengthscale': pyro.distributions.Gamma(4, 1/5).expand([1, 1]),
-            'unit_t_covar_module.raw_outputscale': pyro.distributions.Normal(-6, 2),
-            'likelihood.noise_covar.raw_noise': pyro.distributions.Normal(-6, 2).expand([1])
-            # 'model.x_covar_module.0.raw_c2_constraint': pyro.distributions.Normal(-6, 2).expand([1]),
-            # 'model.x_covar_module.1.raw_c2_constraint': pyro.distributions.Normal(-6, 2).expand([1])
-            #'model.x_covar_module.2.raw_c2_constraint': pyro.distributions.Normal(-6, 2).expand([1])
+    priors= {
+            'group_index_module.raw_rho': pyro.distributions.Normal(0, 1.5),
+            'group_t_covar_module.base_kernel.raw_lengthscale': pyro.distributions.Normal(30, 10).expand([1, 1]),
+            'group_t_covar_module.raw_outputscale': pyro.distributions.Normal(-7, 1),
+            'unit_t_covar_module.base_kernel.raw_lengthscale': pyro.distributions.Normal(30, 10).expand([1, 1]),
+            'unit_t_covar_module.raw_outputscale': pyro.distributions.Normal(-7, 1),
+            'likelihood.noise_covar.raw_noise': pyro.distributions.Normal(-7, 1).expand([1]),
+            'x_covar_module.0.raw_c2': pyro.distributions.Normal(-7, 1).expand([1]),
+            'x_covar_module.1.raw_c2': pyro.distributions.Normal(-7, 1).expand([1])
+            #'model.x_covar_module.2.raw_c2': pyro.distributions.Normal(-6, 1).expand([1])
         }
+
+    # plot_pyro_prior(priors, transforms)
+
+    def pyro_model(x, y):
         
         fn = pyro.random_module("model", model, prior=priors)
         sampled_model = fn()
@@ -232,7 +237,6 @@ def localnews(INFERENCE):
     
 
     if INFERENCE=='MCMCLOAD':
-        # plot_prior(model)
         with open('results/localnews_MCMC.pkl', 'rb') as f:
             mcmc_run = pickle.load(f)
         mcmc_samples = mcmc_run.get_samples()
@@ -254,7 +258,8 @@ def localnews(INFERENCE):
         model.likelihood.noise_covar.noise = 0.05**2
         model.unit_t_covar_module.outputscale = 0.05**2 
         model.unit_t_covar_module.base_kernel.lengthscale = 30
-        # weekday/day/unit effects initialize to 0.05**2
+
+        # weekday/day/unit effects initialize to 0.01**2
         for i in range(len(X_max_v)):
             model.x_covar_module[i].c2 = torch.tensor(0.05**2)
         
@@ -264,7 +269,7 @@ def localnews(INFERENCE):
         torch.save(model.state_dict(), 'results/localnews_' +  INFERENCE + '_model_state.pth')
         return
     elif INFERENCE=='MCMC':
-        model.group_index_module._set_rho(0.5)
+        model.group_index_module._set_rho(0.9)
         model.group_t_covar_module.outputscale = 0.02**2 
         model.group_t_covar_module.base_kernel._set_lengthscale(10)
         model.likelihood.noise_covar.noise = 0.03**2
@@ -274,26 +279,27 @@ def localnews(INFERENCE):
         # weekday/day/unit effects initialize to 0.0**2
 
         for i in range(len(X_max_v)-1):
-            model.x_covar_module[i].c2 = torch.tensor(0.0**2)
-            model.x_covar_module[i].raw_c2.requires_grad = False
+            model.x_covar_module[i].c2 = torch.tensor(0.01**2)
+        #     model.x_covar_module[i].raw_c2.requires_grad = False
 
         initial_params =  {'group_index_module.rho_prior': model.group_index_module.raw_rho.detach(),\
             'group_t_covar_module.base_kernel.lengthscale_prior':  model.group_t_covar_module.base_kernel.raw_lengthscale.detach(),\
             'group_t_covar_module.outputscale_prior': model.group_t_covar_module.raw_outputscale.detach(),\
             'unit_t_covar_module.base_kernel.lengthscale_prior':  model.unit_t_covar_module.base_kernel.raw_lengthscale.detach(),\
             'unit_t_covar_module.outputscale_prior': model.unit_t_covar_module.raw_outputscale.detach(),\
-            'likelihood.noise_covar.noise_prior': model.likelihood.raw_noise.detach()}
-            # 'x_covar_module.0.c2_prior': model.x_covar_module[0].raw_c2.detach(),
-            # 'x_covar_module.1.c2_prior': model.x_covar_module[1].raw_c2.detach()}
+            'likelihood.noise_covar.noise_prior': model.likelihood.raw_noise.detach(),
+            'x_covar_module.0.c2_prior': model.x_covar_module[0].raw_c2.detach(),
+            'x_covar_module.1.c2_prior': model.x_covar_module[1].raw_c2.detach()}
 
-        nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True, jit_compile=False,\
-            init_strategy=pyro.infer.autoguide.initialization.init_to_value(values=initial_params))
-        # hmc_kernel = HMC(pyro_model, step_size=5e-2, num_steps=10, adapt_step_size=True,\
-        #     init_strategy=pyro.infer.autoguide.initialization.init_to_mean())
-        mcmc_run = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps)
-        mcmc_run.run(train_x, train_y)
-        pickle.dump(mcmc_run, open("results/localnews_MCMC.pkl", "wb"))
-        # plot_pyro_posterior(mcmc_run.get_samples(), transforms)
+        with gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
+            nuts_kernel = NUTS(pyro_model, adapt_step_size=True, adapt_mass_matrix=True, jit_compile=False,\
+                init_strategy=pyro.infer.autoguide.initialization.init_to_value(values=initial_params))
+            hmc_kernel = HMC(pyro_model, step_size=0.1, num_steps=10, adapt_step_size=True,\
+                init_strategy=pyro.infer.autoguide.initialization.init_to_mean())
+            mcmc_run = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps)
+            mcmc_run.run(train_x, train_y)
+            pickle.dump(mcmc_run, open("results/localnews_MCMC.pkl", "wb"))
+            # plot_pyro_posterior(mcmc_run.get_samples(), transforms)
 
         return
 

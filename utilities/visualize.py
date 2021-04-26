@@ -20,6 +20,26 @@ def ax_plot(ax, test_t, X, Y, m, lower, upper, LABEL):
           ax[i].set_title("{} Unit {}".format(LABEL, i+1))
 
 
+def plot_pyro_prior(priors, transforms):
+    labels = ["rho", "group ls", "group os", "unit ls", "unit os", "noise","weekday", "day"]
+    # labels = ["rho", "group ls", "group os", "unit ls", "unit os", "noise"]
+    fig, axes = plt.subplots(figsize=(20, 10), nrows=2, ncols=4)
+    i = 0
+    for k, fn in transforms.items():
+         mu = priors[k].loc.item()
+         s = priors[k].scale.item()
+         samples = np.random.normal(mu,s,10000)
+         samples = fn(torch.from_numpy(samples)).numpy().reshape(-1)
+         if labels[i] in ["noise", "group os", "unit os", "day", "weekday"]:
+              samples = np.sqrt(samples)
+         sns.histplot(samples, ax=axes[int(i/4), int(i%4)])
+         axes[int(i/4)][int(i%4)].legend([labels[i]])
+         i = i + 1
+
+    fig.suptitle("Hyperparameter priors")
+    plt.savefig("results/pyropriors.png")
+     
+
 def plot_prior(model):
     param_list = ["likelihood.noise_covar.noise_prior", "t_covar_module.outputscale_prior", "t_covar_module.base_kernel.lengthscale_prior"]
     xmax = [1,1,60]
@@ -66,18 +86,19 @@ def plot_pyro_posterior(mcmc_samples, transforms):
 #     param_list = ["likelihood.noise_covar.noise_prior","group_t_covar_module.base_kernel.lengthscale_prior",
 #      "group_t_covar_module.outputscale_prior", "unit_t_covar_module.base_kernel.lengthscale_prior",
 #      "unit_t_covar_module.outputscale_prior", "task_covar_module.rho_prior"]
-    labels = ["rho", "group ls", "group os", "unit ls", "unit os", "noise"]
-    fig, axes = plt.subplots(figsize=(20, 10), nrows=2, ncols=3)
+    labels = ["rho", "group ls", "group os", "unit ls", "unit os", "noise","weekday", "day"]
+    # labels = ["rho", "group ls", "group os", "unit ls", "unit os", "noise"]
+    fig, axes = plt.subplots(figsize=(20, 10), nrows=2, ncols=4)
     i = 0
     for k, fn in transforms.items():
          samples = fn(mcmc_samples["model$$$" + k]).numpy().reshape(-1)
-         if labels[i] in ["noise", "group os", "unit os"]:
+         if labels[i] in ["noise", "group os", "unit os", "day", "weekday"]:
               samples = np.sqrt(samples)
-         sns.distplot(samples, ax=axes[int(i/3), int(i%3)])
-         axes[int(i/3)][int(i%3)].legend([labels[i]])
+         sns.histplot(samples, ax=axes[int(i/4), int(i%4)])
+         axes[int(i/4)][int(i%4)].legend([labels[i]])
          i = i + 1
 
-    fig.suptitle("Gamma posterior")
+    fig.suptitle("Hyperparameter posterior")
     plt.savefig("results/gammaposterior.png")
 
 #     fig, axes = plt.subplots(nrows=3, ncols=3)
