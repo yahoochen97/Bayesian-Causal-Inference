@@ -218,7 +218,7 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
     for i in range(len(model.x_covar_module)):
         model.x_covar_module[i].c2 = torch.tensor(0.0**2)
 
-    with torch.no_grad(), gpytorch.settings.fast_pred_var():
+    with torch.no_grad(), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
          f_pred = model(test_x)
 
     # Get lower and upper confidence bounds
@@ -226,7 +226,7 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
 
     station_ids = data.station_id.unique()
     
-    for station_id in station_ids:
+    for station_id in []:
          mask = (data.station_id==station_id).to_numpy()
          test_t = test_x[mask, -1]
          idx = np.argsort(test_t)
@@ -273,6 +273,7 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
     fill_alpha = [0.2, 0.5]
     mean_color = ["blue", "slateblue"]
     y_color = ["purple", "deeppink"]
+    
     for g in [0,1]:
          test_t = np.unique(result[result.g==g].t)
          lower_g = result[result.g==g].lower.to_numpy()
@@ -285,15 +286,16 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
          y_g = result[result.g==g].y.to_numpy()
          LABEL = "Acquired" if g==1 else "Not Acquired"
 
-         plt.rcParams["figure.figsize"] = (15,10)
-         plt.scatter(x=1+test_t, y=y_g, c=y_color[g], s=1, label=LABEL + " avg")
-         plt.plot(1+test_t, m_g, c=mean_color[g], linewidth=0.5, label=LABEL +' estimated Y(0)')
+         plt.rcParams["figure.figsize"] = (15,5)
+         plt.scatter(x=1+test_t, y=y_g, c=y_color[g], s=4, label=LABEL + " avg")
+         plt.plot(1+test_t, m_g, c=mean_color[g], linewidth=2, label=LABEL +' estimated Y(0)')
          plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[g], label=LABEL + " 95% CI")
          # plt.legend(loc=2)
          plt.title("Averaged " + LABEL + " Group Trends ")
          plt.axvline(x=T0, color='red', linewidth=0.5, linestyle="--")
          plt.savefig("results/localnews_MAP_{}.png".format(LABEL))
          plt.close()
+
 
 #     plt.plot(test_t,m_g_0[2:] - m_g_1)
 #     plt.show()

@@ -1,6 +1,7 @@
 addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
+load("results/hmc.mat");
 rng('default');
 
 % initial hyperparameters
@@ -106,7 +107,7 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               {@priorSmoothBox2, -9, -3, 5}, ...    % 10: weekday effect std
               @priorDelta, ...                      % 11
               {@priorSmoothBox2, -9, -3, 5}};       % 12: weekday effect std
-prior.lik  = {[]};                                  % 13: noise
+prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 13: noise
 prior.mean = {@priorDelta};                         % 14: mean
 
 inference_method = {@infPrior, @infExact, prior};
@@ -120,10 +121,10 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
 % make_intermediate_plot_unitw;
 
 % sampler parameters
-num_chains  = 1;
-num_samples = 1000;
-burn_in     = 500;
-jitter      = 0.1;
+num_chains  = 5;
+num_samples = 3000;
+burn_in     = 1000;
+jitter      = 1e-6;
 
 % setup sampler
 ind = false(size(unwrap(theta)));
@@ -138,14 +139,15 @@ f = @(unwrapped_theta) ...
 
 % create and tune sampler
 hmc = hmcSampler(f, theta_0);
-tic;
-[hmc, tune_info] = ...
-   tuneSampler(hmc, ...
-               'verbositylevel', 2, ...
-               'numprint', 10, ...
-               'numstepsizetuningiterations', 200, ...
-               'numstepslimit', 500);
-toc;
+% tic;
+% [hmc, tune_info] = ...
+%    tuneSampler(hmc, ...
+%                'verbositylevel', 2, ...
+%                'numprint', 100, ...
+%                'numstepsizetuningiterations', 100, ...
+%                'numstepslimit', 500);
+% toc;
+
 
 % run several chains
 for i = 1:num_chains
@@ -157,7 +159,7 @@ for i = 1:num_chains
                   'burnin', burn_in, ...
                   'numsamples', num_samples, ...
                   'verbositylevel', 1, ...
-                  'numprint', 10);
+                  'numprint', 100);
   toc;
 end
 
@@ -169,9 +171,9 @@ samples = vertcat(chains{:});
 c = exp(samples);
 c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
 
-figure(2);
-clf;
-plotmatrix(c);
+% figure(2);
+% clf;
+% plotmatrix(c);
 
 % make_final_plot_unitw;
 
