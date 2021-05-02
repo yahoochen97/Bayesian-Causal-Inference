@@ -4,7 +4,7 @@ from torch.nn import ModuleList
 import json
 import numpy as np
 from model.customizedkernel import myIndexKernel, constantKernel, myIndicatorKernel
-from model.customizedkernel import ConstantVectorMean, DriftScaleKernel, DriftIndicatorKernel, DriftMean
+from model.customizedkernel import ConstantVectorMean, DriftScaleKernel, DriftIndicatorKernel
 
 class MultitaskGPModel(gpytorch.models.ExactGP):
 
@@ -23,6 +23,8 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         rho_prior = gpytorch.priors.UniformPrior(-1, 1)
         unit_outputscale_prior = gpytorch.priors.GammaPrior(concentration=1,rate=10)
         unit_lengthscale_prior = gpytorch.priors.GammaPrior(concentration=4,rate=1/5)
+        drift_outputscale_prior = gpytorch.priors.GammaPrior(concentration=1,rate=20)
+        drift_lengthscale_prior = gpytorch.priors.GammaPrior(concentration=5,rate=1/5)
         weekday_prior = gpytorch.priors.GammaPrior(concentration=1,rate=10)
         day_prior = gpytorch.priors.GammaPrior(concentration=1,rate=10)
         
@@ -59,13 +61,15 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         self.unit_t_covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(\
             active_dims=torch.tensor([self.d]),\
             lengthscale_prior=unit_lengthscale_prior if MAP else None),\
-                outputscale_prior=unit_outputscale_prior if MAP else None)
+            outputscale_prior=unit_outputscale_prior if MAP else None)
 
         self.unit_indicator_module = myIndicatorKernel(num_tasks=len(train_x[:,-3].unique()))
 
         # drift process for treatment effect
-        self.drift_mean_module = DriftMean()
-        self.drift_t_module = DriftScaleKernel(gpytorch.kernels.RBFKernel(active_dims=torch.tensor([self.d])))
+        self.drift_t_module = DriftScaleKernel(gpytorch.kernels.RBFKernel(\
+                active_dims=torch.tensor([self.d]),\
+                lengthscale_prior=drift_lengthscale_prior if MAP else None),\
+                outputscale_prior=drift_outputscale_prior if MAP else None)
         self.drift_indicator_module = DriftIndicatorKernel(num_tasks=self.num_groups)
 
     def forward(self, x):
@@ -89,7 +93,6 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         covar = covar_group_t.mul(covar_group_index) + covar_unit_t.mul(covar_unit_indicator)
 
         if self.drift_t_module.T0 is not None:
-            mu = mu + self.drift_mean_module(ts).reshape((-1,)).mul(group.reshape((-1,)))
             covar_drift_indicator = self.drift_indicator_module(group)
             covar_drift_t = self.drift_t_module(x)
             covar += covar_drift_t.mul(covar_drift_indicator)

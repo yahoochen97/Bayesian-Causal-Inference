@@ -171,9 +171,9 @@ samples = vertcat(chains{:});
 c = exp(samples);
 c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
 
-% figure(2);
-% clf;
-% plotmatrix(c);
+figure(2);
+clf;
+plotmatrix(c);
 
 % make_final_plot_unitw;
 

@@ -210,7 +210,11 @@ class DriftScaleKernel(Kernel):
     def scaling(self,x):
         x = torch.clamp(x, min=self.T0+(self.T1).item(), max=self.T0+(self.T1+self.T2).item())
         x = (x-self.T0-self.T1)/self.T2
-        return x
+        # y = 0, x<0
+        # y = 0.5 - (0.5^2-x^2)^0.5, 0<x<0.5
+        # y = 0.5 + (0.5^2-(1-x)^2)^0.5, 0.5<=x<1
+        # y = 1, x>1
+        return torch.exp(1.0-1.0/(x+1e-8))
 
     @property
     def outputscale(self):

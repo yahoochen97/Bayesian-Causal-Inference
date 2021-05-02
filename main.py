@@ -19,12 +19,12 @@ import dill as pickle
 
 
 smoke_test = ('CI' in os.environ)
-training_iterations = 2 if smoke_test else 50
+training_iterations = 2 if smoke_test else 70
 num_samples = 2 if smoke_test else 500
 warmup_steps = 2 if smoke_test else 500
 
 
-def train(train_x, train_y, model, likelihood, mll, optimizer):
+def train(train_x, train_y, model, likelihood, mll, optimizer, training_iterations):
     # Find optimal model hyperparameters
     model.train()
     likelihood.train()
@@ -162,15 +162,14 @@ def localnews(INFERENCE):
     likelihood = gpytorch.likelihoods.GaussianLikelihood(noise_prior=noise_prior if "MAP" in INFERENCE else None,\
             noise_constraint=gpytorch.constraints.Positive())
 
-    model = MultitaskGPModel(train_x, train_y, X_max_v, likelihood, MAP="MAP" in INFERENCE)
+    # likelihood2 = gpytorch.likelihoods.GaussianLikelihood(noise_prior=noise_prior if "MAP" in INFERENCE else None,\
+    #         noise_constraint=gpytorch.constraints.Positive())
 
-    model2 = MultitaskGPModel(test_x, test_y, X_max_v, likelihood, MAP="MAP" in INFERENCE)
-    model2.drift_t_module.T0 = T0
-    model2.drift_mean_module.T0 = T0
-    model2.double()
-
-    likelihood2 = gpytorch.likelihoods.GaussianLikelihood(noise_prior=noise_prior if "MAP" in INFERENCE else None,\
-            noise_constraint=gpytorch.constraints.Positive())
+    model = MultitaskGPModel(test_x, test_y, X_max_v, likelihood, MAP="MAP" in INFERENCE)
+    model.drift_t_module.T0 = T0
+    # model2 = MultitaskGPModel(test_x, test_y, X_max_v, likelihood2, MAP="MAP" in INFERENCE)
+    # model2.drift_t_module.T0 = T0
+    # model2.double()
 
     # group effects
     # model.x_covar_module[0].c2 = torch.var(train_y)
@@ -191,22 +190,18 @@ def localnews(INFERENCE):
     train_x, train_y = train_x.to(device), train_y.to(device)
     test_x, test_y = test_x.to(device), test_y.to(device)
     model.to(device)
-    model2.to(device)
     likelihood.to(device)
-    likelihood2.to(device)
 
     # define Loss for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
-    mll2 = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood2, model2)
+    # mll2 = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood2, model2)
 
     if torch.cuda.is_available():
         train_x = train_x.cuda()
         train_i = train_i.cuda()
         train_y = train_y.cuda()
         model = model.cuda()
-        model2. model2.cuda()
         likelihood = likelihood.cuda()
-        likelihood2 = likelihood2.cuda()
 
     if not os.path.isdir("results"):
         os.mkdir("results")
@@ -273,10 +268,20 @@ def localnews(INFERENCE):
         # weekday/day/unit effects initialize to 0.01**2
         for i in range(len(X_max_v)):
             model.x_covar_module[i].c2 = torch.tensor(0.05**2)
+
+        for name, param in model.drift_t_module.named_parameters():
+            param.requires_grad = True
+        
+        model.drift_t_module._set_T1(0.0) 
+        model.drift_t_module._set_T2(5.0) 
+        model.drift_t_module.base_kernel.lengthscale = 30.0
+        model.drift_t_module.outputscale = 0.05**2
         
         optimizer = torch.optim.LBFGS(model.parameters(), lr=0.1, history_size=10, max_iter=4)
-        optimizer2 = torch.optim.LBFGS(model2.parameters(), lr=0.1, history_size=10, max_iter=4)
-        model, likelihood = train(train_x, train_y, model, likelihood, mll, optimizer)
+        model, likelihood = train(test_x, test_y, model, likelihood, mll, optimizer, training_iterations)
+
+        # state_dict = torch.load('results/localnews_MAP_model_state.pth')
+        # model.load_state_dict(state_dict)
 
         # model.group_index_module.raw_rho.requires_grad = False
         # model.group_t_covar_module.raw_outputscale.requires_grad = False 
@@ -289,29 +294,25 @@ def localnews(INFERENCE):
         #     model.x_covar_module[i].raw.c2.requires_grad = False
 
         # freeze all parameters except the drift parameters
-        model2.load_state_dict(model.state_dict())
-        likelihood2.load_state_dict(likelihood.state_dict())
-        for name, param in model2.named_parameters():
-            param.requires_grad = False
+        # model2.load_state_dict(model.state_dict())
+        # likelihood2.load_state_dict(likelihood.state_dict())
+        # for name, param in model2.named_parameters():
+        #     param.requires_grad = False
 
-        for name, param in model2.drift_t_module.named_parameters():
-            param.requires_grad = True
+        # for name, param in model.drift_t_module.named_parameters():
+        #     param.requires_grad = True
 
-        for name, param in model2.drift_mean_module.named_parameters():
-            param.requires_grad = True
+        # model2.x_covar_module[-1].raw_c2.requires_grad = False
+        # model2.unit_mean_module.constant.requires_grad = False
         
-        model2.drift_t_module._set_T1(0.0) 
-        model2.drift_t_module._set_T2(10.0) 
-        model2.drift_t_module.base_kernel.lengthscale = 7.0
-        model2.drift_t_module.outputscale = 0.05**2
+        # model2.drift_t_module._set_T1(0.0) 
+        # model2.drift_t_module._set_T2(5.0) 
+        # model2.drift_t_module.base_kernel.lengthscale = 30.0
+        # model2.drift_t_module.outputscale = 0.05**2
 
-        model2.drift_mean_module._set_T1(0.01) 
-        model2.drift_mean_module._set_T2(10.0) 
-        model2.drift_mean_module._set_effect(0.05)
+        # model2, likelihood2 = train(test_x, test_y, model2, likelihood2, mll2, optimizer2, 20)
 
-        model2, likelihood2 = train(test_x, test_y, model2, likelihood2, mll2, optimizer2)
-
-        torch.save(model2.state_dict(), 'results/localnews_' +  INFERENCE + '_model_state.pth')
+        torch.save(model.state_dict(), 'results/localnews_' +  INFERENCE + '_model_state.pth')
         return
     elif INFERENCE=='MCMC':
         model.group_index_module._set_rho(0.9)
@@ -351,12 +352,12 @@ def localnews(INFERENCE):
         visualize_localnews_MCMC(data, train_x, train_y, train_g, test_x, test_y, test_i, model,\
                 likelihood, T0,  station_le, num_samples)
     else:
-        model = model2
         model.load_strict_shapes(False)
         state_dict = torch.load('results/localnews_MAP_model_state.pth')
         model.load_state_dict(state_dict)
 
         print(f'Parameter name: rho value = {model.group_index_module.rho.detach().numpy()}')
+        print(f'Parameter name: unit mean value = {model.unit_mean_module.constant.detach().numpy()}')
         print(f'Parameter name: group ls value = {model.group_t_covar_module.base_kernel.lengthscale.detach().numpy()}')
         print(f'Parameter name: group os value = {np.sqrt(model.group_t_covar_module.outputscale.detach().numpy())}')
         print(f'Parameter name: unit ls value = {model.unit_t_covar_module.base_kernel.lengthscale.detach().numpy()}')
@@ -371,11 +372,7 @@ def localnews(INFERENCE):
         print(f'Parameter name: drift cov T1 value = {model.drift_t_module.T1.detach().numpy()}')
         print(f'Parameter name: drift cov T2 value = {model.drift_t_module.T2.detach().numpy()}')
 
-        print(f'Parameter name: drift mean effect value = {model.drift_mean_module.effect.detach().numpy()}')
-        print(f'Parameter name: drift mean T1 value = {model.drift_mean_module.T1.detach().numpy()}')
-        print(f'Parameter name: drift mean T2 value = {model.drift_mean_module.T2.detach().numpy()}')
-          
-        visualize_localnews(data, test_x, test_y, test_g, model2, likelihood, T0, station_le)
+        visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, station_le)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='python main.py --type localnews --inference MAP')
