@@ -5,6 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import scipy.special as sps 
 import seaborn as sns
+import copy
 
 
 # Define plotting function
@@ -211,22 +212,51 @@ def visualize_synthetic(X_tr, X_co, Y_tr, Y_co, ATT, model, likelihood, T0):
 
     visualize(test_t, X_tr, Y_tr, m_tr, lower_tr, upper_tr, X_co, Y_co, m_co, lower_co, upper_co, ATT, T0)
 
-def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, station_le):
+def visualize_localnews(data, test_x, test_y, test_g, model, model2, likelihood, T0, station_le, train_condition):
     # Set into eval mode
+
     model.eval()
+    model2.eval()
     likelihood.eval()
     for i in range(len(model.x_covar_module)):
         model.x_covar_module[i].c2 = torch.tensor(0.0**2)
+        model2.x_covar_module[i].c2 = torch.tensor(0.0**2)
+
+    with torch.no_grad(), gpytorch.settings.prior_mode(True), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
+        f_pred = model(test_x)
+
+    K_sum = copy.deepcopy(f_pred.covariance_matrix.detach().numpy())
+    mu_sum = copy.deepcopy(f_pred.mean.detach().numpy())
+
+    with torch.no_grad(), gpytorch.settings.prior_mode(False), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
+        f_pred = model(test_x)
+
+    result = pd.DataFrame({
+         "t":test_x[:,-1],
+         "g": test_g,
+         "m": f_pred.mean})
+    result = result.groupby(['t','g'], as_index=False)[['m']].mean()
+    m_1 = result[result.g==1].m.to_numpy()
+
+    with torch.no_grad(), gpytorch.settings.prior_mode(False), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
+        f_pred = model2(test_x)
+
+    result = pd.DataFrame({
+         "t":test_x[:,-1],
+         "g": test_g,
+         "m": f_pred.mean})
+    result = result.groupby(['t','g'], as_index=False)[['m']].mean()
+    m_0 = result[result.g==1].m.to_numpy()
 
     with torch.no_grad(), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
-         f_pred = model(test_x)
+         f_pred = model2(test_x)
 
     # Get lower and upper confidence bounds
     lower, upper = f_pred.confidence_region()
 
     station_ids = data.station_id.unique()
     
-    for station_id in station_ids:
+    for station_id in []:
          mask = (data.station_id==station_id).to_numpy()
          test_t = test_x[mask, -1]
          idx = np.argsort(test_t)
@@ -252,10 +282,13 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
          plt.close()
 
     model.unit_t_covar_module.outputscale = 0
+    model.unit_mean_module.constantvector.data.fill_(0.0)
+    model2.unit_t_covar_module.outputscale = 0
+    model2.unit_mean_module.constantvector.data.fill_(0.0)
 
      # Make predictions
-    with torch.no_grad(), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
-         f_pred = model(test_x)
+    with torch.no_grad(), gpytorch.settings.prior_mode(False), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
+         f_pred = model2(test_x)
 
     # Get lower and upper confidence bounds
     lower, upper = f_pred.confidence_region()
@@ -274,20 +307,22 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
     mean_color = ["blue", "tomato"]
     y_color = ["purple", "crimson"]
     # plt.rcParams["figure.figsize"] = (15,5)
-    for g in [0,1]:
+    for g in []:
          test_t = np.unique(result[result.g==g].t)
          lower_g = result[result.g==g].lower.to_numpy()
          upper_g = result[result.g==g].upper.to_numpy()
          m_g = result[result.g==g].m.to_numpy()
          if g==0:
               m_g_0 = m_g
+              v_0 = (upper_g - lower_g)/2
          else:
               m_g_1 = m_g
+              v_1 = (upper_g - lower_g)/2
          y_g = result[result.g==g].y.to_numpy()
          LABEL = "Acquired" if g==1 else "Not Acquired"
          plt.rcParams["figure.figsize"] = (15,5)
-         plt.scatter(x=1+test_t, y=y_g, c=y_color[g], s=4, label=LABEL + " avg")
-         plt.plot(1+test_t, m_g, c=mean_color[g], linewidth=2, label=LABEL +' estimated Y(0)')
+         plt.scatter(x=1+test_t, y=y_g, c=y_color[0], s=4, label=LABEL + " avg")
+         plt.plot(1+test_t, m_g, c=mean_color[0], linewidth=2, label=LABEL +' estimated Y(0)')
          plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[g], label=LABEL + " 95% CI")
          plt.legend(loc=2)
          plt.title("Averaged " + LABEL + " Group Trends ")
@@ -298,47 +333,132 @@ def visualize_localnews(data, test_x, test_y, test_g, model, likelihood, T0, sta
 #     plt.savefig("results/localnews_MAP.png")
 #     plt.close()
 
-    # print(m_g_1-m_g_0[2:])
 
-    model.group_t_covar_module.outputscale = 0.0
-    model.unit_mean_module.constant.data.fill_(0.0) 
-
-    for name, param in model.named_parameters():
-         param.requires_grad = False
-
-     # Make predictions
+ # Make predictions
     with torch.no_grad(), gpytorch.settings.prior_mode(False), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
          f_pred = model(test_x)
 
     # Get lower and upper confidence bounds
     lower, upper = f_pred.confidence_region()
-
+    
+    station_ids = data.station_id.unique()
     result = pd.DataFrame({
          "t":test_x[:,-1],
          "g": test_g,
          "upper": upper,
          "lower": lower,
          "m": f_pred.mean,
-         "y": test_y})
+         "y": test_y,
+         "sinclair2017": data.sinclair2017})
     result = result.groupby(['t','g'], as_index=False)[['lower','upper','m','y']].mean()
-
-    for g in [1]:
+    fill_alpha = [0.1, 0.2]
+    mean_color = ["blue", "tomato"]
+    y_color = ["purple", "crimson"]
+    plt.rcParams["figure.figsize"] = (15,5)
+    for g in []:
          test_t = np.unique(result[result.g==g].t)
          lower_g = result[result.g==g].lower.to_numpy()
          upper_g = result[result.g==g].upper.to_numpy()
          m_g = result[result.g==g].m.to_numpy()
-
-         plt.rcParams["figure.figsize"] = (15,5)
-         plt.plot(1+test_t, m_g, c=mean_color[0], linewidth=2, label='treatment effect')
-         plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[1], label="95% CI")
+     #     if g==0:
+     #          m_g_0 = m_g
+     #          v_0 = (upper_g - lower_g)/2
+     #     else:
+     #          m_g_1 = m_g
+     #          v_1 = (upper_g - lower_g)/2
+         y_g = result[result.g==g].y.to_numpy()
+         LABEL = "Acquired" if g==1 else "Not Acquired"
+         # plt.rcParams["figure.figsize"] = (15,5)
+         plt.scatter(x=1+test_t, y=y_g, c=y_color[g], s=4, label=LABEL + " avg")
+         plt.plot(1+test_t, m_g, c=mean_color[g], linewidth=2, label=LABEL +' estimated Y')
+         plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[g], label=LABEL + " 95% CI")
          plt.legend(loc=2)
-         plt.title("Treatment Effect Trend ")
+         plt.title("Averaged " + LABEL + " Group Trends ")
          plt.axvline(x=T0, color='red', linewidth=0.5, linestyle="--")
-         plt.savefig("results/localnews_MAP_effect.png")
-         plt.close()
 
-#     plt.plot(test_t,m_g_0[2:] - m_g_1)
+#     plt.savefig("results/localnews_MAP.png")
+#     plt.close()
+
+    model.group_t_covar_module.outputscale = 0
+    model.group_mean_module.constantvector.data.fill_(0.0)
+
+    with torch.no_grad(), gpytorch.settings.prior_mode(True), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
+        f_pred = model(test_x)
+
+    K_D = copy.deepcopy(f_pred.covariance_matrix.detach().numpy())
+    mu_D = copy.deepcopy(f_pred.mean.detach().numpy())
+
+    # model.group_t_covar_module.outputscale = 0.0
+    # model.unit_mean_module.constantvector.data.fill_(0.0) 
+    # model.group_mean_module.constantvector.data.fill_(0.0) 
+
+     # Make predictions
+#     with torch.no_grad(), gpytorch.settings.prior_mode(False), gpytorch.settings.fast_computations(covar_root_decomposition=False, log_prob=False, solves=False):
+#          f_pred = model(test_x)
+
+#     # Get lower and upper confidence bounds
+#     lower, upper = f_pred.confidence_region()
+
+#     result = pd.DataFrame({
+#          "t":test_x[:,-1],
+#          "g": test_g,
+#          "upper": upper,
+#          "lower": lower,
+#          "m": f_pred.mean,
+#          "y": test_y})
+#     result = result.groupby(['t','g'], as_index=False)[['lower','upper','m','y']].mean()
+
+#     for g in [1]:
+#          test_t = np.unique(result[result.g==g].t)
+#          lower_g = result[result.g==g].lower.to_numpy()
+#          upper_g = result[result.g==g].upper.to_numpy()
+#          m_g = result[result.g==g].m.to_numpy()
+#          v = (upper_g - lower_g)/2
+
+#          plt.rcParams["figure.figsize"] = (15,5)
+#          plt.plot(1+test_t, m_g, c=mean_color[0], linewidth=2, label='treatment effect')
+#          plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[1], label="95% CI")
+#          plt.legend(loc=2)
+#          plt.title("Treatment Effect Trend ")
+#          plt.axvline(x=T0, color='red', linewidth=0.5, linestyle="--")
+#          plt.savefig("results/localnews_MAP_effect.png")
+#          plt.close()
+
+
+#     plt.plot(test_t,m_g_1-m_g_0[2:])
+#     plt.plot(test_t,m_g)
 #     plt.show()
+
+     # verify conditioning on sum of two GPs
+    g = 1
+    mu_p = mu_D+ K_D.dot(np.linalg.inv(K_sum+np.identity(K_sum.shape[0])*likelihood.noise.item())).dot(test_y-mu_sum)
+    K_p = K_D - K_D.dot(np.linalg.inv(K_sum+np.identity(K_sum.shape[0])*likelihood.noise.item())).dot(K_D)
+
+    result = pd.DataFrame({
+         "t":test_x[:,-1],
+         "g": test_g,
+         "m": mu_p,
+         "s2": K_p.diagonal(),
+         "y": test_y})
+    result = result.groupby(['t','g'], as_index=False)[['m','y',"s2"]].mean()
+
+    m_g = result[result.g==g].m.to_numpy()
+    test_t = np.unique(result[result.g==g].t)
+    plt.rcParams["figure.figsize"] = (15,5)
+    plt.plot(1+test_t, m_g, c="darkblue", linewidth=2, label='treatment effect')
+
+    std_p = np.sqrt(result[result.g==g].s2.to_numpy())
+    lower_g = m_g - 1.96*std_p
+    upper_g = m_g + 1.96*std_p
+    plt.plot(1+test_t,m_1-m_0,  c="blue", linestyle="--",linewidth=1, label='estimated Y(1)-Y(0)')
+    plt.fill_between(1+test_t, lower_g, upper_g, color='grey', alpha=fill_alpha[1], label="95% CI")
+    plt.legend(loc=2)
+    plt.title("Treatment Effect Trend ")
+    plt.axvline(x=T0, color='red', linewidth=0.5, linestyle="--")
+    plt.savefig("results/localnews_MAP_effect.png")
+    plt.close()
+    # plt.show()
+
 
 def visualize_localnews_MCMC(data, train_x, train_y, train_i, test_x, test_y, test_i, model,\
                 likelihood, T0, station_le, num_samples):

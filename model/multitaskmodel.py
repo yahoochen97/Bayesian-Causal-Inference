@@ -30,6 +30,7 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         
         # treatment/control groups
         self.num_groups = 2 
+        self.num_units = len(train_x[:,-3].unique())
 
         # categoritcal features: group/weekday/day/unit id
         self.X_max_v = X_max_v
@@ -37,7 +38,9 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
         self.d = list(train_x.shape)[1] - 1
 
         # same mean of unit bias for all units, could extend this to be unit-dependent
-        self.unit_mean_module = gpytorch.means.ConstantMean()
+        # self.unit_mean_module = gpytorch.means.ConstantMean()
+        self.unit_mean_module =  ConstantVectorMean(d=self.num_units)
+        self.group_mean_module = ConstantVectorMean(d=self.num_groups)
 
         # marginalize weekday/day/unit id effects
         self.x_covar_module = ModuleList([constantKernel(num_tasks=v+1) for v in self.X_max_v])
@@ -83,7 +86,9 @@ class MultitaskGPModel(gpytorch.models.ExactGP):
             ts = x[0,:,-1]
 
         # only non-zero unit-level mean
-        mu = self.unit_mean_module(x)
+        # mu = self.unit_mean_module(x)
+        mu = self.group_mean_module(group) + self.unit_mean_module(units) 
+        mu = mu.reshape(-1,)
         
         # covariance for time trends
         covar_group_t = self.group_t_covar_module(x)
