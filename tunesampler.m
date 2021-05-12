@@ -1,4 +1,5 @@
-addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+% change gpml path
+addpath("gpml-matlab-v3.6-2015-07-07");
 startup;
 
 rng('default');
@@ -109,7 +110,7 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               [], ...                               % 15: drift length scale
               []};                                  % 16: drift output scale
 prior.lik  = {[]};                                  % 17: noise
-prior.mean = {@priorDelta, @priorDelta};            % 18 19: mean
+prior.mean = {@priorDelta, @priorDelta};            % 18: mean
 
 inference_method = {@infPrior, @infExact, prior};
 
@@ -181,22 +182,3 @@ tic;
 toc;
 
 save("tunesampler.mat")
-
-% run several chains
-for i = 1:num_chains
-  rng(i);
-  tic;
-  [chains{i}, endpoints{i}, acceptance_ratios(i)] = ...
-      drawSamples(hmc, ...
-                  'start', theta_0 + jitter * randn(size(theta_0)), ...
-                  'burnin', burn_in, ...
-                  'numsamples', num_samples, ...
-                  'verbositylevel', 1, ...
-                  'numprint', 10);
-  toc;
-end
-
-save("results/drifthmc.mat");
-
-diagnostics(hmc, chains);
-samples = vertcat(chains{:});
