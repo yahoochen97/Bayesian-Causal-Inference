@@ -8,4 +8,5 @@ module add seas-lab-vorobeychik
 
 # python main.py -t localnews -i MCMC
 
-matlab -nodisplay -nodesktop -r "test_drift; exit;"
+matlab -nodisplay -nodesktop -r "tunesampler; exit;"
+# matlab -nodisplay -nodesktop -r "test_drift; exit;"

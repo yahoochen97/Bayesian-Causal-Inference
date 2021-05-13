@@ -1,4 +1,6 @@
 #!/bin/bash
 
 mkdir -p results
-bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnews" -o localnews.log "./onerun"
+# bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnews" -o localnews.log "./onerun"
+
+bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesampler" -o tunesampler.log "./onerun"
