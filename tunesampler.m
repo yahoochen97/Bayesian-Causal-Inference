@@ -1,5 +1,6 @@
 % change gpml path
-addpath("gpml-matlab-v3.6-2015-07-07");
+% addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
+addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
 rng('default');
@@ -110,7 +111,7 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               [], ...                               % 15: drift length scale
               []};                                  % 16: drift output scale
 prior.lik  = {[]};                                  % 17: noise
-prior.mean = {@priorDelta, @priorDelta};            % 18: mean
+prior.mean = {@priorDelta, @priorDelta};            % 18 19: mean
 
 inference_method = {@infPrior, @infExact, prior};
 
@@ -181,4 +182,4 @@ tic;
                'numstepslimit', 500);
 toc;
 
-save("tunesampler.mat")
+save("tunesampler.mat");
