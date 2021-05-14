@@ -7,6 +7,7 @@ module add seas-lab-vorobeychik
 # module add gcc-6.5.0
 
 # python main.py -t localnews -i MCMC
+chain=$1
 
-matlab -nodisplay -nodesktop -r "tunesampler; exit;"
-# matlab -nodisplay -nodesktop -r "test_drift; exit;"
+# matlab -nodisplay -nodesktop -r "tunesampler; exit;"
+matlab -nodisplay -nodesktop -r "test_drift(${chain}); exit;"

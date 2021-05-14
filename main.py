@@ -201,7 +201,6 @@ def localnews(INFERENCE):
 
     if torch.cuda.is_available():
         train_x = train_x.cuda()
-        train_i = train_i.cuda()
         train_y = train_y.cuda()
         model = model.cuda()
         likelihood = likelihood.cuda()
