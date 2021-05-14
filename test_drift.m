@@ -27,4 +27,12 @@ function test_drift(seed)
 
 % diagnostics(hmc, chains);
 % samples = vertcat(chains{:});
+
+% c = exp(chain);
+% c(:, 3) = 2 * normcdf(chain(:, 3)) - 1;
+% 
+% figure(3);
+% clf;
+% plotmatrix(c);
+
 end
