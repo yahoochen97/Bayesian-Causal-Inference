@@ -13,6 +13,8 @@ length_scale      = 14;
 output_scale      = 0.02;
 unit_length_scale = 28;
 unit_output_scale = 0.02;
+treat_length_scale = 30;
+treat_output_scale = 0.01;
 noise_scale       = 0.03;
 rho               = 0.8;
 
@@ -85,12 +87,23 @@ weekday_bias_covariance = {@covMask, {5, {@covSEiso}}};
 theta.cov = [theta.cov; ...
              log(0.01); ...              % 11
              log(day_sigma)];            % 12
+         
+
+% treatment effect
+treatment_effect_covariance = ...
+    {@covMask, {5, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
+theta.cov = [theta.cov; ...
+             treatment_day; ...          % 9
+             treatment_day + 1; ...      % 10
+             log(treat_length_scale); ...% 11
+             log(treat_output_scale)];   % 12
 
 covariance_function = {@covSum, {group_trend_covariance, ...
                                  unit_bias_covariance,   ...
                                  unit_error_covariance,  ...
                                  day_bias_covariance,    ...
-                                 weekday_bias_covariance}};
+                                 weekday_bias_covariance, ...
+                                 treatment_effect_covariance}};
 
 % Gaussian noise
 theta.lik = log(noise_scale);
@@ -107,9 +120,13 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               @priorDelta, ...                      % 9
               {@priorSmoothBox2, -9, -3, 5}, ...    % 10: weekday effect std
               @priorDelta, ...                      % 11
-              {@priorSmoothBox2, -9, -3, 5}};       % 12: weekday effect std
-prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 13: noise
-prior.mean = {@priorDelta};                         % 14: mean
+              {@priorSmoothBox2, -9, -3, 5},...     % 12: weekday effect std
+              @priorDelta, ...                      % 13
+              [], ...                               % 14: end of drift
+              [], ...                               % 15: drift length scale
+              []};                                  % 16: drift output scale
+prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 17: noise
+prior.mean = {@priorDelta};                         % 18: mean
 
 inference_method = {@infPrior, @infExact, prior};
 
@@ -123,13 +140,13 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
 
 % sampler parameters
 num_chains  = 5;
-num_samples = 3000;
-burn_in     = 1000;
-jitter      = 1e-6;
+num_samples = 1000;
+burn_in     = 500;
+jitter      = 0.1;
 
 % setup sampler
 ind = false(size(unwrap(theta)));
-ind([1:3, 6, 7, 10, 12, 13]) = true;
+ind([1:3, 6, 7, 10, 12, 14:16, 17]) = true;
 
 theta_0 = unwrap(theta);
 theta_0 = theta_0(ind);

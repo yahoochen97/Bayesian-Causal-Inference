@@ -122,9 +122,9 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
 
 % sampler parameters
 num_chains  = 5;
-num_samples = 3000;
-burn_in     = 1000;
-jitter      = 1e-6;
+num_samples = 50;
+burn_in     = 50;
+jitter      = 0.1;
 
 % setup sampler
 ind = false(size(unwrap(theta)));
@@ -159,7 +159,7 @@ for i = 1:num_chains
                   'burnin', burn_in, ...
                   'numsamples', num_samples, ...
                   'verbositylevel', 1, ...
-                  'numprint', 100);
+                  'numprint', 10);
   toc;
 end
 
