@@ -1,6 +1,6 @@
 function test_drift(seed)
-    % addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
-    addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+    addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
+    % addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
     startup;
 
     % sampler parameters
