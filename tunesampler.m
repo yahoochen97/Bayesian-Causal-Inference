@@ -27,16 +27,18 @@ load_data;
 % 3: unit id
 % 4: day number (replicated, useful for prediction)
 % 5: weekday number
-x = [x, x(:, 1), mod(x(:, 1), 7)];
+% 6: day number (set to zero for task 1, used for drift process)
+x = [x, x(:, 1), mod(x(:, 1), 7), x(:, 1)];
+x(x(:, 2) == 1, end) = 0;
 
 % make a copy before filtering
 all_x = x;
 all_y = y;
 
 % discard treated data post treatment
-ind = (x(:, 1) >= treatment_day) & (x(:, 2) == 2);
-x(ind, :) = [];
-y(ind)    = [];
+% ind = (x(:, 1) >= treatment_day) & (x(:, 2) == 2);
+% x(ind, :) = [];
+% y(ind)    = [];
 
 % skip some data during development
 skip = 1;
@@ -91,10 +93,10 @@ theta.cov = [theta.cov; ...
 
 % treatment effect
 treatment_effect_covariance = ...
-    {@covMask, {5, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
+    {@covMask, {6, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
 theta.cov = [theta.cov; ...
              treatment_day; ...          % 9
-             treatment_day + 1; ...      % 10
+             treatment_day + 7; ...      % 10
              log(treat_length_scale); ...% 11
              log(treat_output_scale)];   % 12
 
