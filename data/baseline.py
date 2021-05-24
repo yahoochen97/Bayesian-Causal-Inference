@@ -16,6 +16,13 @@ TITLES = ["Non linear but parallel",
             "Linear but not parallel",
             "Non linear and not parallel"]
 
+def generate_effect(t, SEED):
+    # np.random.seed(SEED)
+    true_effects = np.zeros(t.shape)
+    true_effects += effect/((T-T0)/2)*(t-T0)*((t>=T0) & (t<=(T0+T)/2))
+    true_effects += effect*(t>(T0+T)/2)
+    return true_effects + np.random.normal(0, 0.01, true_effects.shape)*((t-T0)>=0)
+
 def f1(x):
     # non linear but parallel
     y_tr = np.cos(x/4) / (T/2)  + x / T / 4 + 0.5
@@ -28,51 +35,57 @@ def f2(x):
     y_tr = x / T / 5 + 0.4
     return y_tr, y_co
 
-def f3(x):
+def f3(x, SEED):
+    # np.random.seed(SEED)
+    coef_a = np.random.normal(1/T**2, 1/T**2/5, size=2)
+    coef_b = np.random.normal(2*T/3, T/5, size=2)
     # non linear and not parallel
-    y_tr = np.cos(x/5) / (T/2) + x / T / 3 + 0.4
-    y_co = np.cos(x/4) / (T/2) + x / T / 5 + 0.3
+    y_tr = np.cos(x/5) / (T/2) + coef_a[0]*(x-coef_b[0])**2 + 0.3
+    y_co = np.cos(x/4) / (T/2) + coef_a[1]*(x-coef_b[1])**2 + 0.1
     return y_tr, y_co
 
 fs = [f1, f2, f3]
+fs = [f3]
+
+TITLES=['quadratic']
 
 def generate_data(SEED):
     np.random.seed(SEED)
     for k in range(len(TITLES)):
         x = np.arange(T)
-
         treat = np.zeros((N_tr, T))
         control = np.zeros((N_co, T))
-        y_tr, y_co = fs[k](x)
+        y_tr, y_co = fs[k](x, SEED)
+        print(np.corrcoef(y_tr,y_co))
 
         ATT = np.zeros(treat.shape)
         for i in range(N_tr):
             treat[i] = y_tr
             b = np.random.uniform(-0.05,0.05, 1)
             treat[i] += np.random.normal(b, 0.05, T)
-            true_effect = np.random.normal(effect,0.01, T)[T0:]
-            ATT[i, T0:] += true_effect
-            treat[i,T0:] += true_effect
+            ATT[i] += generate_effect(x, SEED)
+            treat[i] += ATT[i]
 
         for i in range(N_co):
             control[i] = y_co
             b = np.random.uniform(-0.05,0.05, 1)
             control[i] += np.random.normal(b, 0.05, T)
 
-        np.savetxt(synthetic_path+"/treat{}_{}.csv".format(k, SEED), treat, delimiter=",")
-        np.savetxt(synthetic_path+"/control{}_{}.csv".format(k, SEED), control, delimiter=",")
-        np.savetxt(synthetic_path+"/effect{}_{}.csv".format(k, SEED), ATT, delimiter=",")
+        np.savetxt(synthetic_path+"/treat_{}.csv".format(SEED), treat, delimiter=",")
+        np.savetxt(synthetic_path+"/control_{}.csv".format(SEED), control, delimiter=",")
+        np.savetxt(synthetic_path+"/effect_{}.csv".format(SEED), ATT, delimiter=",")
 
-        plot_synthetic_data(treat, control, k, SEED)
+        plot_synthetic_data(treat, control, k, SEED, y_tr, y_co, ATT)
         fixed_effect(treat, control, k, SEED)
 
 
-def plot_synthetic_data(treat, control, k, SEED):
+def plot_synthetic_data(treat, control, k, SEED,y_tr, y_co, ATT):
     plt.rcParams["figure.figsize"] = (10,5)
-    x_plot = np.linspace(0,T,1000)
-    x = np.arange(T)
-    y_tr, y_co = fs[k](x_plot)
-    y_tr[x_plot>=T0] += effect
+    # x_plot = np.linspace(0,T,2*T)
+    x_plot = x = np.arange(T)
+    # y_tr, y_co = fs[k](x_plot, SEED)
+    # y_tr += generate_effect(x_plot, SEED)
+    y_tr += np.mean(ATT, axis=0)
     # plot true mean
     plt.plot(x_plot, y_tr, 'b--', linewidth=1.0, label='Treat true mean')
     plt.plot(x_plot, y_co, 'r--', linewidth=1.0, label='Control true mean')
@@ -82,14 +95,9 @@ def plot_synthetic_data(treat, control, k, SEED):
     plt.scatter(x, np.mean(control, axis=0), c="crimson", s=4, label='Control sample averaged')
     plt.legend(loc=2)
     plt.title(TITLES[k])
-    plt.savefig(synthetic_path+"/data{}_{}.png".format(k, SEED))
+    plt.savefig(synthetic_path+"/data_{}.png".format(SEED))
     plt.close()
 
-def run_fixed_effect(SEED):
-    for k in range(len(fs)):
-        treat = np.loadtxt(synthetic_path+"/treat{}.csv".format(k), delimiter=",")
-        control = np.loadtxt(synthetic_path+"/control{}.csv".format(k), delimiter=",")
-        fixed_effect(treat, control, k)
 
 def fixed_effect(treat, control, k, SEED):
     x = np.arange(T)
@@ -99,7 +107,7 @@ def fixed_effect(treat, control, k, SEED):
     y = np.concatenate([treat.reshape(-1,1),control.reshape(-1,1)])
     COLUMNS = ["time", "y", "unit", "treated"]
     data = pd.DataFrame(np.concatenate((x,y,units,treated),axis=1),columns=COLUMNS)
-    data.to_csv(synthetic_path+"/data{}_{}.csv".format(k, SEED), index=False)
+    data.to_csv(synthetic_path+"/data_{}.csv".format(SEED), index=False)
 
     return
     
@@ -157,7 +165,5 @@ if __name__ == "__main__":
         if not os.path.exists(synthetic_path):
             os.makedirs(synthetic_path)
         generate_data(SEED)
-    elif args['type'] == 'twoway':
-        run_fixed_effect(SEED)
     else:
         exit()

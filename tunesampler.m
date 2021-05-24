@@ -14,7 +14,7 @@ output_scale      = 0.02;
 unit_length_scale = 28;
 unit_output_scale = 0.02;
 treat_length_scale = 30;
-treat_output_scale = 0.01;
+treat_output_scale = 0.1;
 noise_scale       = 0.03;
 rho               = 0.8;
 
@@ -41,7 +41,7 @@ all_y = y;
 % y(ind)    = [];
 
 % skip some data during development
-skip = 1;
+skip = 10;
 train_ind = (randi(skip, size(y)) == 1);
 x = x(train_ind, :);
 y = y(train_ind);
@@ -95,10 +95,10 @@ theta.cov = [theta.cov; ...
 treatment_effect_covariance = ...
     {@covMask, {6, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
 theta.cov = [theta.cov; ...
-             treatment_day; ...          % 9
-             treatment_day + 7; ...      % 10
-             log(treat_length_scale); ...% 11
-             log(treat_output_scale)];   % 12
+             treatment_day; ...          % 13
+             treatment_day + 7; ...      % 14
+             log(treat_length_scale); ...% 15
+             log(treat_output_scale)];   % 16
 
 covariance_function = {@covSum, {group_trend_covariance, ...
                                  unit_bias_covariance,   ...
@@ -127,7 +127,7 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               [], ...                               % 14: end of drift
               [], ...                               % 15: drift length scale
               []};                                  % 16: drift output scale
-prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 17: noise
+prior.lik  = {[]};                                  % 17: noise
 prior.mean = {@priorDelta};                         % 18: mean
 
 inference_method = {@infPrior, @infExact, prior};
@@ -138,7 +138,56 @@ p.length = 100;
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);
 
+                
+% why flat ls/ts
+% theta.cov(14) = 3; % ts 3
+% theta.cov(15) = log(3);
+% 
+% [~,~,fmu,fs2] = gp(theta, inference_method, mean_function, ...
+%                     covariance_function, [], x, y, x);
+% 
+% results = table;
+% results.m = fmu;
+% results.day = x(:,1);
+% results.s2 = fs2;
+% results.y = y;
+% results.group = x(:,2);
+% results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
+
+% TODO: group
+% fig = figure(2);
+% clf;
+% for g = 2:2
+%     mu = results.mean_m(results.group==g,:);
+%     s2 = results.mean_s2(results.group==g,:);
+%     days = results.day(results.group==g,:);
+%     ys = results.mean_y(results.group==g,:);
+% 
+%     f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
+%     h = fill([days; flipdim(days,1)], f, [6 8 6]/8);
+%     set(h,'facealpha', 0.25);
+%     hold on; plot(days, mu); scatter(days, ys);
+% end
+
+
 % make_intermediate_plot_unitw;
+
+oss = linspace(0.1,1.0,10);
+lss = linspace(5,95,10);
+ts = linspace(0,90,10)+90;
+nlzs = zeros(10);
+for i=1:10
+   for j=1:10
+      tmp = theta;
+      tmp.cov(14) = ts(i);
+      tmp.cov(15) = log(lss(j));
+%       tmp.cov(16) = log(oss(i));
+      nlzs(i,j)=gp(tmp,inference_method, mean_function,covariance_function,[],x,y);
+   end
+end
+figure(3);
+clf;
+heatmap(nlzs, 'XData', lss, 'YData', ts);
 
 % sampler parameters
 num_chains  = 5;
@@ -158,15 +207,15 @@ f = @(unwrapped_theta) ...
       covariance_function, x, y);
 
 % create and tune sampler
-hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
-
-tic;
-[hmc, tune_info] = ...
-   tuneSampler(hmc, ...
-               'verbositylevel', 2, ...
-               'numprint', 10, ...
-               'numstepsizetuningiterations', 100, ...
-               'numstepslimit', 500);
-toc;
-
-save("tunesampler.mat");
+% hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
+% 
+% tic;
+% [hmc, tune_info] = ...
+%    tuneSampler(hmc, ...
+%                'verbositylevel', 2, ...
+%                'numprint', 10, ...
+%                'numstepsizetuningiterations', 100, ...
+%                'numstepslimit', 500);
+% toc;
+% 
+% save("tunesampler.mat");

@@ -6,21 +6,21 @@ startup;
 rng('default');
 
 % initial hyperparameters
-mean_sigma   = 0.02;
+mean_mu = 0.5;
+mean_sigma   = 0.05;
 length_scale = 14;
 output_scale = 0.05;
 unit_length_scale = 28;
-unit_output_scale = 0.02;
+unit_output_scale = 0.05;
 treat_length_scale = 30;
-treat_output_scale = 0.01;
+treat_output_scale = 0.1;
 noise_scale  = 0.05;
-rho          = 0.7;
+rho          = 0.5;
 
 % load, augment, and filter data
 data_path  = "./data/synthetic";
-data_idx = 2;
 SEED = 1;
-control = load(data_path + '/control' + int2str(data_idx) + '_' + int2str(SEED) + '.csv');
+control = load(data_path + '/gpcontrol_' + int2str(SEED) + '.csv');
 num_control_units = size(control, 1);
 num_days = size(control, 2);
 
@@ -29,7 +29,7 @@ ind = (~isnan(control));
 x = [this_time, ones(size(this_time)), this_unit];
 y = control(ind);
 
-treat = load(data_path + '/treat' + int2str(data_idx) + '_' + int2str(SEED) + '.csv');
+treat = load(data_path + '/gptreat_' + int2str(SEED) + '.csv');
 num_treatment_units = size(treat, 1);
 num_units = num_control_units + num_treatment_units;
 
@@ -46,16 +46,18 @@ treatment_day = 40;
 % 1: day number
 % 2: group id
 % 3: unit id
-% 4: day number (replicated)
-% 5: day number (set to zero for task 1, used for drift process)
-x = [x, x(:, 1), x(:, 1)];
+% 4: day number (set to zero for task 1, used for drift process)
+x = [x, x(:, 1)];
 x(x(:, 2) == 1, end) = 0;
 
 % setup model
-
-mean_function = {@meanMask, [false, true, false, false,false], {@meanDiscrete, 2}};
+% mean_function = {@meanMask, [false, true, false, false], {@meanDiscrete,2}};
+% mean_function = {@meanConst};
 % group mean
-theta.mean = [mean(y(x(:,2)==1)),mean(y(x(:,2)==2))];
+% theta.mean = [mean(y(x(:,2)==1)),mean(y(x(:,2)==2))];
+
+mean_function = {@meanConst};
+theta.mean = mean(y);
 
 % time covariance for group trends
 time_covariance = {@covMask, {1, {@covSEiso}}};
@@ -86,10 +88,10 @@ theta.cov = [theta.cov; ...
 
 % treatment effect
 treatment_effect_covariance = ...
-    {@covMask, {5, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
+    {@covMask, {4, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
 theta.cov = [theta.cov; ...
              treatment_day; ...          % 9
-             treatment_day + 1; ...      % 10
+             treatment_day + 5; ...      % 10
              log(treat_length_scale); ...% 11
              log(treat_output_scale)];   % 12
 
@@ -105,7 +107,7 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               [], ...                               % 2:  group trend output scale
               {@priorSmoothBox2, -3.5, 3.5, 5}, ... % 3:  correlation
               @priorDelta, ...                      % 4
-              @priorDelta, ...                      % 5: constant mean bias prior
+              @priorDelta, ...                      % 5:  
               [], ...                               % 6:  unit length scale
               [], ...                               % 7:  unit output scale
               @priorDelta, ...                      % 8
@@ -113,18 +115,27 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               [], ...                               % 10: end of drift
               [], ...                               % 11: drift length scale
               []};                                  % 12: drift output scale
-prior.lik  = {[]};                                  % 13: noise
-prior.mean = {@priorDelta, @priorDelta};            % 14 15: mean
+prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 13: noise
+prior.mean = {@priorDelta};                         % 14: mean
 
 inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
 p.length = 100;
 
+% discard treated data post treatment
+ind = (x(:, 1) >= treatment_day) & (x(:, 2) == 2);
+x_tr = x(~ind, :);
+y_tr = y(~ind)   ;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);
 
+% theta.cov(3) = norminv((0.8 + 1) / 2);
+% theta.cov(10) = 50;
+% theta.cov(11) = log(30);
+% theta.cov(12) = log(0.1);
+          
 % posterior of drift process conditioning on
 % summed observation of drift + counterfactual                
 theta_drift = theta.cov;
@@ -157,48 +168,75 @@ ys = results.mean_y;
 fig = figure('visible','off');
 f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
 fill([days; flipdim(days,1)], f, [7 7 7]/8);
-ylim([-0.1, 0.3]);
 hold on; plot(days, mu);
-fprintf("ATT: %0.3f\n", mean(mu(mu~=0)));
+disp(mu(mu~=0));
 
-filename = fullfile(data_path + '/effect' + int2str(data_idx) + '_' + int2str(SEED) +".pdf");
-set(fig, 'PaperPosition', [0 0 5 5]); %Position plot at left hand corner with width 5 and height 5.
-set(fig, 'PaperSize', [5 5]); %Set the paper to have width 5 and height 5.
+effect = 0.1;
+effect_time = (num_days-treatment_day)/2;
+effects = [zeros(1,treatment_day),...
+    effect/effect_time*(1:effect_time),...
+    effect*ones(1,num_days-treatment_day-effect_time)];
+
+plot(days, effects, "--");
+
+filename = fullfile(data_path + '/effect_' + int2str(SEED) +".pdf");
+set(fig, 'PaperPosition', [0 0 10 10]); 
+set(fig, 'PaperSize', [10 10]); 
 print(fig, filename, '-dpdf','-r300');
 
+oss = linspace(0,0.1,10);
+lss = linspace(5,50,10);
+ts = linspace(0,9,10)+40;
+nlzs = zeros(10);
+for i=1:10
+   for j=1:10
+      tmp = theta;
+      tmp.cov(10) = ts(i);
+      tmp.cov(11) = log(lss(j));
+      nlzs(i,j)=gp(tmp,inference_method, mean_function,covariance_function,[],x,y);
+   end
+end
+figure(3);
+clf;
+heatmap(nlzs, 'XData', lss, 'YData', ts);
+
+% covariance_function = {@covSum, {group_trend_covariance, ...
+%                                  unit_bias_covariance,   ...
+%                                  unit_error_covariance}};
 % theta_c = theta;
 % theta_c.cov = theta.cov(1:8);
 % prior_c = prior;
 % prior_c.cov = prior.cov(1:8);
 % [~,~,fmu,fs2] = gp(theta_c, {@infPrior, @infExact, prior_c}, mean_function, ...
+%                     covariance_function, [], x_tr, y_tr, x);
+
+% [~,~,fmu,fs2] = gp(theta, inference_method, mean_function, ...
 %                     covariance_function, [], x, y, x);
 
-[~,~,fmu,fs2] = gp(theta, inference_method, mean_function, ...
-                    covariance_function, [], x, y, x);
-results = table;
-results.m = fmu;
-results.day = x(:,1);
-results.s2 = fs2;
-results.y = y;
-results.group = x(:,2);
-results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
+% results = table;
+% results.m = fmu;
+% results.day = x(:,1);
+% results.s2 = fs2;
+% results.y = y;
+% results.group = x(:,2);
+% results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
 
 % TODO: group
-fig = figure('visible','off');
-for g = 1:2
-    mu = results.mean_m(results.group==g,:);
-    s2 = results.mean_s2(results.group==g,:);
-    days = results.day(results.group==g,:);
-    ys = results.mean_y(results.group==g,:);
-
-    f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
-    fill([days; flipdim(days,1)], f, [7 7 7]/8);
-    hold on; plot(days, mu); scatter(days, ys);
-end
-filename = fullfile(data_path + '/data' + int2str(data_idx) + '_' + int2str(SEED) +".pdf");
-set(fig, 'PaperPosition', [0 0 5 5]); %Position plot at left hand corner with width 5 and height 5.
-set(fig, 'PaperSize', [5 5]); %Set the paper to have width 5 and height 5.
-print(fig, filename, '-dpdf','-r300');
+% fig = figure('visible','off');
+% for g = 1:2
+%     mu = results.mean_m(results.group==g,:);
+%     s2 = results.mean_s2(results.group==g,:);
+%     days = results.day(results.group==g,:);
+%     ys = results.mean_y(results.group==g,:);
+% 
+%     f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
+%     fill([days; flipdim(days,1)], f, [7 7 7]/8);
+%     hold on; plot(days, mu); scatter(days, ys);
+% end
+% filename = fullfile(data_path + '/data_' + int2str(SEED) +".pdf");
+% set(fig, 'PaperPosition', [0 0 10 10]);
+% set(fig, 'PaperSize', [10 10]);
+% print(fig, filename, '-dpdf','-r300');
 
 
 % sampler parameters
@@ -218,13 +256,24 @@ f = @(unwrapped_theta) ...
       covariance_function, x, y);
 
 % create and tune sampler
-hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
-
-tic;
-[hmc, tune_info] = ...
-   tuneSampler(hmc, ...
-               'verbositylevel', 2, ...
-               'numprint', 10, ...
-               'numstepsizetuningiterations', 200, ...
-               'numstepslimit', 500);
-toc;
+% hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
+% 
+% tic;
+% [hmc, tune_info] = ...
+%    tuneSampler(hmc, ...
+%                'verbositylevel', 2, ...
+%                'numprint', 10, ...
+%                'numstepsizetuningiterations', 200, ...
+%                'numstepslimit', 500);
+% toc;
+% 
+% for i=1:5
+%     [chains{i}, endpoints{i}, acceptance_ratios{i}] = ...
+%       drawSamples(hmc, ...
+%                   'start', theta_0 + jitter * randn(size(theta_0)), ...
+%                   'burnin', burn_in, ...
+%                   'numsamples', num_samples, ...
+%                   'verbositylevel', 1, ...
+%                   'numprint', 10);
+%     toc;
+% end

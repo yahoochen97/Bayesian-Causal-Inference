@@ -36,3 +36,19 @@ function test_drift(seed)
 % plotmatrix(c);
 
 end
+
+for i=1:5
+   load("results/drifthmc" + int2str(i) + ".mat");
+   chains{i} = chain;
+end
+
+diagnostics(hmc, chains);
+samples = vertcat(chains{2});
+
+c = exp(samples);
+c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
+
+figure(3);
+clf;
+plotmatrix(c);
+
