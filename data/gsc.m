@@ -266,7 +266,7 @@ plot(days, effects, "--");
 
 
 % sampler parameters
-num_chains  = 5;
+num_chains  = 1;
 num_samples = 1000;
 burn_in     = 500;
 jitter      = 0.1;
@@ -281,22 +281,6 @@ theta_0 = theta_0(ind);
 f = @(unwrapped_theta) ...
     l(unwrapped_theta, ind, theta, inference_method, mean_function, ...
       covariance_function, x, y);
-
-for i=1:size(theta_0,1)
-    step = 1e-6;
-    tol = 1e-4;
-    tmp = theta_0;
-    tmp(i) = tmp(i) + step;
-    [f1, g] = f(theta_0);
-    g1 = g(i);
-    f2 = f(tmp);
-    g2 = (f2-f1)/step;
-    if abs(g1-g2)>tol
-       fprintf('Dimension %d failed gradient check!\n', i); 
-       fprintf('Proposed gradient %.6f \n', g1); 
-       fprintf('Actual gradient %.6f\n', g2); 
-    end
-end
     
 % create and tune sampler
 hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
@@ -309,4 +293,28 @@ tic;
                'numstepsizetuningiterations', 100, ...
                'numstepslimit', 500);
 toc;
+
+for i = 1:num_chains
+  rng(i);
+  tic;
+  [chains{i}, endpoints{i}, acceptance_ratilos(i)] = ...
+      drawSamples(hmc, ...
+                  'start', theta_0 + jitter * randn(size(theta_0)), ...
+                  'burnin', burn_in, ...
+                  'numsamples', num_samples, ...
+                  'verbositylevel', 1, ...
+                  'numprint', 10);
+  toc;
+end
+
+diagnostics(hmc, chains);
+samples = vertcat(chains{:});
+
+c = exp(samples);
+c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
+
+figure(2);
+clf;
+plotmatrix(c);
+
                 
