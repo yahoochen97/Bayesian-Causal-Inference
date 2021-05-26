@@ -1,6 +1,6 @@
 % change gpml path
-% addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
-addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
+% addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
 rng('default');
@@ -41,7 +41,7 @@ all_y = y;
 % y(ind)    = [];
 
 % skip some data during development
-skip = 10;
+skip = 1;
 train_ind = (randi(skip, size(y)) == 1);
 x = x(train_ind, :);
 y = y(train_ind);
@@ -229,7 +229,7 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
 num_chains  = 5;
 num_samples = 1000;
 burn_in     = 500;
-jitter      = 0.1;
+jitter      = 1e-4;
 
 % setup sampler
 ind = false(size(unwrap(theta)));
