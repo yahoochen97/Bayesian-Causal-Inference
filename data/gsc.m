@@ -72,7 +72,7 @@ startup;
 rng('default');
 
 % initial hyperparameters
-mean_mu           = 0;
+mean_mu           = mean(y);
 mean_sigma        = 1;
 length_scale      = 14;
 output_scale      = 1;
@@ -233,7 +233,7 @@ theta_sum = theta.cov;
 m_sum = feval(mean_function{:}, theta.mean, x);
 K_sum = feval(covariance_function{:}, theta_sum, x);
 
-V = K_sum+exp(theta.lik)*eye(size(K_sum,1));
+V = K_sum+exp(2*theta.lik)*eye(size(K_sum,1));
 inv_V = pinv(V);
 m_post = m_drift + K_drift*inv_V*(y-m_sum);
 K_post = K_drift - K_drift*inv_V*K_drift;
@@ -294,27 +294,29 @@ tic;
                'numstepslimit', 500);
 toc;
 
-for i = 1:num_chains
-  rng(i);
-  tic;
-  [chains{i}, endpoints{i}, acceptance_ratilos(i)] = ...
-      drawSamples(hmc, ...
-                  'start', theta_0 + jitter * randn(size(theta_0)), ...
-                  'burnin', burn_in, ...
-                  'numsamples', num_samples, ...
-                  'verbositylevel', 1, ...
-                  'numprint', 10);
-  toc;
-end
+save("results/tunegsc.mat");
 
-diagnostics(hmc, chains);
-samples = vertcat(chains{:});
+% for i = 1:num_chains
+%   rng(i);
+%   tic;
+%   [chains{i}, endpoints{i}, acceptance_ratilos(i)] = ...
+%       drawSamples(hmc, ...
+%                   'start', theta_0 + jitter * randn(size(theta_0)), ...
+%                   'burnin', burn_in, ...
+%                   'numsamples', num_samples, ...
+%                   'verbositylevel', 1, ...
+%                   'numprint', 10);
+%   toc;
+% end
 
-c = exp(samples);
-c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
-
-figure(2);
-clf;
-plotmatrix(c);
+% diagnostics(hmc, chains);
+% samples = vertcat(chains{:});
+% 
+% c = exp(samples);
+% c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
+% 
+% figure(2);
+% clf;
+% plotmatrix(c);
 
                 

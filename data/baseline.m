@@ -148,7 +148,7 @@ theta_sum([5]) = log(0);
 m_sum = feval(mean_function{:}, theta.mean, x);
 K_sum = feval(covariance_function{:}, theta_sum, x);
 
-V = K_sum+exp(theta.lik)*eye(size(K_sum,1));
+V = K_sum+exp(2*theta.lik)*eye(size(K_sum,1));
 inv_V = pinv(V);
 m_post = m_drift + K_drift*inv_V*(y-m_sum);
 K_post = K_drift - K_drift*inv_V*K_drift;

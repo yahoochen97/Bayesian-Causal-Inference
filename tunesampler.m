@@ -127,7 +127,7 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               [], ...                               % 14: end of drift
               [], ...                               % 15: drift length scale
               []};                                  % 16: drift output scale
-prior.lik  = {[]};                                  % 17: noise
+prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 17: noise
 prior.mean = {@priorDelta};                         % 18: mean
 
 inference_method = {@infPrior, @infExact, prior};
@@ -137,6 +137,41 @@ p.method = 'LBFGS';
 p.length = 100;
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);
+
+                
+% posterior of drift process conditioning on
+% summed observation of drift + counterfactual                
+% theta_drift = theta.cov;
+% theta_drift([2, 5, 7, 10, 12]) = log(0);
+% m_drift = feval(mean_function{:}, theta.mean, x)*0;
+% K_drift = feval(covariance_function{:}, theta_drift, x);
+% 
+% theta_sum = theta.cov;
+% theta_sum([5, 10,12]) = log(0);
+% m_sum = feval(mean_function{:}, theta.mean, x);
+% K_sum = feval(covariance_function{:}, theta_sum, x);
+% 
+% V = K_sum+exp(2*theta.lik)*eye(size(K_sum,1));
+% inv_V = pinv(V);
+% m_post = m_drift + K_drift*inv_V*(y-m_sum);
+% K_post = K_drift - K_drift*inv_V*K_drift;
+% 
+% results = table;
+% results.m = m_post(x(:,end)~=0,:);
+% results.day = x(x(:,end)~=0,1);
+% tmp = diag(K_post);
+% results.s2 = tmp(x(:,end)~=0,:);
+% results.y = y(x(:,end)~=0,:);
+% results = groupsummary(results, 'day', 'mean');
+% mu = results.mean_m;
+% s2 = results.mean_s2;
+% days = results.day;
+% ys = results.mean_y;
+% 
+% fig = figure(1);
+% f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
+% fill([days; flipdim(days,1)], f, [7 7 7]/8);
+% hold on; plot(days, mu);
 
                 
 % why flat ls/ts
@@ -172,22 +207,23 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
 
 % make_intermediate_plot_unitw;
 
-oss = linspace(0.1,1.0,10);
-lss = linspace(5,95,10);
-ts = linspace(0,90,10)+90;
-nlzs = zeros(10);
-for i=1:10
-   for j=1:10
-      tmp = theta;
-      tmp.cov(14) = ts(i);
-      tmp.cov(15) = log(lss(j));
+
+% oss = linspace(0.01,0.1,10);
+% lss = linspace(5,50,10);
+% ts = linspace(0,90,10)+90;
+% nlzs = zeros(10);
+% for i=1:10
+%    for j=1:10
+%       tmp = theta;
+% %       tmp.cov(14) = ts(i);
+%       tmp.cov(15) = log(lss(j));
 %       tmp.cov(16) = log(oss(i));
-      nlzs(i,j)=gp(tmp,inference_method, mean_function,covariance_function,[],x,y);
-   end
-end
-figure(3);
-clf;
-heatmap(nlzs, 'XData', lss, 'YData', ts);
+%       nlzs(i,j)=gp(tmp,inference_method, mean_function,covariance_function,[],x,y);
+%    end
+% end
+% figure(3);
+% clf;
+% heatmap(nlzs, 'XData', lss, 'YData', oss);
 
 % sampler parameters
 num_chains  = 5;
@@ -204,8 +240,8 @@ theta_0 = theta_0(ind);
 
 f = @(unwrapped_theta) ...
     l(unwrapped_theta, ind, theta, inference_method, mean_function, ...
-      covariance_function, x, y);
-
+      covariance_function, x, y);  
+  
 % create and tune sampler
 hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
 
