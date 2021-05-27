@@ -2,14 +2,14 @@ function hmc_sample_chain(seed)
     addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
     % addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
     startup;
+    
+    load("tunesampler.mat");
 
     % sampler parameters
     % num_chains  = 5;
-    num_samples = 1000;
-    burn_in     = 500;
-    jitter      = 0.1;
-
-    load("tunesampler.mat");
+    num_samples = 3000;
+    burn_in     = 1000;
+    jitter      = 1e-2;
 
     i = seed;
     rng(i);
@@ -26,18 +26,18 @@ function hmc_sample_chain(seed)
     save("results/drifthmc" + int2str(i) + ".mat");
 end
 
-for i=1:5
-   load("results/drifthmc" + int2str(i) + ".mat");
-   chains{i} = chain;
-end
-
-diagnostics(hmc, chains);
-samples = vertcat(chains{2});
-
-c = exp(samples);
-c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
-
-figure(3);
-clf;
-plotmatrix(c);
+% for i=1:5
+%    load("results/drifthmc" + int2str(i) + ".mat");
+%    chains{i} = chain;
+% end
+% 
+% diagnostics(hmc, chains);
+% samples = vertcat(chains{2});
+% 
+% c = exp(samples);
+% c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
+% 
+% figure(3);
+% clf;
+% plotmatrix(c);
 
