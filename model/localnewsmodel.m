@@ -89,8 +89,8 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               @priorDelta, ...                      % 11
               {@priorSmoothBox2, -9, -3, 5},...     % 12: weekday effect std
               @priorDelta, ...                      % 13
-              [], ...                               % 14: end of drift
-              [], ...                               % 15: drift length scale
+              {@priorGamma, 6,6}, ...               % 14: end of drift
+              [], ...               % 15: drift length scale
               []};                                  % 16: drift output scale
 prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 17: noise
 prior.mean = {@priorDelta};                         % 18: mean

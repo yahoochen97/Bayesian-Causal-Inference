@@ -11,7 +11,7 @@ results.y = y;
 results.group = x(:,2);
 results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
 
-fig = figure(1);
+fig = figure(2);
 clf;
 for g = 1:2
     mu = results.mean_m(results.group==g,:);
