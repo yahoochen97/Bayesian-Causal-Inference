@@ -1,24 +1,12 @@
 % change gpml path
 addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
+addpath("model");
 % addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
 rng('default');
 
-% initial hyperparameters
-mean_mu           = 0.12;
-mean_sigma        = 0.05;
-day_sigma         = 0.01;
-length_scale      = 14;
-output_scale      = 0.02;
-unit_length_scale = 28;
-unit_output_scale = 0.02;
-treat_length_scale = 30;
-treat_output_scale = 0.1;
-noise_scale       = 0.03;
-rho               = 0.8;
-
-% load, augment, and filter data
+% load, augment
 load_data;
 
 % data is:
@@ -31,106 +19,9 @@ load_data;
 x = [x, x(:, 1), mod(x(:, 1), 7), x(:, 1)];
 x(x(:, 2) == 1, end) = 0;
 
-% make a copy before filtering
-all_x = x;
-all_y = y;
-
-% discard treated data post treatment
-% ind = (x(:, 1) >= treatment_day) & (x(:, 2) == 2);
-% x(ind, :) = [];
-% y(ind)    = [];
-
-% skip some data during development
-skip = 1;
-train_ind = (randi(skip, size(y)) == 1);
-x = x(train_ind, :);
-y = y(train_ind);
-
 % setup model
 
-mean_function = {@meanConst};
-theta.mean = mean_mu;
-
-% time covariance for group trends
-time_covariance = {@covMask, {1, {@covSEiso}}};
-theta.cov = [log(length_scale); ...      % 1
-             log(output_scale)];         % 2
-
-% inter-group covariance for group trends
-inter_group_covariance = {@covMask, {2, {@covDiscrete2}}};
-theta.cov = [theta.cov; ...
-             norminv((rho + 1) / 2)];    % 3
-
-% complete group trend covariance
-group_trend_covariance = {@covProd, {time_covariance, inter_group_covariance}};
-
-% constant unit bias
-unit_bias_covariance = {@covMask, {3, {@covSEiso}}};
-theta.cov = [theta.cov; ...
-             log(0.01); ...              % 4
-             log(mean_sigma)];           % 5
-
-% nonlinear unit bias
-unit_error_covariance = {@covProd, {{@covMask, {1, {@covSEiso}}}, ...
-                                    {@covMask, {3, {@covSEisoU}}}}};
-theta.cov = [theta.cov; ...
-             log(unit_length_scale); ... % 6
-             log(unit_output_scale); ... % 7
-             log(0.01)];                 % 8
-         
-% day bias, "news happens"
-day_bias_covariance = {@covMask, {4, {@covSEiso}}};
-theta.cov = [theta.cov; ...
-             log(0.01); ...              % 9
-             log(day_sigma)];            % 10
-
-% weekday bias
-weekday_bias_covariance = {@covMask, {5, {@covSEiso}}};
-theta.cov = [theta.cov; ...
-             log(0.01); ...              % 11
-             log(day_sigma)];            % 12
-         
-
-% treatment effect
-treatment_effect_covariance = ...
-    {@covMask, {6, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
-theta.cov = [theta.cov; ...
-             treatment_day; ...          % 13
-             treatment_day + 7; ...      % 14
-             log(treat_length_scale); ...% 15
-             log(treat_output_scale)];   % 16
-
-covariance_function = {@covSum, {group_trend_covariance, ...
-                                 unit_bias_covariance,   ...
-                                 unit_error_covariance,  ...
-                                 day_bias_covariance,    ...
-                                 weekday_bias_covariance, ...
-                                 treatment_effect_covariance}};
-
-% Gaussian noise
-theta.lik = log(noise_scale);
-
-% fix some hyperparameters and mildly constrain others
-prior.cov  = {[], ...                               % 1:  group trend length scale
-              [], ...                               % 2:  group trend output scale
-              {@priorSmoothBox2, -3.5, 3.5, 5}, ... % 3:  correlation
-              @priorDelta, ...                      % 4
-              @priorDelta, ...                      % 5
-              [], ...                               % 6:  unit length scale
-              [], ...                               % 7:  unit output scale
-              @priorDelta, ...                      % 8
-              @priorDelta, ...                      % 9
-              {@priorSmoothBox2, -9, -3, 5}, ...    % 10: weekday effect std
-              @priorDelta, ...                      % 11
-              {@priorSmoothBox2, -9, -3, 5},...     % 12: weekday effect std
-              @priorDelta, ...                      % 13
-              [], ...                               % 14: end of drift
-              [], ...                               % 15: drift length scale
-              []};                                  % 16: drift output scale
-prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 17: noise
-prior.mean = {@priorDelta};                         % 18: mean
-
-inference_method = {@infPrior, @infExact, prior};
+localnewsmodel;
 
 % find MAP
 p.method = 'LBFGS';
@@ -139,101 +30,21 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);
 
                 
-% posterior of drift process conditioning on
-% summed observation of drift + counterfactual                
-% theta_drift = theta.cov;
-% theta_drift([2, 5, 7, 10, 12]) = log(0);
-% m_drift = feval(mean_function{:}, theta.mean, x)*0;
-% K_drift = feval(covariance_function{:}, theta_drift, x);
-% 
-% theta_sum = theta.cov;
-% theta_sum([5, 10,12]) = log(0);
-% m_sum = feval(mean_function{:}, theta.mean, x);
-% K_sum = feval(covariance_function{:}, theta_sum, x);
-% 
-% V = K_sum+exp(2*theta.lik)*eye(size(K_sum,1));
-% inv_V = pinv(V);
-% m_post = m_drift + K_drift*inv_V*(y-m_sum);
-% K_post = K_drift - K_drift*inv_V*K_drift;
-% 
-% results = table;
-% results.m = m_post(x(:,end)~=0,:);
-% results.day = x(x(:,end)~=0,1);
-% tmp = diag(K_post);
-% results.s2 = tmp(x(:,end)~=0,:);
-% results.y = y(x(:,end)~=0,:);
-% results = groupsummary(results, 'day', 'mean');
-% mu = results.mean_m;
-% s2 = results.mean_s2;
-% days = results.day;
-% ys = results.mean_y;
-% 
-% fig = figure(1);
-% f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
-% fill([days; flipdim(days,1)], f, [7 7 7]/8);
-% hold on; plot(days, mu);
-
-                
-% why flat ls/ts
-% theta.cov(14) = 3; % ts 3
-% theta.cov(15) = log(3);
-% 
-% [~,~,fmu,fs2] = gp(theta, inference_method, mean_function, ...
-%                     covariance_function, [], x, y, x);
-% 
-% results = table;
-% results.m = fmu;
-% results.day = x(:,1);
-% results.s2 = fs2;
-% results.y = y;
-% results.group = x(:,2);
-% results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
-
-% TODO: group
-% fig = figure(2);
-% clf;
-% for g = 2:2
-%     mu = results.mean_m(results.group==g,:);
-%     s2 = results.mean_s2(results.group==g,:);
-%     days = results.day(results.group==g,:);
-%     ys = results.mean_y(results.group==g,:);
-% 
-%     f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
-%     h = fill([days; flipdim(days,1)], f, [6 8 6]/8);
-%     set(h,'facealpha', 0.25);
-%     hold on; plot(days, mu); scatter(days, ys);
-% end
-
-
-% make_intermediate_plot_unitw;
-
-
-oss = linspace(0.01,0.1,10);
-lss = linspace(5,50,10);
-ts = linspace(0,90,10)+90;
-nlzs = zeros(10);
-for i=1:10
-   for j=1:10
-      tmp = theta;
-      tmp.cov(14) = ts(i);
-      tmp.cov(15) = log(lss(j));
-%       tmp.cov(16) = log(oss(i));
-      nlzs(i,j)=gp(tmp,inference_method, mean_function,covariance_function,[],x,y);
-   end
-end
-figure(3);
-clf;
-heatmap(nlzs, 'XData', lss, 'YData', ts);
-
 % sampler parameters
 num_chains  = 5;
 num_samples = 1000;
 burn_in     = 500;
-jitter      = 1e-4;
+jitter      = 1e-1;
 
 % setup sampler
+% select index of hyperparameters to sample
 ind = false(size(unwrap(theta)));
-ind([1:3, 6, 7, 10, 12, 14:16, 17]) = true;
+
+% just sample drift parameters
+
+ind([14:16]) = true;
+
+% ind([1:3, 6, 7, 10, 12, 14:16, 17]) = true;
 
 theta_0 = unwrap(theta);
 theta_0 = theta_0(ind);
@@ -254,4 +65,4 @@ tic;
                 'numstepslimit', 500);
 toc;
  
-save("tunesampler.mat");
+save("tunesamplerdrift.mat");

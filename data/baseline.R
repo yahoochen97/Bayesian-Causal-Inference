@@ -1,4 +1,5 @@
 library(gsynth)
+library(dplyr)
 setwd("/Users/yahoo/Documents/GitHub/Bayesian-Causal-Inference/data/synthetic")
 
 #!/usr/bin/env Rscript
@@ -54,33 +55,37 @@ ENCIS_score = function(true_effects, lowers, uppers){
   return(score)
 }
 
-treat = as.matrix(read.csv(paste("treat_", SEED, ".csv", sep = ""), header = FALSE))
-control = as.matrix(read.csv(paste("control_", SEED, ".csv", sep = ""), header = FALSE))
-effect = as.matrix(read.csv(paste("effect_", SEED, ".csv", sep = ""), header = FALSE))
-effect = colMeans(effect)
-names(effect) <- NULL
-N_tr = dim(treat)[1]
-N_co = dim(control)[1]
-T_MAX = dim(treat)[2]
-T0 = sum(effect==0)
+data = read.csv(paste("gsc", ".csv", sep = ""), row.names = NULL, header=FALSE)
+colnames(data) <- c("x1","x2","time","group","unit","y","D","effect")
 
-data = read.csv(paste("data_", SEED, ".csv", sep = ""), row.names = NULL)
-colnames(data)[4] <- "D"
-data$time = data$time + 1
-data$unit = as.factor(data$unit)
-data$time = as.factor(data$time)
+# treat = as.matrix(read.csv(paste("treat_", SEED, ".csv", sep = ""), header = FALSE))
+# control = as.matrix(read.csv(paste("control_", SEED, ".csv", sep = ""), header = FALSE))
+# effect = as.matrix(read.csv(paste("effect_", SEED, ".csv", sep = ""), header = FALSE))
+# effect = colMeans(effect)
+# names(effect) <- NULL
+N_tr = length(unique(data[data$group==2, 'unit']))
+N_co = length(unique(data$unit)) - N_tr
+T_MAX = max(data$time)
+T0 = T_MAX - sum(data$D)/N_tr
+effect = data[data$D==1,c('time','effect')] %>% 
+  dplyr::group_by(time) %>%
+  summarise(tmp=mean(effect)) %>%
+  arrange(time) %>%
+  pull(tmp)
 
 # two way fixed effect
 if(NUM_INTER==0){
-  fit = lm(y ~ 1 + unit + time + D:time, data = data)
+  data$unit = as.factor(data$unit)
+  data$time = as.factor(data$time)
+  fit = lm(y ~ 1 + x1 + x2 + unit + time + D:time, data = data)
   estimated_D = rep(0, T_MAX)
   for(i in (T0+1):T_MAX){
     estimated_D[i] = fit$coefficients[[paste("time", i,":D", sep = "")]]
   }
-  estimated_D = mean(estimated_D[(T0+1):T_MAX])
+  estimated_D = estimated_D[(T0+1):T_MAX]
   out = summary(fit)
   # Std. Errors for treatment effect are the same
-  estimated_sd = out$coefficients[paste("time", T_MAX,":D", sep = ""), 2]
+  estimated_sd = sapply((T0+1):T_MAX, function(t){out$coefficients[paste("time", t,":D", sep = ""), 2]})
   lower = estimated_D - 1.96*estimated_sd
   upper = estimated_D + 1.96*estimated_sd
   # print(summary(fit))
@@ -88,16 +93,18 @@ if(NUM_INTER==0){
 
 if(NUM_INTER){
   # interactive fixed effect
-  fit <- interFE(y ~ 1 + D:time, data = data, index=c("unit","time"),
-                 r = NUM_INTER, force = "two-way", nboots = 100)
-  estimated_D = fit$beta[,1]
-  lower = quantile(fit$est.boot[,1],0.025)
-  upper = quantile(fit$est.boot[,1],0.975)
+  fit <- gsynth(Y=c('y'),D=c('D'),X=c('x1','x2'), data = data, index=c("unit","time"),
+                 r = c(0,NUM_INTER), CV=TRUE, force = "two-way", nboots = 200, seed=1,
+                se=TRUE)
+  estimated_D = fit$est.att[(T0+1):T_MAX,'ATT']
+  lower = fit$est.att[(T0+1):T_MAX,'CI.lower']
+  upper = fit$est.att[(T0+1):T_MAX,'CI.upper']
 }
 
-result = c(mean(effect[(T0+1):T_MAX]), estimated_D, lower, upper)
+result = data.frame(effect, estimated_D, lower, upper)
 names(result) = c("effect", "estimated_D", "lower", "upper")
 # write.csv(result, paste("fixedeffect_", SEED, "_r", NUM_INTER, ".csv", sep=""))
+print(effect)
 print(estimated_D)
 print(lower)
 print(upper)

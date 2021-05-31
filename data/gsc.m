@@ -45,11 +45,10 @@ for i=1:N
    end
 end
 
-% xs_raw = xs;
-% ys_raw = ys;
-
 x = zeros(N*T,k+3); % x1,...,xk,day,group(1 co, 2 tr),unit
 y = zeros(N*T, 1);
+D = zeros(N*T, 1);
+effect = zeros(N*T, 1);
 
 for i=1:N
    for t=1:T
@@ -60,8 +59,12 @@ for i=1:N
       x(idx, k+2)=group;
       x(idx, k+3)=i;
       y(idx) = ys(i,t);
+      D(idx) = Ds(i,t);
+      effect(idx) = deltas(i,t);
    end
 end
+
+writematrix([x,y,D,effect],'synthetic/gsc.csv');
 
 % multitask GP with drift process
 
@@ -244,23 +247,19 @@ results.day = x(x(:,end)~=0,3);
 tmp = diag(K_post);
 results.s2 = tmp(x(:,end)~=0,:);
 results.y = y(x(:,end)~=0,:);
+results.effect = effect(x(:,end)~=0,:);
 results = groupsummary(results, 'day', 'mean');
 mu = results.mean_m;
 s2 = results.mean_s2;
 days = results.day;
 ys = results.mean_y;
+effects = results.mean_effect;
 
 fig = figure(3);
-f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
+f = [mu+1.96*sqrt(s2); flipdim(mu-1.96*sqrt(s2),1)];
 fill([days; flipdim(days,1)], f, [7 7 7]/8);
 hold on; plot(days, mu);
 disp(mu(mu~=0));
-
-effect = 10;
-effect_time = (T-T0);
-effects = [zeros(1,T0),...
-    effect/effect_time*(1:effect_time),...
-    effect*ones(1,T-T0-effect_time)];
 
 plot(days, effects, "--");
 
@@ -283,18 +282,18 @@ f = @(unwrapped_theta) ...
       covariance_function, x, y);
     
 % create and tune sampler
-hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
-
-tic;
-[hmc, tune_info] = ...
-   tuneSampler(hmc, ...
-               'verbositylevel', 2, ...
-               'numprint', 10, ...
-               'numstepsizetuningiterations', 100, ...
-               'numstepslimit', 500);
-toc;
-
-save("results/tunegsc.mat");
+% hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
+% 
+% tic;
+% [hmc, tune_info] = ...
+%    tuneSampler(hmc, ...
+%                'verbositylevel', 2, ...
+%                'numprint', 10, ...
+%                'numstepsizetuningiterations', 100, ...
+%                'numstepslimit', 500);
+% toc;
+% 
+% save("results/tunegsc.mat");
 
 % for i = 1:num_chains
 %   rng(i);
