@@ -3,10 +3,10 @@
 mkdir -p results
 # bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnews" -o localnews.log "./onerun"
 
-bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesampler" -o tunesampler.log "./onerun"
+# bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesampler" -o tunesampler.log "./onerun"
 
-# declare -a chains=(1 2 3 4 5)
+declare -a chains=(1 2 3 4 5)
 
-# for chain in ${chains[@]}; do
-#     bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnews_${chain}" -o "localnews_${chain}".log "./onerun $chain"
-# done
+for chain in ${chains[@]}; do
+    bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "drift_${chain}" -o "drift_${chain}".log "./onerun $chain"
+done
