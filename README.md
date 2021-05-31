@@ -71,7 +71,7 @@ To run this project, users need to have python, pytorch and gpytorch installed l
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-
+The script localnews.m shows how to obtain MAP estimator for the multi-task GP model. Check load_data.m and localnewsmodel.m for how to customize the loading of data and specifying mean/covariance/prior function.
 
 <!-- LICENSE -->
 ## License
