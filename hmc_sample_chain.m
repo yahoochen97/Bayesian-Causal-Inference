@@ -5,6 +5,7 @@ function hmc_sample_chain(seed)
     startup;
     
     load("tunesamplerdrift.mat");
+    disp("mat loaded\n");
 
     % sampler parameters
     % num_chains  = 5;
@@ -23,6 +24,8 @@ function hmc_sample_chain(seed)
                   'verbositylevel', 1, ...
                   'numprint', 10);
     toc;
+    
+    disp("finished sampling\n");
 
     save("results/driftonly" + int2str(i) + ".mat");
 end
