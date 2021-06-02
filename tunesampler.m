@@ -32,8 +32,8 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                 
 % sampler parameters
 num_chains  = 5;
-num_samples = 1000;
-burn_in     = 500;
+num_samples = 5000;
+burn_in     = 1000;
 jitter      = 1e-1;
 
 % setup sampler
@@ -42,9 +42,9 @@ ind = false(size(unwrap(theta)));
 
 % just sample drift parameters
 
-ind([14:16]) = true;
+% ind([14:16]) = true;
 
-% ind([1:3, 6, 7, 10, 12, 14:16, 17]) = true;
+ind([1:3, 6, 7, 10, 12, 14,16, 17]) = true;
 
 theta_0 = unwrap(theta);
 theta_0 = theta_0(ind);
@@ -65,4 +65,4 @@ tic;
                 'numstepslimit', 500);
 toc;
  
-save("tunesamplerdrift.mat");
+save("tunesampler.mat");
