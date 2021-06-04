@@ -61,7 +61,7 @@ treatment_effect_covariance = ...
     {@covMask, {6, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
 theta.cov = [theta.cov; ...
              treatment_day; ...          % 13
-             treatment_day + 7; ...      % 14
+             7; ...                      % 14
              log(treat_length_scale); ...% 15
              log(treat_output_scale)];   % 16
 
@@ -78,21 +78,21 @@ theta.lik = log(noise_scale);
 % fix some hyperparameters and mildly constrain others
 prior.cov  = {[], ...                               % 1:  group trend length scale
               [], ...                               % 2:  group trend output scale
-              {@priorSmoothBox2, -3.5, 3.5, 5}, ... % 3:  correlation
+              {@priorSmoothBox2, -1.5, 1.5, 5}, ... % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5
               [], ...                               % 6:  unit length scale
               [], ...                               % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
-              {@priorSmoothBox2, -9, -3, 5}, ...    % 10: weekday effect std
+              {@priorSmoothBox2, -7, -3, 5}, ...    % 10: day effect std
               @priorDelta, ...                      % 11
-              {@priorSmoothBox2, -9, -3, 5},...     % 12: weekday effect std
+              {@priorSmoothBox2, -7, -3, 5},...     % 12: weekday effect std
               @priorDelta, ...                      % 13
-              {@priorGamma, 6,6}, ...               % 14: end of drift
-              [], ...                               % 15: drift length scale
+              {@priorGamma, 2,10}, ...              % 14: end of drift
+              {@priorSmoothBox2, 1.5, 4.5, 10}, ... % 15: drift length scale
               []};                                  % 16: drift output scale
-prior.lik  = {{@priorSmoothBox2, -9, -3, 5}};       % 17: noise
+prior.lik  = {{@priorSmoothBox2, -7, -3, 5}};       % 17: noise
 prior.mean = {@priorDelta};                         % 18: mean
 
 inference_method = {@infPrior, @infExact, prior};

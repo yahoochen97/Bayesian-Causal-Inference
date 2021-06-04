@@ -8,7 +8,8 @@ function f = scaling_function(theta, x, i)
   a = theta(1);
   b = theta(2);
 
-  xx = (x - a) ./ (b - a) - 1;
+  % [a, a+b]
+  xx = (x - a) ./ (b) - 1;
   in_ind   = ((xx > -1) & (xx < 0));
   after_ind = (xx >= 0);
 
@@ -25,7 +26,7 @@ function f = scaling_function(theta, x, i)
 %         (2 * (a - b).^2 .* (b - x(in_ind))) ./ ...
 %         ((a - x(in_ind)).^2 .* (a - 2 * b + x(in_ind)).^2);
       f(in_ind) = exp(1) * exp(-1 ./ (1 - xx(in_ind).^2))./ ...
-          (1 - xx(in_ind).^2).^2.*(-2*xx(in_ind)).*(-(x(in_ind)-a)/(b-a)^2);
+          (1 - xx(in_ind).^2).^2.*(-2*xx(in_ind)).*(-(x(in_ind)-a)/(b)^2);
   end
 
 end

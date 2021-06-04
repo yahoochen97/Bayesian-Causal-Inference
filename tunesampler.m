@@ -44,7 +44,7 @@ ind = false(size(unwrap(theta)));
 
 % ind([14:16]) = true;
 
-ind([1:3, 6, 7, 10, 12, 14,16, 17]) = true;
+ind([1:3, 6, 7, 10, 12, 14:16, 17]) = true;
 
 theta_0 = unwrap(theta);
 theta_0 = theta_0(ind);

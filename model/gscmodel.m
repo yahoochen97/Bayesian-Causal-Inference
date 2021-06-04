@@ -48,7 +48,7 @@ treatment_effect_covariance = ...
     {@covMask, {6, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
 theta.cov = [theta.cov; ...
              T0;    ...                  % 12
-             T0 + 5; ...                 % 13
+             5; ...                      % 13
              log(treat_length_scale); ...% 14
              log(treat_output_scale)];   % 15
 

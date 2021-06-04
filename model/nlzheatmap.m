@@ -2,7 +2,7 @@
 
 oss = linspace(0.01,0.1,10);
 lss = linspace(5,95,10);
-ts = linspace(0,90,10)+90;
+ts = linspace(5,95,10);
 nlzs = zeros(10,10);
 
 for i=1:10
