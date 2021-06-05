@@ -76,12 +76,12 @@ covariance_function = {@covSum, {group_trend_covariance, ...
 theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
-prior.cov  = {[], ...                               % 1:  group trend length scale
+prior.cov  = {{@priorSmoothBox2, 1.5, 4.5, 10}, ... % 1:  group trend length scale
               [], ...                               % 2:  group trend output scale
               {@priorSmoothBox2, -1.5, 1.5, 5}, ... % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5
-              [], ...                               % 6:  unit length scale
+              {@priorSmoothBox2, 1.5, 4.5, 10}, ... % 6:  unit length scale
               [], ...                               % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
