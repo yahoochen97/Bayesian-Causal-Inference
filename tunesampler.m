@@ -32,7 +32,7 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                 
 % sampler parameters
 num_chains  = 5;
-num_samples = 5000;
+num_samples = 3000;
 burn_in     = 1000;
 jitter      = 1e-1;
 

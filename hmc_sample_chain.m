@@ -6,6 +6,12 @@ function hmc_sample_chain(seed)
     
     load("tunesampler.mat");
     disp("mat loaded\n");
+    
+    % sampler parameters
+    num_chains  = 5;
+    num_samples = 3000;
+    burn_in     = 1000;
+    jitter      = 1e-1;
 
     % sampler parameters
 

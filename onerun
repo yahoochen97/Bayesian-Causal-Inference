@@ -6,9 +6,9 @@ export TMPDIR=/export/cluster-tmp/chenyehu
 module add seas-lab-vorobeychik
 # module add gcc-6.5.0
 
-matlab -nodisplay -nodesktop -r "tunesampler; exit;"
+# matlab -nodisplay -nodesktop -r "tunesampler; exit;"
 
 # python main.py -t localnews -i MCMC
-# chain=$1
+chain=$1
 
-# matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
+matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
