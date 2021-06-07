@@ -3,7 +3,7 @@ titles = ["rho", "day", "weekday", "b", "drift ls", "noise"];
 figure(4);
 clf;
 
-n = 1000;
+n = 10000;
 nbins = 25;
 for i=1:numel(plot_idx)
    subplot(3,2,i);
