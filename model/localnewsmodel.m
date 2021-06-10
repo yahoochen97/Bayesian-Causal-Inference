@@ -77,12 +77,12 @@ theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
 prior.cov  = {{@priorSmoothBox2, 1.5, 4.5, 10}, ... % 1:  group trend length scale
-              [], ...                               % 2:  group trend output scale
-              {@priorGauss, 0.0, 1}, ... % 3:  correlation
+              {@priorSmoothBox2, -7, -3, 5}, ...    % 2:  group trend output scale
+              {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5
               {@priorSmoothBox2, 1.5, 4.5, 10}, ... % 6:  unit length scale
-              [], ...                               % 7:  unit output scale
+              {@priorSmoothBox2, -7, -3, 5}, ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
               {@priorSmoothBox2, -7, -3, 5}, ...    % 10: day effect std
