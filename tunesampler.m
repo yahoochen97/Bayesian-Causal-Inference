@@ -38,19 +38,19 @@ jitter      = 1e-1;
 
 % setup sampler
 % select index of hyperparameters to sample
-ind = false(size(unwrap(theta)));
+theta_ind = false(size(unwrap(theta)));
 
 % just sample drift parameters
 
-% ind([14:16]) = true;
+% theta_ind([14:16]) = true;
 
-ind([1:3, 6, 7, 10, 12, 14:16, 17]) = true;
+theta_ind([1:3, 6, 7, 10, 12, 14:16, 17]) = true;
 
 theta_0 = unwrap(theta);
-theta_0 = theta_0(ind);
+theta_0 = theta_0(theta_ind);
 
 f = @(unwrapped_theta) ...
-    l(unwrapped_theta, ind, theta, inference_method, mean_function, ...
+    l(unwrapped_theta, theta_ind, theta, inference_method, mean_function, ...
       covariance_function, x, y);  
   
 % create and tune sampler

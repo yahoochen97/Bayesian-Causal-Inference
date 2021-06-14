@@ -76,12 +76,12 @@ covariance_function = {@covSum, {group_trend_covariance, ...
 theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
-prior.cov  = {{@priorSmoothBox2, 1.5, 4.5, 10}, ... % 1:  group trend length scale
+prior.cov  = {{@priorSmoothBox2, 1.5, 3.5, 10}, ... % 1:  group trend length scale
               {@priorSmoothBox2, -7, -3, 5}, ...    % 2:  group trend output scale
               {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5
-              {@priorSmoothBox2, 1.5, 4.5, 10}, ... % 6:  unit length scale
+              {@priorSmoothBox2, 1.5, 3.5, 10}, ... % 6:  unit length scale
               {@priorSmoothBox2, -7, -3, 5}, ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
@@ -90,7 +90,7 @@ prior.cov  = {{@priorSmoothBox2, 1.5, 4.5, 10}, ... % 1:  group trend length sca
               {@priorSmoothBox2, -7, -3, 5},...     % 12: weekday effect std
               @priorDelta, ...                      % 13
               {@priorGamma, 2, 5}, ...              % 14: end of drift
-              {@priorSmoothBox2, 1.5, 4.5, 10}, ... % 15: drift length scale
+              {@priorSmoothBox2, 1.5, 3.5, 10}, ... % 15: drift length scale
               {@priorSmoothBox2, -7, -3, 5}};       % 16: drift output scale
 prior.lik  = {{@priorSmoothBox2, -7, -3, 5}};       % 17: noise
 prior.mean = {@priorDelta};                         % 18: mean

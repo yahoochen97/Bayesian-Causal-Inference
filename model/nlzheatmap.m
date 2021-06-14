@@ -11,7 +11,9 @@ for i=1:10
       tmp.cov(14) = ts(i);
       tmp.cov(15) = log(lss(j));
 %       tmp.cov(16) = log(oss(i));
-      nlzs(i,j)=gp(tmp,inference_method, mean_function,covariance_function,[],x,y);
+      tmp = unwrap(tmp);
+      tmp = tmp(theta_ind);
+      nlzs(i,j)=f(tmp);
    end
 end
 figure(1);
