@@ -1,7 +1,7 @@
 % plot posteriors
 
 for i=1:5
-   load("results/drifthmc" + int2str(i) + ".mat");
+   load("results/drift" + int2str(i) + ".mat");
    chains{i} = chain;
 end
 

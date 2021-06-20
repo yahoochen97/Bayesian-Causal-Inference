@@ -18,12 +18,12 @@ for i=1:numel(plot_idx)
    histogram(y, nbins);
    title(titles(i));
 end
-
-i = 1 + numel(plot_idx);
-subplot(3,4,i);
-p = prior.lik{1};
-y = zeros(n,1);
-for j=1:n, y(j) = feval(p{:}); end
-y = exp(y);
-histogram(y, nbins);
-title(titles(i));
+% 
+% i = 1 + numel(plot_idx);
+% subplot(3,4,i);
+% p = prior.lik{1};
+% y = zeros(n,1);
+% for j=1:n, y(j) = feval(p{:}); end
+% y = exp(y);
+% histogram(y, nbins);
+% title(titles(i));
