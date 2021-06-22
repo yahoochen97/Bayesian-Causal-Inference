@@ -10,7 +10,7 @@ load("results/drift" + int2str(i) + ".mat");
 tic;
 % thin samples
 rng('default');
-skip = 30;
+skip = 1;
 thin_ind = (randi(skip, size(chain,1),1) == 1);
 chain = chain(thin_ind,:);
 
@@ -44,3 +44,5 @@ set(fig, 'PaperPosition', [0 0 10 10]); %Position plot at left hand corner with 
 set(fig, 'PaperSize', [10 10]); %Set the paper to have width 5 and height 5.
 print(fig, filename, '-dpdf','-r300');
 close;
+
+save("./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".mat");
