@@ -1,4 +1,9 @@
 % load one chain
+addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
+addpath("model");
+% addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+startup;
+
 for j=1:5
 load("results/drift" + int2str(j) + ".mat");
 

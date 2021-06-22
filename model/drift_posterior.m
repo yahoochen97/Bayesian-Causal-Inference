@@ -14,7 +14,7 @@ function [mu, s2, days, counts]=drift_posterior(theta, non_drift_idx,...
 
     % drift posterior
     V = K_sum+exp(2*theta.lik)*eye(size(K_sum,1));
-    inv_V = pinv(V);
+    inv_V = inv(V);
     m_post = m_drift + K_drift*inv_V*(y-m_sum);
     K_post = K_drift - K_drift*inv_V*K_drift;
 
