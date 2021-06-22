@@ -4,13 +4,13 @@ addpath("model");
 % addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
-for j=1:5
-load("results/drift" + int2str(j) + ".mat");
+i=1;
+load("results/drift" + int2str(i) + ".mat");
 
 tic;
 % thin samples
 rng('default');
-skip = 1000;
+skip = 30;
 thin_ind = (randi(skip, size(chain,1),1) == 1);
 chain = chain(thin_ind,:);
 
@@ -39,10 +39,8 @@ hold on; plot(days, mean(cell2mat(mus),2));
 
 toc;
 
-filename = "./results/marginalizeddrift"+int2str(j)+".pdf";
+filename = "./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".pdf";
 set(fig, 'PaperPosition', [0 0 10 10]); %Position plot at left hand corner with width 5 and height 5.
 set(fig, 'PaperSize', [10 10]); %Set the paper to have width 5 and height 5.
 print(fig, filename, '-dpdf','-r300');
 close;
-
-end
