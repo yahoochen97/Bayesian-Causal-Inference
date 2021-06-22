@@ -1,24 +1,6 @@
-function [fig, results] = plot_drift_posterior(theta,mean_function,...
-    covariance_function, non_drift_idx, x, y)
-%
-%   Condition the drift process on the sum of counterfactual+effect
-%   observatoins and plot the posterior of drift process.
-%   
-%   Inputs:
-%       - theta: hyperparameters of the full model
-%       - mean_function: mean function of the full model
-%       - covariance_function: covariance function of the full model
-%       - non_drift_idx: index of non-drift output scale/variance
-%       parameters (e.g. [2, 5, 7, 10, 12])
-%       - x: n by D matrix of training inputs
-%       - y: column vector of length n of training targets
-% 
-%   Outputs:
-%       - fig: drift posterior plot
-%       - results: drift posterior table
-%
-
-    % drift process prior
+function [mu, s2, days, counts]=drift_posterior(theta, non_drift_idx,...
+    mean_function, covariance_function, x, y)
+     % drift process prior
     theta_drift = theta.cov;
     theta_drift(non_drift_idx) = log(0);
     m_drift = feval(mean_function{:}, theta.mean, x)*0;
@@ -49,11 +31,4 @@ function [fig, results] = plot_drift_posterior(theta,mean_function,...
     days = results.day;
     counts = results.GroupCount;
 
-    fig = figure(1);
-    clf;
-    f = [mu+1.96*sqrt(s2./counts); flip(mu-1.96*sqrt(s2./counts),1)];
-    fill([days; flip(days,1)], f, [7 7 7]/8);
-    hold on; plot(days, mu);
-
 end
-
