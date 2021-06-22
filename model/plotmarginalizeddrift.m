@@ -23,7 +23,7 @@ for i=1:size(chain,1)
     theta_0(theta_ind)=chain(i,:);
     theta_0 = rewrap(theta, theta_0);
 
-    [mu, s2, days, counts]=drift_posterior(theta, non_drift_idx,...
+    [mu, s2, days, counts]=drift_posterior(theta_0, non_drift_idx,...
         mean_function, covariance_function, x, y);
     
     mus{i} = mu;
@@ -46,3 +46,10 @@ print(fig, filename, '-dpdf','-r300');
 close;
 
 save("./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".mat");
+
+toc;
+
+
+for i=1:3000
+    plot(days, mus{i});
+end
