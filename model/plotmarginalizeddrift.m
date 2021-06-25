@@ -49,7 +49,9 @@ save("./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".mat");
 
 toc;
 
-
-for i=1:3000
+fig = figure(1);
+clf;
+hold on;
+for i=1:30:3000
     plot(days, mus{i});
 end

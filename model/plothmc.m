@@ -1,6 +1,6 @@
 % plot posteriors
 
-for i=1:5
+for i=2:2
    load("results/drift" + int2str(i) + ".mat");
    chains{i} = chain;
 end
@@ -15,7 +15,7 @@ c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
 
 c(:, 8) = log(c(:,8));
 
-figure(3);
+figure(4);
 clf;
 plotmatrix(c);
 

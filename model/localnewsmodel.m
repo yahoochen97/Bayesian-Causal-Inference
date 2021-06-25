@@ -92,6 +92,23 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,5}}, ... % 1:  gro
               {@priorGamma, 2, 5}, ...              % 14: end of drift
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,5}}, ... % 15: drift length scale
               {@priorSmoothBox2, -7, -3, 5}};       % 16: drift output scale
+          
+prior.cov  = {[], ... % 1:  group trend length scale
+              {@priorSmoothBox2, -7, -3, 5}, ...    % 2:  group trend output scale
+              {@priorGauss, 0.0, 1}, ...            % 3:  correlation
+              @priorDelta, ...                      % 4
+              @priorDelta, ...                      % 5
+              [], ... % 6:  unit length scale
+              {@priorSmoothBox2, -7, -3, 5}, ...    % 7:  unit output scale
+              @priorDelta, ...                      % 8
+              @priorDelta, ...                      % 9
+              {@priorSmoothBox2, -7, -3, 5}, ...    % 10: day effect std
+              @priorDelta, ...                      % 11
+              {@priorSmoothBox2, -7, -3, 5},...     % 12: weekday effect std
+              @priorDelta, ...                      % 13
+              {@priorGamma, 2, 5}, ...              % 14: end of drift
+              [], ... % 15: drift length scale
+              {@priorSmoothBox2, -7, -3, 5}};       % 16: drift output scale
 prior.lik  = {[]};                                  % 17: noise
 prior.mean = {@priorDelta};                         % 18: mean
 
