@@ -8,7 +8,7 @@ end
 diagnostics(hmc, chains);
 samples = vertcat(chains{:});
 
-c = exp(samples);s
+c = exp(samples);
 c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
 % c(:, 8) = log(c(:,8));
 % c(:, 9) = log(c(:,9));

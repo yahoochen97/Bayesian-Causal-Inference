@@ -14,7 +14,6 @@ noise = 1; % noise std
 
 fs = normrnd(0,1,k,T); % time-varying factors ~ N(0,1)
 xis = normrnd(0,1,T,1); % time fixed effect ~ N(0,1)
- 
 
 lambdas_tr = 2*sqrt(3)*rand(N_tr, k) - sqrt(3); % unit-specific factor loadings for control units
 lambdas_co = 2*sqrt(3)*rand(N_co, k) + (1-2*w)*sqrt(3); % unit-specific factor loadings for treatment units
@@ -36,14 +35,15 @@ Ds = zeros(N, T); % treatment indicator
 Ds(1:N_tr,(T0+1):end) = 1; % 1 if t>T0,i<=N_tr else 0
 
 deltas = zeros(N, T); % effect
-deltas(1:N_tr,(T0+1):end) = repmat(1:(T-T0),N_tr,1)+noise*normrnd(0,1,N_tr,(T-T0)); % t-T0 if t>T0,i<=N_tr else 0
+deltas(1:N_tr,(T0+1):end) = repmat(1:(T-T0),N_tr,1)...
+    +noise*normrnd(0,1,N_tr,(T-T0)); % t-T0 if t>T0,i<=N_tr else 0
 
 ys = zeros(N, T); % y_it = delta_it*D_it+x_it1+x_it2*3+lambdas_i*f_t+alpha_i+xi_t+5+e_it
 
 for i=1:N
    for t=1:T
       ys(i,t) = deltas(i,t)*Ds(i,t)+xs(i,t,1)+xs(i,t,2)*3 ...
-        +lambdas(i,:)*fs(:,t)+alphas(t)+xis(t)+5+noise*normrnd(0,1);
+        +lambdas(i,:)*fs(:,t)+alphas(i)+xis(t)+5+noise*normrnd(0,1);
    end
 end
 

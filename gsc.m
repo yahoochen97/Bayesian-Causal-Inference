@@ -1,7 +1,7 @@
-% addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 
-addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
-addpath("./data");
+% addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
+addpath("data");
 addpath("model");
 startup;
 
@@ -11,12 +11,13 @@ gscdata;
 
 % initial hyperparameters
 mean_mu           = mean(y);
-mean_sigma        = 1;
-length_scale      = 14;
-output_scale      = 1;
-unit_length_scale = 14;
-unit_output_scale = 1;
-treat_length_scale = 14;
+mean_sigma        = 0.1;
+covariate_output_scale = 0.1;
+group_length_scale = 5;
+group_output_scale = 0.1;
+unit_length_scale = 5;
+unit_output_scale = 0.1;
+treat_length_scale = 5;
 treat_output_scale = 1;
 noise_scale       = 1;
 rho               = 0.8;

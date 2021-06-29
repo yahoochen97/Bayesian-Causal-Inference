@@ -6,20 +6,20 @@ group_mask = [0,0,0,1,0,0];
 x_mean_function = {@meanMask, x_mask, {@meanLinear}}; % linear mean function
 group_mean_function = {@meanMask, group_mask, {@meanConst}}; % constant group mean function
 mean_function = {@meanSum, {x_mean_function, group_mean_function}};
-theta.mean = [0;0;mean_mu];
+theta.mean = [1;3;5];
 
 % covariate covariance 
 
 x_covariance = {@covMask, {[1,2], {@covSEard}}};
 theta.cov = [log(std(x(:,1)));...        % 1
              log(std(x(:,2)));...        % 2
-             log(output_scale)];         % 3
+             log(covariate_output_scale)];         % 3
 
 % time covariance for group trends
 time_covariance = {@covMask, {3, {@covSEiso}}};
 theta.cov = [theta.cov; ...
-             log(length_scale); ...      % 4
-             log(output_scale)];         % 5
+             log(group_length_scale); ...      % 4
+             log(group_output_scale)];         % 5
 
 % inter-group covariance for group trends
 inter_group_covariance = {@covMask, {4, {@covDiscrete2}}};
@@ -67,11 +67,11 @@ prior.cov  = {[], ... % 1:  covariate 1 length scale
               [], ...     % 3:  covariate output scale
               [], ... % 4:  group trend length scale
               [], ...     % 5:  group trend output scale
-              {@priorSmoothBox2, -3.5, 3.5, 5}, ... % 6:  correlation
+              {@priorGauss, 0.0, 1}, ... % 6:  correlation
               @priorDelta, ...                      % 7:  constant unit bias
               @priorDelta, ...                      % 8:  constant unit bias
               [], ... % 9:  unit length scale
-              [], ...     % 10: unit output scale
+              [], ...  % 10: unit output scale
               @priorDelta, ...                      % 11: unit constant 0.01
               @priorDelta, ...                      % 12: constant start of drift
               {@priorTransform,@exp,@exp,@log,{@priorGamma,5,2}}, ... % 13: end of drift
