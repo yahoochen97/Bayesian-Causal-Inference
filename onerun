@@ -6,7 +6,7 @@ export TMPDIR=/export/cluster-tmp/chenyehu
 module add seas-lab-vorobeychik
 # module add gcc-6.5.0
 
-matlab -nodisplay -nodesktop -r "add('data'); baseline; exit;"
+matlab -nodisplay -nodesktop -r "addpath('model');addpath('data'); baseline; exit;"
 
 # python main.py -t localnews -i MCMC
 # chain=$1
