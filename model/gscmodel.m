@@ -6,7 +6,7 @@ group_mask = [0,0,0,1,0,0];
 x_mean_function = {@meanMask, x_mask, {@meanLinear}}; % linear mean function
 group_mean_function = {@meanMask, group_mask, {@meanConst}}; % constant group mean function
 mean_function = {@meanSum, {x_mean_function, group_mean_function}};
-theta.mean = [1;1;mean_mu];
+theta.mean = [0;0;mean_mu];
 
 % covariate covariance 
 
@@ -62,20 +62,20 @@ covariance_function = {@covSum, {x_covariance, ...
 theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
-prior.cov  = {[], ...                               % 1:  covariate 1 length scale
-              [], ...                               % 2:  covariate 2 length scale
-              [], ...                               % 3:  covariate output scale
-              [], ...                               % 4:  group trend length scale
-              [], ...                               % 5:  group trend output scale
+prior.cov  = {[], ... % 1:  covariate 1 length scale
+              [], ... % 2:  covariate 2 length scale
+              [], ...     % 3:  covariate output scale
+              [], ... % 4:  group trend length scale
+              [], ...     % 5:  group trend output scale
               {@priorSmoothBox2, -3.5, 3.5, 5}, ... % 6:  correlation
               @priorDelta, ...                      % 7:  constant unit bias
               @priorDelta, ...                      % 8:  constant unit bias
-              [], ...                               % 9:  unit length scale
-              [], ...                               % 10: unit output scale
+              [], ... % 9:  unit length scale
+              [], ...     % 10: unit output scale
               @priorDelta, ...                      % 11: unit constant 0.01
               @priorDelta, ...                      % 12: constant start of drift
-              [], ...                               % 13: end of drift
-              [], ...                               % 14: drift length scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,2}}, ... % 13: end of drift
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,2}}, ... % 14: drift length scale
               []};                                  % 15: drift output scale
 prior.lik  = {[]};                                  % 16: noise
 prior.mean = {[],...                                % 17: covariate 1 mean

@@ -3,7 +3,7 @@
 mkdir -p results
 # bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnews" -o localnews.log "./onerun"
 
-bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesampler" -o tunesampler.log "./onerun"
+bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunegsc" -o tunegsc.log "./onerun"
 
 # declare -a chains=(1 2 3 4 5)
 

@@ -31,11 +31,15 @@ for i=1:size(chain,1)
     lowers{i} = flip(mu-1.96*sqrt(s2./counts),1);
 end
 
+gmm_mean = mean(cell2mat(mus),2);
+gmm_s2 = mean(((cell2mat(uppers)- flip(cell2mat(lowers),1))/1.96/2).^2, 2);
+gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
+
 fig = figure(1);
 clf;
-f = [mean(cell2mat(uppers),2); mean(cell2mat(lowers),2)];
+f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
 fill([days; flip(days,1)], f, [7 7 7]/8);
-hold on; plot(days, mean(cell2mat(mus),2));
+hold on; plot(days, gmm_mean);
 
 toc;
 
@@ -48,10 +52,3 @@ close;
 save("./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".mat");
 
 toc;
-
-fig = figure(1);
-clf;
-hold on;
-for i=1:30:3000
-    plot(days, mus{i});
-end

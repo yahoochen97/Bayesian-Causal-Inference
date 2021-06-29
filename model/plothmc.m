@@ -1,14 +1,14 @@
 % plot posteriors
-
-for i=2:2
-   load("results/drift" + int2str(i) + ".mat");
+clear chains;
+for i=1:2
+   load("results/driftnoprior" + int2str(i) + ".mat");
    chains{i} = chain;
 end
 
 diagnostics(hmc, chains);
 samples = vertcat(chains{:});
 
-c = exp(samples);
+c = exp(samples);s
 c(:, 3) = 2 * normcdf(samples(:, 3)) - 1;
 % c(:, 8) = log(c(:,8));
 % c(:, 9) = log(c(:,9));
