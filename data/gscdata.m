@@ -66,6 +66,6 @@ for i=1:N
    end
 end
 
-writematrix([x,y,D,effect],'./data/synthetic/gsc.csv');
+% writematrix([x,y,D,effect],'./data/synthetic/gsc.csv');
 
                 
