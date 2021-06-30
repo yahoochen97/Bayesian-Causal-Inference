@@ -4,13 +4,12 @@ function hmc_sample_chain(seed)
     % addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
     startup;
     
-    load("tunesampler.mat");
+    load("./results/tunesynthetic.mat");
     disp("mat loaded\n");
     
     % sampler parameters
-    num_chains  = 5;
-    num_samples = 3000;
-    burn_in     = 1000;
+    num_samples = 1000;
+    burn_in     = 500;
     jitter      = 1e-1;
 
     % sampler parameters
@@ -29,5 +28,5 @@ function hmc_sample_chain(seed)
     
     disp("finished sampling\n");
 
-    save("results/drift" + int2str(i) + ".mat");
+    save("results/synthetic" + int2str(i) + ".mat");
 end

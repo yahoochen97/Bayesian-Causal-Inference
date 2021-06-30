@@ -6,11 +6,10 @@ export TMPDIR=/export/cluster-tmp/chenyehu
 module add seas-lab-vorobeychik
 # module add gcc-6.5.0
 
-matlab -nodisplay -nodesktop -r "addpath('model');addpath('data'); baseline; exit;"
+# matlab -nodisplay -nodesktop -r "addpath('model');addpath('data'); baseline; exit;"
 
-# python main.py -t localnews -i MCMC
-# chain=$1
+# python main.py -t localnews -i MCMC chain=$1
 
-# matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
+matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
 
 # matlab -nodisplay -nodesktop -r "addpath('model');plotmarginalizeddrift; exit;"
