@@ -8,20 +8,20 @@ rng(SEED);
 
 % initial hyperparameters
 mean_mu = 0.5;
-mean_sigma   = 0.01;
+mean_sigma   = 0.05;
 group_length_scale = 7;
-group_output_scale = 0.05;
+group_output_scale = 0.1;
 unit_length_scale = 21;
-unit_output_scale = 0.02;
+unit_output_scale = 0.05;
 noise_scale  = 0.01;
 rho          = 0.8;
 effect       = 0.1;
 
 % set data size
-num_days = 50;
+num_days = 60;
 treatment_day = 40;
-num_control_units = 25;
-num_treatment_units = 5;
+num_control_units = 40;
+num_treatment_units = 10;
 num_units = num_control_units + num_treatment_units;
 
 % correlated group trend
@@ -96,7 +96,7 @@ for i=1:num_control_units
    control(i,:) = group_sample(:,1)' + unit_sample(i,:) + normrnd(0,noise_scale,1, num_days);
 end
 
-effect_time = (num_days-treatment_day)/2;
+effect_time = (num_days - treatment_day)/2;
 effects = [zeros(1,treatment_day),...
     effect/effect_time*(1:effect_time),...
     effect*ones(1,num_days-treatment_day-effect_time)];
@@ -104,8 +104,8 @@ effects = [zeros(1,treatment_day),...
 for i=1:num_treatment_units
    treat(i,:) = group_sample(:,2)' + unit_sample(i+num_control_units,:)...
        +normrnd(0,noise_scale,1, num_days) + effects;
-   treat(i,(treatment_day+1):end) = treat(i,(treatment_day+1):end)...
-       +normrnd(0,0.01,1, num_days-treatment_day);
+%    treat(i,(treatment_day+1):end) = treat(i,(treatment_day+1):end)...
+%        +normrnd(0,noise_scale,1, num_days-treatment_day);
 end
 
 fig=figure(1);

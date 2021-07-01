@@ -5,7 +5,7 @@ addpath("model");
 startup;
 
 i=1;
-load("results/drift" + int2str(i) + ".mat");
+load("results/synthetic" + int2str(i) + ".mat");
 
 tic;
 % thin samples
@@ -40,6 +40,7 @@ clf;
 f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
 fill([days; flip(days,1)], f, [7 7 7]/8);
 hold on; plot(days, gmm_mean);
+plot(days, effects, "--");
 
 toc;
 
@@ -50,5 +51,3 @@ print(fig, filename, '-dpdf','-r300');
 close;
 
 save("./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".mat");
-
-toc;

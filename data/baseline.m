@@ -6,7 +6,7 @@ synthetic;
 
 % initial hyperparameters
 mean_mu = mean([treat',control'],'all');
-mean_sigma   = 0.01;
+mean_sigma   = 0.05;
 group_length_scale = 30;
 group_output_scale = 0.05;
 unit_length_scale = 15;
@@ -68,8 +68,9 @@ theta.cov = [theta.cov; ...
              log(0.01)];                 % 8
 
 % treatment effect
+treatment_kernel = {@covSEiso};
 treatment_effect_covariance = ...
-    {@covMask, {4, {@scaled_covariance, {@scaling_function}, {@covSEiso}}}};
+    {@covMask, {4, {@scaled_covariance, {@scaling_function}, treatment_kernel}}};
 
 theta.cov = [theta.cov; ...
              treatment_day; ...          % 9
@@ -95,10 +96,12 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ...  % 1:  gr
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
               {@priorTransform,@exp,@exp,@log,{@priorGamma,5,1}}, ... % 10: end of drift
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ...  % 11: drift length scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,1}}, ...  % 11: drift length scale
               {@priorSmoothBox2, -7, -3, 5}};       % 12: drift output scale
 prior.lik  = {{@priorSmoothBox2, -7, -3, 5}};       % 13: noise
 prior.mean = {@priorDelta};                         % 14: mean
+
+non_drift_idx = [2,5,7];
 
 inference_method = {@infPrior, @infExact, prior};
 
@@ -153,6 +156,8 @@ fill([days; flipdim(days,1)], f, [7 7 7]/8);
 hold on; plot(days, mu);
 plot(days, effects, "--");
 
+close all;
+
 % filename = fullfile(data_path + '/effect_' + int2str(SEED) +".pdf");
 % set(fig, 'PaperPosition', [0 0 10 10]); 
 % set(fig, 'PaperSize', [10 10]); 
@@ -165,14 +170,15 @@ num_samples = 1000;
 burn_in     = 500;
 jitter      = 0.1;
 
-ind = false(size(unwrap(theta)));
-ind([1:3, 6:7, 10:12, 13]) = true;
+theta_ind = false(size(unwrap(theta)));
+theta_ind([1:3, 6:7, 10:12, 13]) = true;
+
 
 theta_0 = unwrap(theta);
-theta_0 = theta_0(ind);
+theta_0 = theta_0(theta_ind);
 
 f = @(unwrapped_theta) ...
-    l(unwrapped_theta, ind, theta, inference_method, mean_function, ...
+    l(unwrapped_theta, theta_ind, theta, inference_method, mean_function, ...
       covariance_function, x, y);
 
 % create and tune sampler
