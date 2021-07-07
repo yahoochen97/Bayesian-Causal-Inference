@@ -48,6 +48,7 @@ mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
 group_sample = mvnrnd(mu, sigma);
 group_sample = reshape(group_sample,[],2);
+
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
 
 % constant unit bias
@@ -75,6 +76,9 @@ theta.cov = [log(unit_length_scale);
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(unit_covariance{:},theta.cov,x);
 unit_sample = mvnrnd(mu, sigma, num_units);
+
+clear mu;
+clear sigma;
 
 % for i=25:30
 %    plot(x,unit_sample(i,:)); 

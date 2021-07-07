@@ -157,6 +157,15 @@ hold on; plot(days, mu);
 plot(days, effects, "--");
 
 close all;
+clear inv_V;
+clear V;
+clear K_drift;
+clear K_post;
+clear K_sum;
+clear m_drift;
+clear m_post;
+clear m_sum;
+clear tmp;
 
 % filename = fullfile(data_path + '/effect_' + int2str(SEED) +".pdf");
 % set(fig, 'PaperPosition', [0 0 10 10]); 
