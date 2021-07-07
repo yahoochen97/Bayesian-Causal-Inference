@@ -8,11 +8,11 @@ rng(SEED);
 
 % initial hyperparameters
 mean_mu = 0.5;
-mean_sigma   = 0.05;
+mean_sigma   = 0.01;
 group_length_scale = 7;
 group_output_scale = 0.1;
 unit_length_scale = 21;
-unit_output_scale = 0.05;
+unit_output_scale = 0.02;
 noise_scale  = 0.01;
 rho          = 0.8;
 effect       = 0.1;

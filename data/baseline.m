@@ -6,7 +6,7 @@ synthetic;
 
 % initial hyperparameters
 mean_mu = mean([treat',control'],'all');
-mean_sigma   = 0.05;
+mean_sigma   = 0.01;
 group_length_scale = 30;
 group_output_scale = 0.05;
 unit_length_scale = 15;
