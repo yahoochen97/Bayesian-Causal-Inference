@@ -97,7 +97,7 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ...  % 1:  gr
               @priorDelta, ...                      % 9
               {@priorTransform,@exp,@exp,@log,{@priorGamma,5,1}}, ... % 10: end of drift
               {@priorTransform,@exp,@exp,@log,{@priorGamma,5,1}}, ...  % 11: drift length scale
-              {@priorSmoothBox2, -7, -3, 5}};       % 12: drift output scale
+              {@priorSmoothBox2, -4, -1, 5}};       % 12: drift output scale
 prior.lik  = {{@priorSmoothBox2, -7, -3, 5}};       % 13: noise
 prior.mean = {@priorDelta};                         % 14: mean
 
@@ -118,6 +118,7 @@ fprintf("group os: %.3f\n", exp(theta.cov(2)));
 fprintf("unit ls: %.3f\n", exp(theta.cov(6)));
 fprintf("unit os: %.3f\n", exp(theta.cov(7)));
 fprintf("effect ls: %.3f\n", exp(theta.cov(11)));
+fprintf("effect os: %.3f\n", exp(theta.cov(12)));
 fprintf("b: %.3f\n", theta.cov(10));
           
 % posterior of drift process conditioning on

@@ -10,13 +10,13 @@ load("results/synthetic" + int2str(i) + ".mat");
 tic;
 % thin samples
 rng('default');
-skip = 1;
+skip = 10;
 thin_ind = (randi(skip, size(chain,1),1) == 1);
 chain = chain(thin_ind,:);
 
 % iterate all posterior samples
-% uppers = {};
-% lowers = {};
+clear mus;
+clear s2s;
 for i=1:size(chain,1)
     
     theta_0 = unwrap(theta);
@@ -27,12 +27,14 @@ for i=1:size(chain,1)
         mean_function, covariance_function, x, y);
     
     mus{i} = mu;
-    uppers{i} = mu+1.96*sqrt(s2./counts);
-    lowers{i} = flip(mu-1.96*sqrt(s2./counts),1);
+    s2s{i} = s2./counts;
+%     uppers{i} = mu+1.96*sqrt(s2./counts);
+%     lowers{i} = flip(mu-1.96*sqrt(s2./counts),1);
 end
 
 gmm_mean = mean(cell2mat(mus),2);
-gmm_s2 = mean(((cell2mat(uppers)- flip(cell2mat(lowers),1))/1.96/2).^2, 2);
+% gmm_s2 = mean(((cell2mat(uppers)- flip(cell2mat(lowers),1))/1.96/2).^2, 2);
+gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
 fig = figure(1);
