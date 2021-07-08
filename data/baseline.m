@@ -87,16 +87,16 @@ theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
 prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ...  % 1:  group trend length scale
-              {@priorSmoothBox2, -7, -3, 5}, ...    % 2:  group trend output scale
+              {@priorSmoothBox2, -4, -1, 5}, ...    % 2:  group trend output scale
               {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5:  
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ...  % 6:  unit length scale
-              {@priorSmoothBox2, -7, -3, 5}, ...    % 7:  unit output scale
+              {@priorSmoothBox2, -4, -1, 5}, ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,1}}, ... % 10: end of drift
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,1}}, ...  % 11: drift length scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 10: end of drift
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ...  % 11: drift length scale
               {@priorSmoothBox2, -4, -1, 5}};       % 12: drift output scale
 prior.lik  = {{@priorSmoothBox2, -7, -3, 5}};       % 13: noise
 prior.mean = {@priorDelta};                         % 14: mean
