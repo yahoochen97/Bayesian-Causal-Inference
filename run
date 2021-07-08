@@ -3,7 +3,7 @@
 mkdir -p results
 # bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnews" -o localnews.log "./onerun"
 
-bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesynthetic" -o tunesynthetic.log "./onerun"
+# bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesynthetic" -o tunesynthetic.log "./onerun"
 
 # declare -a chains=(1 2 3 4 5)
 
@@ -11,4 +11,4 @@ bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesynthetic" -o tunesynthetic.
 #     bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "synthetic_${chain}" -o "synthetic_${chain}".log "./onerun $chain"
 # done
 
-# bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "marginalize drift" -o marginalizedrift.log "./onerun"
+bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "marginalize drift" -o marginalizedrift.log "./onerun"
