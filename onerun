@@ -15,7 +15,7 @@ matlab -nodisplay -nodesktop -r "addpath('data');addpath('model');SEED=${SEED}; 
 
 Rscript --vanilla data/ife.R $SEED 0
 Rscript --vanilla data/ife.R $SEED 10
-Rscript --vanilla data/measure.R $SEED
+Rscript --vanilla data/measures.R $SEED
 
 # matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
 
