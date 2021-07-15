@@ -1,10 +1,6 @@
 % change gpml path
 % addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
 % addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
-startup;
-
-SEED = 1;
-rng(SEED);
 
 % initial hyperparameters
 mean_mu = 0.5;
@@ -75,7 +71,11 @@ theta.cov = [log(unit_length_scale);
 
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(unit_covariance{:},theta.cov,x);
-unit_sample = mvnrnd(mu, sigma, num_units);
+unit_sample = zeros(num_units,num_days); 
+for i=1:num_units
+   unit_sample(i,:) = mvnrnd(mu, sigma);
+end
+% unit_sample = mvnrnd(mu, sigma, num_units);
 
 clear mu;
 clear sigma;
@@ -93,11 +93,15 @@ x = [x; repmat((1:num_days)',num_treatment_units,1),...
     2*ones(num_treatment_units*num_days,1),...
     reshape(repmat([(num_control_units+1):num_units], num_days,1), [],1)];
 
+% x1,x2 ~ N(0,1)
+x1 = normrnd(0,0.5,num_units,num_days);
+x2 = normrnd(0,0.5,num_units,num_days);
+
 control = zeros(num_control_units,num_days);
 treat = zeros(num_treatment_units,num_days);
 
 for i=1:num_control_units
-   control(i,:) = group_sample(:,1)' + unit_sample(i,:) + normrnd(0,noise_scale,1, num_days);
+   control(i,:) = x1(i,:) + x2(i,:)*3 + group_sample(:,1)' + unit_sample(i,:) + normrnd(0,noise_scale,1, num_days);
 end
 
 effect_time = (num_days - treatment_day)/2;
@@ -106,11 +110,12 @@ effects = [zeros(1,treatment_day),...
     effect*ones(1,num_days-treatment_day-effect_time)];
 
 for i=1:num_treatment_units
-   treat(i,:) = group_sample(:,2)' + unit_sample(i+num_control_units,:)...
+   treat(i,:) = x1(i+num_control_units,:) + x2(i+num_control_units,:)*3 + ...
+       group_sample(:,2)' + unit_sample(i+num_control_units,:)...
        +normrnd(0,noise_scale,1, num_days) + effects;
-%    treat(i,(treatment_day+1):end) = treat(i,(treatment_day+1):end)...
-%        +normrnd(0,noise_scale,1, num_days-treatment_day);
 end
+
+x = [reshape(x1',[],1),reshape(x2',[],1),x];
 
 fig=figure(1);
 clf;
@@ -138,5 +143,16 @@ end
 % set(fig, 'PaperSize', [10 10]); %Set the paper to have width 5 and height 5.
 % print(fig, filename, '-dpdf','-r300');
 
-% writematrix(treat,"data/synthetic/gptreat_" + SEED + ".csv");
-% writematrix(control,"data/synthetic/gpcontrol_" + SEED+ ".csv");
+% group 1:control, 2:treated
+y = [control; treat];
+y = reshape(y',[],1);
+data = array2table([x,y],'VariableNames',{'x1','x2','day','group','id','y'});
+D = zeros(num_units,num_days);
+D((1+num_control_units):num_units, (treatment_day+1):end) = 1;
+data.D = reshape(D',[],1);
+
+writematrix(effects(1,(treatment_day+1):end),"data/synthetic/effect_" + SEED + ".csv");
+% writematrix(treat,"data/synthetic/treat_" + SEED + ".csv");
+% writematrix(control,"data/synthetic/control_" + SEED+ ".csv");
+
+writetable(data,"data/synthetic/data_" + SEED+ ".csv");

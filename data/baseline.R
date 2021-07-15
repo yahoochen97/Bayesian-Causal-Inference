@@ -18,6 +18,8 @@ if (length(args)==2){
   NUM_INTER = as.integer(args[2])
 }
 
+# Shimoni, Yishai, et al. "Benchmarking framework for performance-evaluation 
+# of causal inference analysis." arXiv preprint arXiv:1802.05046 (2018).
 
 ENoRMSE_score = function(true_effects, est_effects){
   mask = (true_effects!=0)
