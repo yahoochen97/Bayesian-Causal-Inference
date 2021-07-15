@@ -14,7 +14,7 @@ mkdir -p results
 
 MAXSEED=1
 
-for SEED in ${1..$MAXSEED}; do
+for SEED in $(seq 1 1 $MAXSEED); do
     bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "synthetic_${SEED}" -o "synthetic_${SEED}".log "./onerun $SEED"
 done
 
