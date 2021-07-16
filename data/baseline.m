@@ -102,7 +102,7 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               @priorDelta, ...                      % 9
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 10: end of drift
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 11: drift length scale
-              {@priorSmoothBox2, -4, -1, 5},...     % 12: drift output scale
+              [],...                                % 12: drift output scale
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}},...  % 13: x ls
               {@priorSmoothBox2, -4, -1, 5}};       % 14: x os
 prior.lik  = {[]};                                  % 15: noise
