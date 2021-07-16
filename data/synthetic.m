@@ -41,6 +41,7 @@ group_trend_covariance = {@covProd, {time_covariance, inter_group_covariance}};
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
 group_sample = mvnrnd(mu, sigma);
+disp(group_sample(1:10));
 group_sample = reshape(group_sample,[],2);
 
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
@@ -115,26 +116,26 @@ end
 
 x = [reshape(x1',[],1),reshape(x2',[],1),x];
 
-fig=figure(1);
-clf;
-for i = 1:num_control_units % (num_control_units+1):num_units
-    days = 1:num_days;
-    ys = control(i,:);
-    hold on; plot(days, ys);
-end
+% fig=figure(1);
+% clf;
+% for i = 1:num_control_units % (num_control_units+1):num_units
+%     days = 1:num_days;
+%     ys = control(i,:);
+%     hold on; plot(days, ys);
+% end
 % title("Control units");
 % filename = "data/synthetic/gpcontrol_" + SEED +".pdf";
 % set(fig, 'PaperPosition', [0 0 10 10]); %Position plot at left hand corner with width 5 and height 5.
 % set(fig, 'PaperSize', [10 10]); %Set the paper to have width 5 and height 5.
 % print(fig, filename, '-dpdf','-r300');
 
-fig=figure(2);
-clf;
-for i = 1:num_treatment_units
-    days = 1:num_days;
-    ys = treat(i,:);
-    hold on; plot(days, ys);
-end
+% fig=figure(2);
+% clf;
+% for i = 1:num_treatment_units
+%     days = 1:num_days;
+%     ys = treat(i,:);
+%     hold on; plot(days, ys);
+% end
 % title("Treatment units");
 % filename = "data/synthetic/gptreat_" + int2str(SEED) +".pdf";
 % set(fig, 'PaperPosition', [0 0 10 10]); %Position plot at left hand corner with width 5 and height 5.
@@ -150,7 +151,4 @@ D((1+num_control_units):num_units, (treatment_day+1):end) = 1;
 data.D = reshape(D',[],1);
 
 writematrix(effects(1,(treatment_day+1):end),"data/synthetic/effect_"  + HYP + "_SEED_" + SEED + ".csv");
-% writematrix(treat,"data/synthetic/treat_" + SEED + ".csv");
-% writematrix(control,"data/synthetic/control_" + SEED+ ".csv");
-
 writetable(data,"data/synthetic/data_" + HYP + "_SEED_" + SEED+ ".csv");
