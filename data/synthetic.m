@@ -42,6 +42,9 @@ mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
 
 group_sample = mvnrnd(mu, sigma);
+disp(sum(sigma,'all'));
+disp(sum(mu, 'all'));
+disp(group_sample(1:10));
 group_sample = reshape(group_sample,[],2);
 
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
