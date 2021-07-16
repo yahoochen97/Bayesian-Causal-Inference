@@ -13,7 +13,7 @@ SEED=$1
 uls=$2
 rho=$3
 
-matlab -nodisplay -nodesktop -r "addpath('data');addpath('model');SEED=${SEED};unit_length_scale=${uls};rho=${rho};baseline; exit;"
+matlab -nodisplay -nodesktop -r "addpath('data');SEED=${SEED};unit_length_scale=${uls};rho=${rho};baseline; exit;"
 
 Rscript --vanilla data/ife.R $SEED 0 $uls $rho
 Rscript --vanilla data/ife.R $SEED 10 $uls $rho
