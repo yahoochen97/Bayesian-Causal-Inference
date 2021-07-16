@@ -1,5 +1,4 @@
 library(gsynth)
-library(dplyr)
 setwd("./data/synthetic")
 
 #!/usr/bin/env Rscript
@@ -7,7 +6,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 if (length(args)==0) {
   SEED = 1
-  NUM_INTER = 10
+  NUM_INTER = 0
 }
 if (length(args)==1){
   SEED = args[1]
@@ -54,20 +53,21 @@ effects = c(as.matrix(read.csv(paste("effect_", SEED, ".csv", sep = ""), row.nam
 #   upper = estimated_D + 1.96*estimated_sd
 # }
 
-fit <- gsynth(Y=c('y'),D=c('D'), X=c('x1','x2'), data = data, index=c("id","day"),
-              r = c(0,NUM_INTER), CV=TRUE, force = "two-way", seed=1, se=TRUE)
-estimated_D = as.vector(fit$est.att[(T0+1):T_max,'ATT'])
-lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
-upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
 
-# if(NUM_INTER){
-#   # interactive fixed effect
-#   fit <- gsynth(Y=c('y'),D=c('D'), X=c('x1','x2'), data = data, index=c("id","day"),
-#                 r = c(0,NUM_INTER), CV=TRUE, force = "two-way", seed=1, se=TRUE)
-#   estimated_D = as.vector(fit$est.att[(T0+1):T_max,'ATT'])
-#   lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
-#   upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
-# }
+if(NUM_INTER){
+  # interactive fixed effect
+  fit <- gsynth(Y=c('y'),D=c('D'), X=c('x1','x2'), data = data, index=c("id","day"),
+                r = c(0,NUM_INTER), CV=TRUE, force = "two-way", seed=1, se=TRUE)
+  estimated_D = as.vector(fit$est.att[(T0+1):T_max,'ATT'])
+  lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
+  upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
+}else{
+  fit <- gsynth(Y=c('y'),D=c('D'), X=c('x1','x2'), data = data, index=c("id","day"),
+                r = 1, CV=FALSE, force = "two-way", seed=1, se=TRUE)
+  estimated_D = as.vector(fit$est.att[(T0+1):T_max,'ATT'])
+  lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
+  upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
+}
 
 result = data.frame(estimated_D, (upper-lower)/2/1.96)
 names(result) = c("mu", "std")
