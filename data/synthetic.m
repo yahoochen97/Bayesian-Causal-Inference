@@ -42,6 +42,7 @@ mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
 
 group_sample = mvnrnd(mu, sigma);
+disp(SEED);
 disp(group_length_scale);
 disp(group_output_scale);
 disp(rho);
