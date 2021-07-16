@@ -19,7 +19,7 @@ declare -a RHOS=(0.2 0.5 0.8)
 declare -a ULS=(21)
 declare -a RHOS=(0.8)
 
-if [$1 = "run"]
+if [ $1 = "run" ]
 then
     for SEED in $(seq 1 1 $MAXSEED); do
         for uls in ${ULS[@]}; do
