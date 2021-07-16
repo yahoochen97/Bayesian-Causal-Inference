@@ -166,7 +166,6 @@ fill([days; flipdim(days,1)], f, [7 7 7]/8);
 hold on; plot(days, mu);
 plot(days, effects, "--");
 
-close all;
 clear inv_V;
 clear V;
 clear K_drift;
@@ -181,53 +180,4 @@ results = table(mu,sqrt(s2./counts));
 results.Properties.VariableNames = {'mu','std'};
 
 writetable(results((treatment_day+1):end,:),"data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".csv");
-
-% filename = fullfile(data_path + '/effect_' + int2str(SEED) +".pdf");
-% set(fig, 'PaperPosition', [0 0 10 10]); 
-% set(fig, 'PaperSize', [10 10]); 
-% print(fig, filename, '-dpdf','-r300');
-
-
-% sampler parameters
-% num_chains  = 5;
-% num_samples = 1000;
-% burn_in     = 500;
-% jitter      = 0.1;
-% 
-% theta_ind = false(size(unwrap(theta)));
-% theta_ind([1:3, 6:7, 10:12, 13]) = true;
-% 
-% 
-% theta_0 = unwrap(theta);
-% theta_0 = theta_0(theta_ind);
-% 
-% f = @(unwrapped_theta) ...
-%     l(unwrapped_theta, theta_ind, theta, inference_method, mean_function, ...
-%       covariance_function, x, y);
-
-% create and tune sampler
-% hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
-% 
-% tic;
-% [hmc, tune_info] = ...
-%    tuneSampler(hmc, ...
-%                'verbositylevel', 2, ...
-%                'numprint', 10, ...
-%                'numstepsizetuningiterations', 200, ...
-%                'numstepslimit', 500);
-% toc;
-% 
-% save("results/tunesynthetic.mat");
-
-% 
-% for i=1:5
-%     [chains{i}, endpoints{i}, acceptance_ratios{i}] = ...
-%       drawSamples(hmc, ...
-%                   'start', theta_0 + jitter * randn(size(theta_0)), ...
-%                   'burnin', burn_in, ...
-%                   'numsamples', num_samples, ...
-%                   'verbositylevel', 1, ...
-%                   'numprint', 10);
-%     toc;
-% end
 end

@@ -93,7 +93,7 @@ x = [x; repmat((1:num_days)',num_treatment_units,1),...
     2*ones(num_treatment_units*num_days,1),...
     reshape(repmat([(num_control_units+1):num_units], num_days,1), [],1)];
 
-% x1,x2 ~ N(0,1)
+% x1,x2 ~ N(0,0.5)
 x1 = normrnd(0,0.5,num_units,num_days);
 x2 = normrnd(0,0.5,num_units,num_days);
 

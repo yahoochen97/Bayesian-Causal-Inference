@@ -29,7 +29,7 @@ then
             done
         done
     done
-else 
+elif [ $1 = "posttrain" ] 
     for uls in ${ULS[@]}; do
         for rho in ${RHOS[@]}; do
             Rscript --vanilla data/measures.R $MAXSEED $uls $rho
