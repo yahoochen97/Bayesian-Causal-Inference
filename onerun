@@ -11,7 +11,7 @@ module add seas-lab-vorobeychik
 # python main.py -t localnews -i MCMC
 SEED=$1
 
-matlab -nodisplay -nodesktop -r "addpath('data');addpath('model');SEED=${SEED}; exit;"
+matlab -nodisplay -nodesktop -r "addpath('data');addpath('model');SEED=${SEED};baseline; exit;"
 
 Rscript --vanilla data/ife.R $SEED 0
 Rscript --vanilla data/ife.R $SEED 10

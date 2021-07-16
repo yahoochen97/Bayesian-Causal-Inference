@@ -1,3 +1,4 @@
+library(data.table)
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 
@@ -97,6 +98,20 @@ result = data.frame(
   LL
 )
 
-row.names(result) = MODELS
+result = transpose(result)
+dfDigits <- function(x, digits = 2) {
+  ## x is a data.frame
+  for (col in colnames(x)[sapply(x, class) == 'numeric']){
+    x[,col] <- round(x[,col], digits = digits)
+  }
+  return(x)
+}
+
+result = dfDigits(result, 4)
+
+row.names(result) = c("ENORMSE", "RMSE",
+                      "BIAS", "COVERAGE",
+                      "CIC","ENCIS", "LL")
+colnames(result) = MODELS
 write.csv(result, paste("measures_", SEED, ".csv", sep=""))
 
