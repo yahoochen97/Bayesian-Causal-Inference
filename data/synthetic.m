@@ -1,3 +1,5 @@
+rng(SEED);
+
 % initial hyperparameters
 mean_mu = 0.5;
 mean_sigma   = 0.01;
@@ -40,6 +42,7 @@ group_trend_covariance = {@covProd, {time_covariance, inter_group_covariance}};
          
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
+
 group_sample = mvnrnd(mu, sigma);
 disp(group_sample(1:10));
 group_sample = reshape(group_sample,[],2);
@@ -71,6 +74,8 @@ theta.cov = [log(unit_length_scale);
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(unit_covariance{:},theta.cov,x);
 unit_sample = zeros(num_units,num_days); 
+
+rng(SEED);
 for i=1:num_units
    unit_sample(i,:) = mvnrnd(mu, sigma);
 end
