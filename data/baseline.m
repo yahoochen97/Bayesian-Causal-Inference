@@ -7,6 +7,7 @@ startup;
 rng(SEED);
 synthetic;
 
+
 % initial hyperparameters
 mean_mu = mean(y,'all');
 mean_sigma   = 0.01;
@@ -78,8 +79,8 @@ theta.cov = [theta.cov; ...
 % x covariance
 x_covariance = {@covMask, {[1,2], {@covSEiso}}};
 theta.cov = [theta.cov; ...
-             log(0.1); ...      % 13
-             log(0.1)];         % 14
+             log(1); ...      % 13
+             log(0.01)];      % 14
 
 covariance_function = {@covSum, {group_trend_covariance, ...
                                  unit_bias_covariance,   ...
@@ -90,21 +91,21 @@ covariance_function = {@covSum, {group_trend_covariance, ...
 theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
-prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ...  % 1:  group trend length scale
-              [], ...    % 2:  group trend output scale
+prior.cov  = {[], ...                               % 1:  group trend length scale
+              [], ...                               % 2:  group trend output scale
               {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5:  
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ...  % 6:  unit length scale
-              {@priorSmoothBox2, -4, -1, 5}, ...    % 7:  unit output scale
+              [], ...                               % 6:  unit length scale
+              [], ...                               % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,2}}, ... % 10: end of drift
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,2}}, ...  % 11: drift length scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 10: end of drift
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 11: drift length scale
               {@priorSmoothBox2, -4, -1, 5},...     % 12: drift output scale
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}},...  % 13: x ls
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}},...  % 13: x ls
               {@priorSmoothBox2, -4, -1, 5}};       % 14: x os
-prior.lik  = {{@priorSmoothBox2, -4, -1, 5}};       % 15: noise
+prior.lik  = {[]};                                  % 15: noise
 prior.mean = {@priorDelta, [], []};                 % 16: mean
 
 non_drift_idx = [2,5,7,14];
@@ -179,7 +180,7 @@ clear tmp;
 results = table(mu,sqrt(s2./counts));
 results.Properties.VariableNames = {'mu','std'};
 
-writetable(results((treatment_day+1):end,:),"data/synthetic/multigp_" + SEED + ".csv");
+writetable(results((treatment_day+1):end,:),"data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".csv");
 
 % filename = fullfile(data_path + '/effect_' + int2str(SEED) +".pdf");
 % set(fig, 'PaperPosition', [0 0 10 10]); 

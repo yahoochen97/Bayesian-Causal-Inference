@@ -13,6 +13,8 @@ noise_scale  = 0.01;
 rho          = 0.8;
 effect       = 0.1;
 
+HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+num2str(unit_length_scale);
+
 % set data size
 num_days = 60;
 treatment_day = 40;
@@ -151,8 +153,8 @@ D = zeros(num_units,num_days);
 D((1+num_control_units):num_units, (treatment_day+1):end) = 1;
 data.D = reshape(D',[],1);
 
-writematrix(effects(1,(treatment_day+1):end),"data/synthetic/effect_" + SEED + ".csv");
+writematrix(effects(1,(treatment_day+1):end),"data/synthetic/effect_"  + HYP + "_SEED_" + SEED + ".csv");
 % writematrix(treat,"data/synthetic/treat_" + SEED + ".csv");
 % writematrix(control,"data/synthetic/control_" + SEED+ ".csv");
 
-writetable(data,"data/synthetic/data_" + SEED+ ".csv");
+writetable(data,"data/synthetic/data_" + HYP + "_SEED_" + SEED+ ".csv");

@@ -13,9 +13,27 @@ mkdir -p results
 # done
 
 MAXSEED=1
+declare -a ULS=(1 21 42)
+declare -a RHOS=(0.2 0.5 0.8)
 
-for SEED in $(seq 1 1 $MAXSEED); do
-    bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "synthetic_${SEED}" -o "synthetic_${SEED}".log "./onerun $SEED"
-done
+declare -a ULS=(21)
+declare -a RHOS=(0.8)
+
+if [$1 = "run"]
+then
+    for SEED in $(seq 1 1 $MAXSEED); do
+        for uls in ${ULS[@]}; do
+            for rho in ${RHOS[@]}; do
+                bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "s${SEED}uls${uls}rho${rho}" "./onerun $SEED $uls $rho"
+            done
+        done
+    done
+else 
+    for uls in ${ULS[@]}; do
+        for rho in ${RHOS[@]}; do
+            Rscript --vanilla data/measures.R $MAXSEED $uls $rho
+        done
+    done
+fi
 
 # bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "marginalize drift" -o marginalizedrift.log "./onerun"

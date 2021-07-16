@@ -5,10 +5,24 @@ args = commandArgs(trailingOnly=TRUE)
 setwd("./data/synthetic")
 
 if (length(args)==0) {
-  SEED = 1
+  MAXSEED = 1
+  ULS = 21
+  RHO = 0.8
 }
-if (length(args)==1) {
-  SEED =args[1]
+if (length(args)==1){
+  MAXSEED = as.integer(args[1])
+  ULS = 21
+  RHO = 0.8
+}
+if (length(args)==2){
+  MAXSEED = as.integer(args[1])
+  ULS = as.integer(args[2])
+  RHO = 0.8
+}
+if (length(args)==3){
+  MAXSEED = as.integer(args[1])
+  ULS = as.integer(args[2])
+  RHO = as.double(args[3])
 }
 
 ENoRMSE_score = function(true_effects, est_effects){
@@ -25,19 +39,13 @@ RMSE_score = function(true_effects, est_effects){
 
 BIAS_score = function(true_effects, est_effects){
   mask = (true_effects!=0)
-  score = mean(est_effects[mask]-true_effects[mask])
+  score = mean(abs(est_effects[mask]-true_effects[mask]))
   return(score)
 }
 
 COVERAGE_score = function(true_effects, lowers, uppers){
   mask = (true_effects!=0)
   score = mean( (true_effects[mask]>=lowers[mask]) & (true_effects[mask]<=uppers[mask]) )
-  return(score)
-}
-
-CIC_score = function(true_effects,est_effects, lowers, uppers){
-  mask = (true_effects!=0)
-  score = mean( abs(true_effects[mask]-est_effects[mask]) / abs(uppers[mask]-lowers[mask]) )
   return(score)
 }
 
@@ -54,46 +62,61 @@ ll_score = function(true_effects, est_effects, pstd){
 
 MODELS = c("multigp", "ife", "tfe")
 
-ENORMSE = c()
-RMSE = c()
-BIAS = c()
-COVERAGE = c()
-CIC = c()
-ENCIS = c()
-LL = c()
+ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
+RMSE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
+BIAS = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
+COVERAGE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
+ENCIS =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
+LL =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 
-for(MODEL in MODELS){
-  result = read.csv(paste(MODEL, "_", SEED, ".csv", sep=""))
-  est_effects = result$mu
-  pstd = result$std
-  lowers = est_effects - 1.96*pstd
-  uppers = est_effects + 1.96*pstd
-  true_effects = c(as.matrix(read.csv(paste("effect_", SEED, ".csv", sep = ""), row.names = NULL, header=FALSE)))
-  
-  enormse = ENoRMSE_score(true_effects, est_effects)
-  rmse = RMSE_score(true_effects, est_effects)
-  bias = BIAS_score(true_effects, est_effects)
-  coverage = COVERAGE_score(true_effects, lowers, uppers)
-  cic = CIC_score(true_effects,est_effects, lowers, uppers)
-  encis = ENCIS_score(true_effects, lowers, uppers)
-  ll = ll_score(true_effects, est_effects, pstd)
-  
-  
-  ENORMSE = c(ENORMSE, enormse)
-  RMSE = c(RMSE, rmse)
-  BIAS = c(BIAS, bias)
-  COVERAGE = c(COVERAGE, coverage)
-  CIC = c(CIC, cic)
-  ENCIS = c(ENCIS, encis)
-  LL = c(LL, ll)
+
+for(i in 1:length(MODELS)){
+  for(SEED in 1:MAXSEED){
+    MODEL = MODELS[i]
+    HYP = paste("rho_", sub("\\.", "", toString(RHO)) , '_uls_', ULS, '_SEED_', SEED, sep="")
+
+    result = read.csv(paste(MODEL, "_", HYP, ".csv", sep=""))
+    est_effects = result$mu
+    pstd = result$std
+    lowers = est_effects - 1.96*pstd
+    uppers = est_effects + 1.96*pstd
+    true_effects = c(as.matrix(read.csv(paste("effect_", HYP, ".csv", sep = ""), row.names = NULL, header=FALSE)))
+    
+    enormse = ENoRMSE_score(true_effects, est_effects)
+    rmse = RMSE_score(true_effects, est_effects)
+    bias = BIAS_score(true_effects, est_effects)
+    coverage = COVERAGE_score(true_effects, lowers, uppers)
+    encis = ENCIS_score(true_effects, lowers, uppers)
+    ll = ll_score(true_effects, est_effects, pstd)
+    
+    ENORMSE[SEED,i] = enormse
+    RMSE[SEED, i] = rmse
+    BIAS[SEED, i] = bias
+    COVERAGE[SEED, i] = coverage
+    ENCIS[SEED, i] = encis
+    LL[SEED, i] = ll
+    # ENORMSE = c(ENORMSE, enormse)
+    # RMSE = c(RMSE, rmse)
+    # BIAS = c(BIAS, bias)
+    # COVERAGE = c(COVERAGE, coverage)
+    # CIC = c(CIC, cic)
+    # ENCIS = c(ENCIS, encis)
+    # LL = c(LL, ll)
+  }
 }
+
+ENORMSE = colMeans(ENORMSE)
+RMSE = colMeans(RMSE)
+BIAS = colMeans(BIAS)
+COVERAGE = colMeans(COVERAGE)
+ENCIS = colMeans(ENCIS)
+LL = colMeans(LL)
 
 result = data.frame(
   ENORMSE,
   RMSE,
   BIAS,
   COVERAGE,
-  CIC,
   ENCIS,
   LL
 )
@@ -111,7 +134,7 @@ result = dfDigits(result, 4)
 
 row.names(result) = c("ENORMSE", "RMSE",
                       "BIAS", "COVERAGE",
-                      "CIC","ENCIS", "LL")
+                      "ENCIS", "LL")
 colnames(result) = MODELS
-write.csv(result, paste("measures_", SEED, ".csv", sep=""))
+write.csv(result, paste("measure_", HYP, ".csv", sep=""))
 

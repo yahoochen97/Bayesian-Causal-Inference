@@ -7,28 +7,47 @@ args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
   SEED = 1
   NUM_INTER = 0
+  ULS = 21
+  RHO = 0.8
 }
 if (length(args)==1){
   SEED = args[1]
   NUM_INTER = 0
+  ULS = 21
+  RHO = 0.8
 }
 if (length(args)==2){
   SEED = args[1]
   NUM_INTER = as.integer(args[2])
+  ULS = 21
+  RHO = 0.8
+}
+if (length(args)==3){
+  SEED = args[1]
+  NUM_INTER = as.integer(args[2])
+  ULS = as.integer(args[3])
+  RHO = 0.8
+}
+if (length(args)==4){
+  SEED = args[1]
+  NUM_INTER = as.integer(args[2])
+  ULS = as.integer(args[3])
+  RHO = as.double(args[4])
 }
 
 # reading data
 # treat = as.matrix(read.csv(paste("treat_", SEED, ".csv", sep = ""), row.names = NULL, header=FALSE))
 # control = as.matrix(read.csv(paste("control_", SEED, ".csv", sep = ""), row.names = NULL, header=FALSE)
+HYP = paste("rho_", sub("\\.", "", toString(RHO)) , '_uls_', ULS, '_SEED_', SEED, sep="")
 
-data = read.csv(paste("data_", SEED, ".csv", sep = ""), row.names = NULL)
+data = read.csv(paste("data_", HYP,".csv", sep = ""), row.names = NULL)
 
 N_tr = length(unique(data[data$group==2, 'id']))
 N_co = length(unique(data$id)) - N_tr
 T_max = max(data$day)
 T0 = T_max - sum(data$D)/N_tr
 
-effects = c(as.matrix(read.csv(paste("effect_", SEED, ".csv", sep = ""), row.names = NULL, header=FALSE)))
+effects = c(as.matrix(read.csv(paste("effect_", HYP, ".csv", sep = ""), row.names = NULL, header=FALSE)))
 
 # y = c(c(treat), c(control))
 # day = c(rep(1:T_max, each=N_tr), rep(1:T_max, each=N_co))
@@ -72,8 +91,8 @@ if(NUM_INTER){
 result = data.frame(estimated_D, (upper-lower)/2/1.96)
 names(result) = c("mu", "std")
 if(NUM_INTER==0){
-  write.csv(result, paste("tfe_", SEED, ".csv", sep=""),row.names = FALSE)
+  write.csv(result, paste("tfe_", HYP, ".csv", sep=""),row.names = FALSE)
 }else{
-  write.csv(result, paste("ife_", SEED, ".csv", sep=""),row.names = FALSE)
+  write.csv(result, paste("ife_", HYP, ".csv", sep=""),row.names = FALSE)
 }
 
