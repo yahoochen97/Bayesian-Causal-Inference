@@ -1,4 +1,3 @@
-install.packages("gsynth")
 library(gsynth)
 library(dplyr)
 setwd("./data/synthetic")
