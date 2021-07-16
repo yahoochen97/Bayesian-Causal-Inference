@@ -8,7 +8,6 @@ startup;
 rng(SEED);
 synthetic;
 
-
 % initial hyperparameters
 mean_mu = mean(y,'all');
 mean_sigma   = 0.01;
@@ -102,7 +101,7 @@ prior.cov  = {[], ...                               % 1:  group trend length sca
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 10: end of drift
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 11: drift length scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 11: drift length scale
               {@priorSmoothBox2, -4, -1, 5},...     % 12: drift output scale
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}},...  % 13: x ls
               {@priorSmoothBox2, -4, -1, 5}};       % 14: x os
@@ -114,7 +113,7 @@ non_drift_idx = [2,5,7,14];
 inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
-p.length = 1;
+p.length = 100;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);
