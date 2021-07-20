@@ -44,13 +44,13 @@ sigma = feval(group_trend_covariance{:},theta.cov,x);
 sigma = (sigma + sigma')/2;
 
 % add small number to cov diagnonal to prevent numerical instability
-sl = 1e-18;
+sl = 0e-16;
 T=size(sigma,1);
 % group_sample = chol(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
 group_sample = mvnrnd(mu, sigma+sl*eye(T));
 group_sample = reshape(group_sample,[],2);
 
-plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
+% plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
 
 % constant unit bias
 % unit_bias = normrnd(0,mean_sigma,num_units,1);
