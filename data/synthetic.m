@@ -49,7 +49,7 @@ group_sample = mvnrnd(mu, sigma);
 
 xs = [(1:num_days)',ones(num_days,1); (1:num_days)',2*ones(num_days,1)];
 
-[~,~, group_sample, fs2] = gp(theta, @infExact, mean_function,...
+[~,~, group_sample, ~] = gp(theta, @infExact, mean_function,...
     group_trend_covariance, @likGauss, x, group_sample', xs);
                 
 group_sample = reshape(group_sample,[],2);
@@ -96,24 +96,27 @@ clear sigma;
 %     hold on;
 % end
 
-effect_time = (num_days - treatment_day)/2;
-effects = [zeros(1,treatment_day),...
-    effect/effect_time*(1:effect_time),...
-    effect*ones(1,num_days-treatment_day-effect_time)];
+% effect_time = (num_days - treatment_day)/2;
+% effects = [zeros(1,treatment_day),...
+%     effect/effect_time*(1:effect_time),...
+%     effect*ones(1,num_days-treatment_day-effect_time)];
 
-% clear theta;
-% x = (1:num_days)';
-% treatment_kernel = {@covSEiso};
-% effect_covariance = {@scaled_covariance, {@scaling_function}, treatment_kernel};
-% 
-% theta.cov = [treatment_day; ...         
-%              10; ...                    
-%              log(10); ... 
-%              log(0.01)];
-% sigma = feval(effect_covariance{:},theta.cov,x);
-% T = size(sigma,1);
-% effects = mvnrnd(effects, sigma + sl*eye(T));
-% effects(1:treatment_day) = 0;
+clear theta;
+x = [(treatment_day+num_days)/2,  num_days]';
+y = [effect, effect]';
+xs = (1:num_days)';
+treatment_kernel = {@covSEiso};
+effect_covariance = {@scaled_covariance, {@scaling_function}, treatment_kernel};
+
+theta.mean = 0;
+theta.cov = [treatment_day; ...         
+             10; ...                    
+             log(10); ... 
+             log(0.01)];
+theta.lik = log(0);
+[~,~, effects, ~] = gp(theta, @infExact, mean_function,...
+    effect_covariance, @likGauss, x, y, xs);
+effects = effects';
 
 x = [repmat((1:num_days)',num_control_units,1),...
     ones(num_control_units*num_days,1),...
