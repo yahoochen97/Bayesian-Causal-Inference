@@ -44,9 +44,9 @@ sigma = feval(group_trend_covariance{:},theta.cov,x);
 sigma = (sigma + sigma')/2;
 
 % add small number to cov diagnonal to prevent numerical instability
-sl = 0e-16;
+sl = 1e-16;
 T=size(sigma,1);
-% group_sample = chol(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
+% group_sample = cholcov(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
 group_sample = mvnrnd(mu, sigma+sl*eye(T));
 group_sample = reshape(group_sample,[],2);
 
@@ -82,7 +82,7 @@ sigma = (sigma + sigma')/2;
 
 for i=1:num_units
     unit_sample(i,:) = mvnrnd(mu, sigma+sl*eye(num_days));
-    % chol(sigma+sl*eye(num_days))'*normrnd(0,1,num_days,1)+mu;
+    % cholcov(sigma+sl*eye(num_days))'*normrnd(0,1,num_days,1)+mu;
 end
 
 clear mu;
@@ -92,6 +92,25 @@ clear sigma;
 %    plot(x,unit_sample(i,:)); 
 %     hold on;
 % end
+
+effect_time = (num_days - treatment_day)/2;
+effects = [zeros(1,treatment_day),...
+    effect/effect_time*(1:effect_time),...
+    effect*ones(1,num_days-treatment_day-effect_time)];
+
+% clear theta;
+% x = (1:num_days)';
+% treatment_kernel = {@covSEiso};
+% effect_covariance = {@scaled_covariance, {@scaling_function}, treatment_kernel};
+% 
+% theta.cov = [treatment_day; ...         
+%              10; ...                    
+%              log(10); ... 
+%              log(0.01)];
+% sigma = feval(effect_covariance{:},theta.cov,x);
+% T = size(sigma,1);
+% effects = mvnrnd(effects, sigma + sl*eye(T));
+% effects(1:treatment_day) = 0;
 
 x = [repmat((1:num_days)',num_control_units,1),...
     ones(num_control_units*num_days,1),...
@@ -113,11 +132,6 @@ for i=1:num_control_units
        + unit_sample(i,:) + group_sample(:,1)' ...
        + normrnd(0,noise_scale,1, num_days);
 end
-
-effect_time = (num_days - treatment_day)/2;
-effects = [zeros(1,treatment_day),...
-    effect/effect_time*(1:effect_time),...
-    effect*ones(1,num_days-treatment_day-effect_time)];
 
 for i=1:num_treatment_units
    treat(i,:) = x1(i+num_control_units,:) + x2(i+num_control_units,:)*3 + ...
