@@ -5,7 +5,7 @@ mean_sigma   = 0.01;
 group_length_scale = 7;
 group_output_scale = 0.1;
 % unit_length_scale = 21;
-unit_output_scale = 0.025;
+unit_output_scale = 0.05;
 noise_scale  = 0.01;
 % rho          = 0.8;
 effect       = 0.1;
@@ -43,15 +43,12 @@ mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
 sigma = (sigma + sigma')/2;
 
-
 % add small number to cov diagnonal to prevent numerical instability
-sl = 0e-18;
+sl = 1e-18;
 T=size(sigma,1);
 % group_sample = chol(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
 group_sample = mvnrnd(mu, sigma+sl*eye(T));
 group_sample = reshape(group_sample,[],2);
-disp(group_sample(1:10,1));
-disp(group_sample(1:10,2));
 
 plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
 
@@ -84,7 +81,7 @@ unit_sample = zeros(num_units,num_days);
 sigma = (sigma + sigma')/2;
 
 for i=1:num_units
-    unit_sample(i,:) = mvnrnd(mu, sigma);
+    unit_sample(i,:) = mvnrnd(mu, sigma+sl*eye(num_days));
     % chol(sigma+sl*eye(num_days))'*normrnd(0,1,num_days,1)+mu;
 end
 

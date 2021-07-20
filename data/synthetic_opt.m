@@ -91,8 +91,8 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 1:  gro
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 10: end of drift
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 11: drift length scale
-              {@priorTransform,@exp,@exp,@log,{@priorGauss,0.1,0.02}},... % 12: drift output scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,3}}, ... % 11: drift length scale
+              {@priorSmoothBox2, -4, -1, 5},...     % 12: drift output scale
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 13: x ls
               {@priorSmoothBox2, -4, -1, 5}};       % 14: x os
 prior.lik  = {[]};                                  % 15: noise
