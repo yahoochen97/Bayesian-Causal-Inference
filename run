@@ -25,7 +25,7 @@ then
     for SEED in $(seq 1 1 $MAXSEED); do
         for uls in ${ULS[@]}; do
             for rho in ${RHOS[@]}; do
-                bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -o 'synthetic.log' -J "s${SEED}uls${uls}rho${rho}" "./onerun $SEED $uls $rho"
+                bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "s${SEED}uls${uls}rho${rho}" "./onerun $SEED $uls $rho"
             done
         done
     done
