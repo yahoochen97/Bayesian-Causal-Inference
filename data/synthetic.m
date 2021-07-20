@@ -44,7 +44,7 @@ sigma = feval(group_trend_covariance{:},theta.cov,x);
 sigma = (sigma + sigma')/2;
 
 % add small number to cov diagnonal to prevent numerical instability
-sl = 1e-16;
+sl = 0e-16;
 T=size(sigma,1);
 % group_sample = cholcov(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
 group_sample = mvnrnd(mu, sigma+sl*eye(T));
