@@ -20,7 +20,8 @@ num_treatment_units = 10;
 num_units = num_control_units + num_treatment_units;
 
 % correlated group trend
-x = [(1:5:num_days)',ones(num_days/5,1); (1:5:num_days)',2*ones(num_days/5,1)];
+thin = 5;
+x = [(1:thin:num_days)',ones(num_days/thin,1); (1:thin:num_days)',2*ones(num_days/thin,1)];
 
 clear theta;
 mean_function = {@meanConst};
@@ -42,18 +43,14 @@ group_trend_covariance = {@covProd, {time_covariance, inter_group_covariance}};
          
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
-% sigma = (sigma + sigma')/2;
 
-% add small number to cov diagnonal to prevent numerical instability
-sl = 0e-16;
 T=size(sigma,1);
-% group_sample = cholcov(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
-group_sample = mvnrnd(mu, sigma+sl*eye(T));
-disp(group_sample(1:10));
-F = griddedInterpolant(x(:,1), x(:,2),group_sample');
+group_sample = mvnrnd(mu, sigma);
 
 xs = [(1:num_days)',ones(num_days,1); (1:num_days)',2*ones(num_days,1)];
-group_sample = F(xs(:,1), xs(:,2));
+
+[~,~, group_sample, fs2] = gp(theta, @infExact, mean_function,...
+    group_trend_covariance, @likGauss, x, group_sample', xs);
                 
 group_sample = reshape(group_sample,[],2);
 
@@ -64,7 +61,8 @@ group_sample = reshape(group_sample,[],2);
 
 % nonlinear unit bias
 % control then treat
-x = (1:num_days)';
+x = (1:thin:num_days)';
+xs = (1:num_days)';
 
 clear theta;
 mean_function = {@meanConst};
@@ -72,7 +70,8 @@ theta.mean = 0;
 
 unit_covariance = {@covSEiso};
 theta.cov = [log(unit_length_scale); 
-             log(unit_output_scale)];              
+             log(unit_output_scale)]; 
+theta.lik = log(0);
 
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(unit_covariance{:},theta.cov,x);
@@ -81,7 +80,12 @@ unit_sample = zeros(num_units,num_days);
 sigma = (sigma + sigma')/2;
 
 for i=1:num_units
-    unit_sample(i,:) = mvnrnd(mu, sigma+sl*eye(num_days));
+    sample = mvnrnd(mu, sigma);
+    
+    [~,~, sample, ~] = gp(theta, @infExact, mean_function,...
+    unit_covariance, @likGauss, x, sample', xs);
+                
+    unit_sample(i,:) = sample';
 end
 
 clear mu;
