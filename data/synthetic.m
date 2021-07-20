@@ -111,7 +111,7 @@ control = zeros(num_control_units,num_days);
 treat = zeros(num_treatment_units,num_days);
 
 for i=1:num_control_units
-   control(i,:) = x1(i,:) + x2(i,:)*3 + group_sample(:,1)' + unit_sample(i,:) + normrnd(0,noise_scale,1, num_days);
+   control(i,:) = x1(i,:) + x2(i,:)*3 + group_sample(:,1)' + unit_sample(i,:);% + normrnd(0,noise_scale,1, num_days);
 end
 
 effect_time = (num_days - treatment_day)/2;
@@ -122,7 +122,7 @@ effects = [zeros(1,treatment_day),...
 for i=1:num_treatment_units
    treat(i,:) = x1(i+num_control_units,:) + x2(i+num_control_units,:)*3 + ...
        group_sample(:,2)' + unit_sample(i+num_control_units,:)...
-       +normrnd(0,noise_scale,1, num_days) + effects;
+       ;%+normrnd(0,noise_scale,1, num_days) + effects;
 end
 
 x = [reshape(x1',[],1),reshape(x2',[],1),x];
