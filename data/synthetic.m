@@ -92,6 +92,9 @@ clear sigma;
 %     hold on;
 % end
 
+disp(group_sample(40:45,2));
+disp(unit_sample(5:10, 10:15));
+
 x = [repmat((1:num_days)',num_control_units,1),...
     ones(num_control_units*num_days,1),...
     reshape(repmat([1:num_control_units], num_days,1), [],1)];
