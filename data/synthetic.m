@@ -5,7 +5,7 @@ mean_sigma   = 0.01;
 group_length_scale = 7;
 group_output_scale = 0.1;
 % unit_length_scale = 21;
-unit_output_scale = 0.05;
+unit_output_scale = 0.025;
 noise_scale  = 0.01;
 % rho          = 0.8;
 effect       = 0.1;
@@ -45,12 +45,15 @@ sigma = (sigma + sigma')/2;
 
 
 % add small number to cov diagnonal to prevent numerical instability
-sl = 1e-16;
+sl = 0e-18;
 T=size(sigma,1);
-group_sample = chol(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
+% group_sample = chol(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
+group_sample = mvnrnd(mu, sigma+sl*eye(T));
 group_sample = reshape(group_sample,[],2);
+disp(group_sample(1:10,1));
+disp(group_sample(1:10,2));
 
-% plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
+plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
 
 % constant unit bias
 % unit_bias = normrnd(0,mean_sigma,num_units,1);
@@ -81,7 +84,8 @@ unit_sample = zeros(num_units,num_days);
 sigma = (sigma + sigma')/2;
 
 for i=1:num_units
-    unit_sample(i,:) = chol(sigma+sl*eye(num_days))'*normrnd(0,1,num_days,1)+mu;
+    unit_sample(i,:) = mvnrnd(mu, sigma);
+    % chol(sigma+sl*eye(num_days))'*normrnd(0,1,num_days,1)+mu;
 end
 
 clear mu;
@@ -91,9 +95,6 @@ clear sigma;
 %    plot(x,unit_sample(i,:)); 
 %     hold on;
 % end
-
-disp(group_sample(40:45,2));
-disp(unit_sample(5:10, 10:15));
 
 x = [repmat((1:num_days)',num_control_units,1),...
     ones(num_control_units*num_days,1),...
@@ -111,8 +112,9 @@ control = zeros(num_control_units,num_days);
 treat = zeros(num_treatment_units,num_days);
 
 for i=1:num_control_units
-   % + unit_sample(i,:);group_sample(:,1)' +
-   control(i,:) = x1(i,:) + x2(i,:)*3 +  normrnd(0,noise_scale,1, num_days);
+   control(i,:) = x1(i,:) + x2(i,:)*3 + ...
+       + unit_sample(i,:) + group_sample(:,1)' ...
+       + normrnd(0,noise_scale,1, num_days);
 end
 
 effect_time = (num_days - treatment_day)/2;
@@ -122,37 +124,11 @@ effects = [zeros(1,treatment_day),...
 
 for i=1:num_treatment_units
    treat(i,:) = x1(i+num_control_units,:) + x2(i+num_control_units,:)*3 + ...
-       ...% group_sample(:,2)'+ ...% + unit_sample(i+num_control_units,:)...
+       group_sample(:,2)'+ unit_sample(i+num_control_units,:) + ...
        normrnd(0,noise_scale,1, num_days) + effects;
 end
 
 x = [reshape(x1',[],1),reshape(x2',[],1),x];
-
-% fig=figure(1);
-% clf;
-% for i = 1:num_control_units % (num_control_units+1):num_units
-%     days = 1:num_days;
-%     ys = control(i,:);
-%     hold on; plot(days, ys);
-% end
-% title("Control units");
-% filename = "data/synthetic/gpcontrol_" + SEED +".pdf";
-% set(fig, 'PaperPosition', [0 0 10 10]); %Position plot at left hand corner with width 5 and height 5.
-% set(fig, 'PaperSize', [10 10]); %Set the paper to have width 5 and height 5.
-% print(fig, filename, '-dpdf','-r300');
-
-% fig=figure(2);
-% clf;
-% for i = 1:num_treatment_units
-%     days = 1:num_days;
-%     ys = treat(i,:);
-%     hold on; plot(days, ys);
-% end
-% title("Treatment units");
-% filename = "data/synthetic/gptreat_" + int2str(SEED) +".pdf";
-% set(fig, 'PaperPosition', [0 0 10 10]); %Position plot at left hand corner with width 5 and height 5.
-% set(fig, 'PaperSize', [10 10]); %Set the paper to have width 5 and height 5.
-% print(fig, filename, '-dpdf','-r300');
 
 % group 1:control, 2:treated
 y = [control; treat];

@@ -81,19 +81,19 @@ covariance_function = {@covSum, {group_trend_covariance, ...
 theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
-prior.cov  = {[], ...                               % 1:  group trend length scale
-              [], ...                               % 2:  group trend output scale
+prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 1:  group trend length scale
+              [],...     % 2:  group trend output scale
               {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5:  
-              [], ...                               % 6:  unit length scale
-              [], ...                               % 7:  unit output scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 6:  unit length scale
+              [], ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 10: end of drift
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 11: drift length scale
-              [],...                                % 12: drift output scale
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}},...  % 13: x ls
+              {@priorTransform,@exp,@exp,@log,{@priorGauss,0.1,0.02}},... % 12: drift output scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 13: x ls
               {@priorSmoothBox2, -4, -1, 5}};       % 14: x os
 prior.lik  = {[]};                                  % 15: noise
 prior.mean = {@priorDelta, [], []};                 % 16: mean
@@ -103,7 +103,7 @@ non_drift_idx = [2,5,7,14];
 inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
-p.length = 1;
+p.length = 100;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);
