@@ -2,7 +2,7 @@ function baseline(SEED, unit_length_scale, rho)
 % change gpml path
 addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
 addpath("./model");
-addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+% addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
 synthetic;
@@ -112,7 +112,7 @@ non_drift_idx = [2,5,7,14];
 inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
-p.length = 1;
+p.length = 100;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);

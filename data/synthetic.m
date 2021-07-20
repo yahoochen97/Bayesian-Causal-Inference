@@ -1,3 +1,4 @@
+rng(SEED);
 % initial hyperparameters
 mean_mu = 0.5;
 mean_sigma   = 0.01;
@@ -40,12 +41,13 @@ group_trend_covariance = {@covProd, {time_covariance, inter_group_covariance}};
          
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
+sigma = (sigma + sigma')/2;
 
-rng(SEED);
-group_sample = mvnrnd(mu, sigma);
-disp(sum(sigma,'all'));
-disp(sum(mu, 'all'));
-disp(group_sample(1:10));
+
+% add small number to cov diagnonal to prevent numerical instability
+sl = 1e-16;
+T=size(sigma,1);
+group_sample = chol(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
 group_sample = reshape(group_sample,[],2);
 
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
@@ -76,8 +78,11 @@ mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(unit_covariance{:},theta.cov,x);
 unit_sample = zeros(num_units,num_days); 
 
+sigma = (sigma + sigma')/2;
+
 for i=1:num_units
-   unit_sample(i,:) = mvnrnd(mu, sigma);
+%    unit_sample(i,:) = mvnrnd(mu, sigma);
+    unit_sample(i,:) = chol(sigma+sl*eye(num_days))'*normrnd(0,1,num_days,1)+mu;
 end
 % unit_sample = mvnrnd(mu, sigma, num_units);
 
