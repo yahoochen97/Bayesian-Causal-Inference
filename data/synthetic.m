@@ -48,7 +48,10 @@ sigma = (sigma + sigma')/2;
 sl = 1e-16;
 T=size(sigma,1);
 group_sample = chol(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
+disp(group_sample(1:10,1));
 group_sample = reshape(group_sample,[],2);
+disp(group_sample(1:10,1));
+disp(group_sample(1:10,2));
 
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
 
@@ -81,10 +84,8 @@ unit_sample = zeros(num_units,num_days);
 sigma = (sigma + sigma')/2;
 
 for i=1:num_units
-%    unit_sample(i,:) = mvnrnd(mu, sigma);
     unit_sample(i,:) = chol(sigma+sl*eye(num_days))'*normrnd(0,1,num_days,1)+mu;
 end
-% unit_sample = mvnrnd(mu, sigma, num_units);
 
 clear mu;
 clear sigma;
