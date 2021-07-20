@@ -20,7 +20,7 @@ num_treatment_units = 10;
 num_units = num_control_units + num_treatment_units;
 
 % correlated group trend
-x = [(1:num_days)',ones(num_days,1); (1:num_days)',2*ones(num_days,1)];
+x = [(1:5:num_days)',ones(num_days/5,1); (1:5:num_days)',2*ones(num_days/5,1)];
 
 clear theta;
 mean_function = {@meanConst};
@@ -35,19 +35,26 @@ theta.cov = [log(group_length_scale);  % 1
 inter_group_covariance = {@covMask, {2, {@covDiscrete2}}};
 theta.cov = [theta.cov; ...
              norminv((rho + 1) / 2)];    % 3
+theta.lik = log(0);
          
 % complete group trend covariance
 group_trend_covariance = {@covProd, {time_covariance, inter_group_covariance}};
          
 mu = feval(mean_function{:},theta.mean,x);
 sigma = feval(group_trend_covariance{:},theta.cov,x);
-sigma = (sigma + sigma')/2;
+% sigma = (sigma + sigma')/2;
 
 % add small number to cov diagnonal to prevent numerical instability
 sl = 0e-16;
 T=size(sigma,1);
 % group_sample = cholcov(sigma+sl*eye(T))'*normrnd(0,1,T,1)+mu;
 group_sample = mvnrnd(mu, sigma+sl*eye(T));
+disp(group_sample(1:10));
+F = griddedInterpolant(x(:,1), x(:,2),group_sample');
+
+xs = [(1:num_days)',ones(num_days,1); (1:num_days)',2*ones(num_days,1)];
+group_sample = F(xs(:,1), xs(:,2));
+                
 group_sample = reshape(group_sample,[],2);
 
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));

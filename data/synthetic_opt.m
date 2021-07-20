@@ -82,16 +82,16 @@ theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
 prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 1:  group trend length scale
-              [],...     % 2:  group trend output scale
+              {@priorSmoothBox2, -4, -1, 5},...     % 2:  group trend output scale
               {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5:  
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 6:  unit length scale
-              [], ...    % 7:  unit output scale
+              {@priorSmoothBox2, -4, -1, 5}, ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 10: end of drift
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 11: drift length scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 10: end of drift
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,1}}, ... % 11: drift length scale
               {@priorSmoothBox2, -4, -1, 10},...    % 12: drift output scale
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 13: x ls
               {@priorSmoothBox2, -4, -1, 5}};       % 14: x os
@@ -103,7 +103,7 @@ non_drift_idx = [2,5,7,14];
 inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
-p.length = 200;
+p.length = 100;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);
