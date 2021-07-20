@@ -1,9 +1,9 @@
 % initial hyperparameters
 mean_mu = mean(y,'all');
 mean_sigma   = 0.01;
-group_length_scale = 30;
+group_length_scale = 15;
 group_output_scale = 0.05;
-unit_length_scale = 15;
+unit_length_scale = 30;
 unit_output_scale = 0.05;
 treat_length_scale = 15;
 treat_output_scale = 0.05;
@@ -103,7 +103,7 @@ non_drift_idx = [2,5,7,14];
 inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
-p.length = 100;
+p.length = 200;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x, y);

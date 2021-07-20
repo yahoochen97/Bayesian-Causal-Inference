@@ -57,19 +57,12 @@ group_sample = reshape(group_sample,[],2);
 
 % nonlinear unit bias
 % control then treat
-x = [repmat((1:num_days)',num_control_units,1),...
-    reshape(repmat([1:num_control_units], num_days,1), [],1)];
-
-x = [x; repmat((1:num_days)',num_treatment_units,1),...
-    reshape(repmat([(num_control_units+1):num_units], num_days,1), [],1)];
-
 x = (1:num_days)';
 
 clear theta;
 mean_function = {@meanConst};
 theta.mean = 0;
-unit_error_covariance = {@covProd, {{@covMask, {1, {@covSEiso}}}, ...
-                                    {@covMask, {2, {@covSEisoU}}}}};
+
 unit_covariance = {@covSEiso};
 theta.cov = [log(unit_length_scale); 
              log(unit_output_scale)];              
@@ -82,7 +75,6 @@ sigma = (sigma + sigma')/2;
 
 for i=1:num_units
     unit_sample(i,:) = mvnrnd(mu, sigma+sl*eye(num_days));
-    % cholcov(sigma+sl*eye(num_days))'*normrnd(0,1,num_days,1)+mu;
 end
 
 clear mu;
