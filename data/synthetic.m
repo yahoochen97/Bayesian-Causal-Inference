@@ -61,6 +61,7 @@ group_sample = reshape(group_sample,[],2);
 
 % nonlinear unit bias
 % control then treat
+thin = ceil(unit_length_scale/3);
 x = (1:thin:num_days)';
 xs = (1:num_days)';
 
@@ -102,7 +103,7 @@ clear sigma;
 %     effect*ones(1,num_days-treatment_day-effect_time)];
 
 clear theta;
-x = [(treatment_day+num_days)/2,  num_days]';
+x = [num_days, num_days+10]';
 y = [effect, effect]';
 xs = (1:num_days)';
 treatment_kernel = {@covSEiso};
@@ -111,7 +112,7 @@ effect_covariance = {@scaled_covariance, {@scaling_function}, treatment_kernel};
 theta.mean = 0;
 theta.cov = [treatment_day; ...         
              10; ...                    
-             log(10); ... 
+             log(30); ... 
              log(0.01)];
 theta.lik = log(0);
 [~,~, effects, ~] = gp(theta, @infExact, mean_function,...

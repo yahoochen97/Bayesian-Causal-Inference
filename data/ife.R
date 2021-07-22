@@ -76,7 +76,7 @@ effects = c(as.matrix(read.csv(paste("effect_", HYP, ".csv", sep = ""), row.name
 if(NUM_INTER){
   # interactive fixed effect
   fit <- gsynth(Y=c('y'),D=c('D'), X=c('x1','x2'), data = data, index=c("id","day"),
-                r = c(0,NUM_INTER), CV=TRUE, force = "two-way", seed=1, se=TRUE)
+                r = c(1,NUM_INTER), CV=TRUE, force = "two-way", seed=1, se=TRUE)
   estimated_D = as.vector(fit$est.att[(T0+1):T_max,'ATT'])
   lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
   upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
