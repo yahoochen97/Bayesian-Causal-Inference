@@ -1,5 +1,4 @@
 library(ggplot2)
-library(dplyr)
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 setwd("./data/synthetic")
@@ -27,7 +26,6 @@ for (uls in ULS) {
 
 results$uls = as.numeric(results$uls)
 results$rho = as.numeric(results$rho)
-results$seed = as.numeric(results$seed)
 results$measure = as.numeric(results$measure)
 
 # results = results %>%
