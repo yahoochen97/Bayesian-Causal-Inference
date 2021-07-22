@@ -13,8 +13,8 @@ mkdir -p results
 # done
 
 MAXSEED=25
-declare -a ULS=(1 7 21 35 42)
-declare -a RHOS=(0.2 0.5 0.8)
+declare -a ULS=(1 21 42)
+declare -a RHOS=(0.1 0.3 0.5 0.7 0.9)
 
 if [ $1 = "run" ]
 then
