@@ -12,12 +12,8 @@ mkdir -p results
 #     bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "synthetic_${chain}" -o "synthetic_${chain}".log "./onerun $chain"
 # done
 
-MAXSEED=1
+MAXSEED=25
 declare -a ULS=(1 7 21 35 42)
-declare -a RHOS=(0.2 0.5 0.8)
-
-MAXSEED=1
-declare -a ULS=(21)
 declare -a RHOS=(0.2 0.5 0.8)
 
 if [ $1 = "run" ]
@@ -29,14 +25,15 @@ then
             done
         done
     done
-elif [ $1 = "posttrain" ]
+elif [ $1 = "measure" ]
 then
     for uls in ${ULS[@]}; do
         for rho in ${RHOS[@]}; do
             Rscript --vanilla data/measures.R $MAXSEED $uls $rho
         done
     done
-else
+elif [ $1 = "summary" ]
+then
     Rscript --vanilla data/summary.R $MAXSEED "${ULS[@]}" "${RHOS[@]}"
 fi
 
