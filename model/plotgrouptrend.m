@@ -5,10 +5,10 @@
 
 results = table;
 results.m = fmu;
-results.day = x(:,3);
+results.day = x(:,1);
 results.s2 = fs2;
 results.y = y;
-results.group = x(:,4);
+results.group = x(:,2);
 results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
 
 fig = figure(2);

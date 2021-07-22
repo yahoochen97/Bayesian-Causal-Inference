@@ -16,7 +16,7 @@ rho          = 0.0;
 % 3: day number
 % 4: group id
 % 5: unit id
-% 6: day number (set to zero for task 1, used for drift process)
+% 6: day number (set to zero for task 1 control, used for effect process)
 x = [x, x(:, 3)];
 x(x(:, 4) == 1, end) = 0;
 
@@ -82,20 +82,20 @@ theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
 prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 1:  group trend length scale
-              {@priorSmoothBox2, -5, -1, 5},...     % 2:  group trend output scale
+              {@priorSmoothBox2, -4, -1, 5},...     % 2:  group trend output scale
               {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5:  
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 6:  unit length scale
-              {@priorSmoothBox2, -5, -1, 5}, ...    % 7:  unit output scale
+              {@priorSmoothBox2, -4, -1, 5}, ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
               {@priorGamma,10,2}, ...               % 10: full effect time
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 11: effect length scale
-              {@priorSmoothBox2, -5, -1, 5}, ...    % 12: effect output scale
+              {@priorSmoothBox2, -4, -1, 5}, ...    % 12: effect output scale
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 13: x length scale
-              {@priorSmoothBox2, -5, -1, 5}};       % 14: x output scale
-prior.lik  = {{@priorSmoothBox2, -5, -1, 5}};       % 15: noise std
+              {@priorSmoothBox2, -4, -1, 5}};       % 14: x output scale
+prior.lik  = {{@priorSmoothBox2, -4, -1, 5}};       % 15: noise std
 prior.mean = {@priorDelta, [], []};                 % 16: mean
 
 non_drift_idx = [2,5,7,14];

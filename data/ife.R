@@ -1,5 +1,5 @@
 library(gsynth)
-# setwd("./data/synthetic")
+setwd("./data/synthetic")
 
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
