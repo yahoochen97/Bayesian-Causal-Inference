@@ -38,6 +38,6 @@ for(TYPE in measures$X){
     ggplot(tmp) +
       geom_line(aes(x = rho, y = measure, group = model, colour=model)) +
       ylab(TYPE)
-    ggsave(paste(TYPE, '_uls_', uls, '_SEED_', SEED, ".pdf",  sep=""))
+    ggsave(paste(TYPE, '_uls_', uls, '_SEED_', MAXSEED, ".pdf",  sep=""))
   }
 }
