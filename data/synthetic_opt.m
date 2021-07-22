@@ -86,7 +86,7 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 1:  gro
               {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5:  
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 6:  unit length scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,2,10}}, ... % 6:  unit length scale
               {@priorSmoothBox2, -4, -1, 5}, ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9

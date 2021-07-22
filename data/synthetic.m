@@ -5,7 +5,7 @@ mean_sigma   = 0.01;
 group_length_scale = 7;
 group_output_scale = 0.1;
 % unit_length_scale = 21;
-unit_output_scale = 0.05;
+unit_output_scale = 0.02;
 noise_scale  = 0.01;
 % rho          = 0.8;
 effect       = 0.1;
@@ -15,8 +15,8 @@ HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+num2str(unit_length_scale);
 % set data size
 num_days = 50;
 treatment_day = 30;
-num_control_units = 15;
-num_treatment_units = 5;
+num_control_units = 20;
+num_treatment_units = 10;
 num_units = num_control_units + num_treatment_units;
 
 % correlated group trend
