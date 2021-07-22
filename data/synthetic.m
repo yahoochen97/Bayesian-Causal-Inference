@@ -13,10 +13,10 @@ effect       = 0.1;
 HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+num2str(unit_length_scale);
 
 % set data size
-num_days = 60;
-treatment_day = 40;
-num_control_units = 40;
-num_treatment_units = 10;
+num_days = 50;
+treatment_day = 30;
+num_control_units = 15;
+num_treatment_units = 5;
 num_units = num_control_units + num_treatment_units;
 
 % correlated group trend
