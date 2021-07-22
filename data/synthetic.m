@@ -49,9 +49,13 @@ group_sample = mvnrnd(mu, sigma);
 
 xs = [(1:num_days)',ones(num_days,1); (1:num_days)',2*ones(num_days,1)];
 
-[~,~, group_sample, ~] = gp(theta, @infExact, mean_function,...
+[~,~, group_sample, fs2] = gp(theta, @infExact, mean_function,...
     group_trend_covariance, @likGauss, x, group_sample', xs);
-                
+
+% for i=1:size(group_sample)
+%     group_sample(i) = group_sample(i) + normrnd(0,sqrt(fs2(i))); 
+% end
+
 group_sample = reshape(group_sample,[],2);
 
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
@@ -84,7 +88,7 @@ for i=1:num_units
     sample = mvnrnd(mu, sigma);
     
     [~,~, sample, ~] = gp(theta, @infExact, mean_function,...
-    unit_covariance, @likGauss, x, sample', xs);
+            unit_covariance, @likGauss, x, sample', xs);
                 
     unit_sample(i,:) = sample';
 end
@@ -113,7 +117,7 @@ theta.mean = 0;
 theta.cov = [treatment_day; ...         
              10; ...                    
              log(30); ... 
-             log(0.01)];
+             log(0.1)];
 theta.lik = log(0);
 [~,~, effects, ~] = gp(theta, @infExact, mean_function,...
     effect_covariance, @likGauss, x, y, xs);

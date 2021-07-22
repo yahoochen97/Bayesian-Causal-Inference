@@ -1,12 +1,12 @@
 library(gsynth)
-setwd("./data/synthetic")
+# setwd("./data/synthetic")
 
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 
 if (length(args)==0) {
   SEED = 1
-  NUM_INTER = 0
+  NUM_INTER = 10
   ULS = 21
   RHO = 0.8
 }

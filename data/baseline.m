@@ -2,7 +2,7 @@ function baseline(SEED, unit_length_scale, rho)
 % change gpml path
 addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
 addpath("./model");
-% addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
 % generate synthetic data

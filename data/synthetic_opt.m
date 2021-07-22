@@ -5,10 +5,10 @@ group_length_scale = 15;
 group_output_scale = 0.05;
 unit_length_scale = 30;
 unit_output_scale = 0.05;
-treat_length_scale = 15;
+treat_length_scale = 20;
 treat_output_scale = 0.05;
 noise_scale  = 0.05;
-rho          = 0.5;
+rho          = 0.0;
 
 % data is:
 % 1: x1
@@ -82,20 +82,20 @@ theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
 prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 1:  group trend length scale
-              {@priorSmoothBox2, -4, -1, 5},...     % 2:  group trend output scale
+              {@priorSmoothBox2, -5, -1, 5},...     % 2:  group trend output scale
               {@priorGauss, 0.0, 1}, ...            % 3:  correlation
               @priorDelta, ...                      % 4
               @priorDelta, ...                      % 5:  
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 6:  unit length scale
-              {@priorSmoothBox2, -4, -1, 5}, ...    % 7:  unit output scale
+              {@priorSmoothBox2, -5, -1, 5}, ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 10: end of drift
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,5,2}}, ... % 11: effect length scale
-              {@priorSmoothBox2, -4, -1, 5},...     % 12: effect output scale
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 13: x ls
-              {@priorSmoothBox2, -4, -1, 5}};       % 14: x os
-prior.lik  = {[]};                                  % 15: noise
+              {@priorGamma,10,2}, ...               % 10: full effect time
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 11: effect length scale
+              {@priorSmoothBox2, -5, -1, 5}, ...    % 12: effect output scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 13: x length scale
+              {@priorSmoothBox2, -5, -1, 5}};       % 14: x output scale
+prior.lik  = {{@priorSmoothBox2, -5, -1, 5}};       % 15: noise std
 prior.mean = {@priorDelta, [], []};                 % 16: mean
 
 non_drift_idx = [2,5,7,14];
