@@ -91,7 +91,7 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 1:  gro
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
               {@priorGamma,10,2}, ...               % 10: full effect time
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 11: effect length scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,3}}, ... % 11: effect length scale
               {@priorSmoothBox2, -4, -1, 5}, ...    % 12: effect output scale
               {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 13: x length scale
               {@priorSmoothBox2, -4, -1, 5}};       % 14: x output scale

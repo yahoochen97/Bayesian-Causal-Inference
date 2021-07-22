@@ -49,19 +49,12 @@ group_sample = mvnrnd(mu, sigma);
 
 xs = [(1:num_days)',ones(num_days,1); (1:num_days)',2*ones(num_days,1)];
 
-[~,~, group_sample, fs2] = gp(theta, @infExact, mean_function,...
+[~,~, group_sample, ~] = gp(theta, @infExact, mean_function,...
     group_trend_covariance, @likGauss, x, group_sample', xs);
-
-% for i=1:size(group_sample)
-%     group_sample(i) = group_sample(i) + normrnd(0,sqrt(fs2(i))); 
-% end
 
 group_sample = reshape(group_sample,[],2);
 
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
-
-% constant unit bias
-% unit_bias = normrnd(0,mean_sigma,num_units,1);
 
 % nonlinear unit bias
 % control then treat
@@ -116,7 +109,7 @@ effect_covariance = {@scaled_covariance, {@scaling_function}, treatment_kernel};
 theta.mean = 0;
 theta.cov = [treatment_day; ...         
              10; ...                    
-             log(20); ... 
+             log(30); ... 
              log(0.1)];
 theta.lik = log(0);
 [~,~, effects, ~] = gp(theta, @infExact, mean_function,...
