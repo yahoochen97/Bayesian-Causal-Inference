@@ -156,6 +156,13 @@ fill([days; flipdim(days,1)], f, [7 7 7]/8);
 hold on; plot(days, mu);
 plot(days, effects, "--");
 
+set(fig, 'PaperPosition', [0 0 10 10]); 
+set(fig, 'PaperSize', [10 10]); 
+
+filename = "data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".pdf";
+print(fig, filename, '-dpdf','-r300');
+close;
+
 clear inv_V;
 clear V;
 clear K_drift;

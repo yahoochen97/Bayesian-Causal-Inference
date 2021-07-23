@@ -15,8 +15,8 @@ rho=$3
 
 matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho}); exit;"
 
-Rscript --vanilla data/ife.R $SEED 0 $uls $rho
-Rscript --vanilla data/ife.R $SEED 10 $uls $rho
+# Rscript --vanilla data/ife.R $SEED 0 $uls $rho
+# Rscript --vanilla data/ife.R $SEED 10 $uls $rho
 
 # matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
 
