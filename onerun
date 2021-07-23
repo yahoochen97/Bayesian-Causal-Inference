@@ -1,4 +1,6 @@
 #!/bin/bash
+#BSUB -n 1
+#BSUB -R "span[hosts=1]"
 
 mkdir -p /export/cluster-tmp/chenyehu
 export TMPDIR=/export/cluster-tmp/chenyehu
@@ -15,8 +17,8 @@ rho=$3
 
 matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho}); exit;"
 
-# Rscript --vanilla data/ife.R $SEED 0 $uls $rho
-# Rscript --vanilla data/ife.R $SEED 10 $uls $rho
+Rscript --vanilla data/ife.R $SEED 0 $uls $rho
+Rscript --vanilla data/ife.R $SEED 10 $uls $rho
 
 # matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
 

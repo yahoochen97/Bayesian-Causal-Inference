@@ -20,7 +20,7 @@ num_treatment_units = 10;
 num_units = num_control_units + num_treatment_units;
 
 % correlated group trend
-thin = 5;
+thin = 3;
 x = [(1:thin:num_days)',ones(num_days/thin,1); (1:thin:num_days)',2*ones(num_days/thin,1)];
 
 clear theta;
