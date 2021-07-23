@@ -134,7 +134,7 @@ K_sum = feval(covariance_function{:}, theta_sum, x);
 V = K_sum+exp(2*theta.lik)*eye(size(K_sum,1));
 inv_V = inv(V);
 m_post = m_drift + K_drift*inv_V*(y-m_sum);
-K_post = K_drift - K_drift*inv_V*K_drift;
+K_post = K_drift - K_drift*inv_V*K_drift + exp(2*theta.lik)*eye(size(K_drift,1));
 
 results = table;
 results.m = m_post(x(:,end)~=0,:);
