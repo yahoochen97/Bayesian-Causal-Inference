@@ -21,7 +21,7 @@ num_units = num_control_units + num_treatment_units;
 
 % correlated group trend
 thin = 3;
-x = [(1:thin:num_days)',ones(num_days/thin,1); (1:thin:num_days)',2*ones(num_days/thin,1)];
+x = [(1:thin:num_days)',ones(ceil(num_days/thin),1); (1:thin:num_days)',2*ones(ceil(num_days/thin),1)];
 
 clear theta;
 mean_function = {@meanConst};
