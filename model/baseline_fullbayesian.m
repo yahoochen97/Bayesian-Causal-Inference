@@ -32,7 +32,7 @@ hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
 %                 'numstepslimit', 500);
 % toc;
 
-use default seed for hmc sampler
+% use default seed for hmc sampler
 rng('default');
 tic;
 [chain, endpoint, acceptance_ratio] = ...
