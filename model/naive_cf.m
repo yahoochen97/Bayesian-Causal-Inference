@@ -132,9 +132,5 @@ filename = "data/synthetic/naivecf_" + HYP + "_SEED_" + SEED + ".pdf";
 print(fig, filename, '-dpdf','-r300');
 close;
 
-mu = mu(treatment_day:end);
-s2 = s2(treatment_day:end);
-counts = counts(treatment_day:end);
-
 results = table(mu,sqrt(s2./counts));
 results.Properties.VariableNames = {'mu','std'};

@@ -5,8 +5,7 @@ setwd("./data/synthetic")
 
 MAXSEED = as.integer(args[1])
 EFFECT = as.double(args[2])
-ELS = as.integer(args[3])
-inputs = as.double(args[-c(1,2,3)])
+inputs = as.double(args[-c(1,2)])
 ULS = as.integer(inputs[inputs>=1])
 RHOS = as.numeric(inputs[inputs<1])
 
@@ -15,8 +14,7 @@ results = data.frame(matrix(ncol = 5, nrow = 0))
 colnames(results) <- c("uls", "rho", "model", "TYPE", "measure")
 for (uls in ULS) {
   for (rho in RHOS) {
-      HYP = paste("rho_", sub("\\.", "", toString(RHO)),
-                '_uls_', ULS, '_els_', ELS, '_effect_', 
+      HYP = paste("rho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
                 sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
       measures = read.csv(paste("measure", "_", HYP, ".csv", sep=""))
       measures$X = as.character(measures$X)

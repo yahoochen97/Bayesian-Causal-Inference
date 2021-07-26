@@ -1,4 +1,4 @@
-function baseline(SEED, unit_length_scale, rho, effect, effect_length_scale)
+function baseline(SEED, unit_length_scale, rho, effect)
 % change gpml path
 addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
 addpath("./model");
@@ -26,6 +26,10 @@ opthyp = table("noise", exp(theta.lik),...
     "x os", exp(theta.cov(14)),...
     "b", theta.cov(10));
 writetable(opthyp,"data/synthetic/opthyp_" + HYP + "_SEED_" + SEED + ".csv");
+
+% multi gp fully bayesian
+baseline_fullbayesian;
+writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
 
 % naive multi gp without effect process
 naive_cf;

@@ -9,11 +9,11 @@ unit_output_scale = 0.02;
 noise_scale  = 0.01;
 % rho          = 0.8;
 effect_output_scale = 0.01;
+effect_length_scale = 30;
 % effect       = 0.1;
 
 HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+...
-    num2str(unit_length_scale)+"_els_"+num2str(effect_length_scale)...
-    +"_effect_"+strrep(num2str(effect),'.','');
+    num2str(unit_length_scale) + "_effect_"+strrep(num2str(effect),'.','');
 
 % set data size
 num_days = 50;
@@ -123,16 +123,12 @@ theta.lik = log(0);
 if effect~=0
     x = [num_days, num_days+10]';
     y = [effect, effect]';
-    
-
-   
     [~,~, effects, ~] = gp(theta, @infExact, mean_function,...
         effect_covariance, @likGauss, x, y, xs);
     effects = effects';
 else
-    mu = zeros(size(xs));
-    cov = feval(effect_covariance{:}, theta.cov, xs);
-    effects = mvnrnd(mu,cov);
+    % white noise effect
+    effects = normrnd(0, 0.01, 1, num_days);
 end
 
 x = [repmat((1:num_days)',num_control_units,1),...

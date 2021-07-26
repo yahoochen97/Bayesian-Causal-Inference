@@ -10,22 +10,19 @@ if (length(args)==0) {
   ULS = 21
   RHO = 0.7
   EFFECT  = 0.1
-  ELS = 30
 }
-if (length(args)==6){
+if (length(args)==5){
   SEED = args[1]
   NUM_INTER = as.integer(args[2])
   ULS = as.integer(args[3])
   RHO = as.double(args[4])
   EFFECT = as.double(args[5])
-  ELS = as.integer(args[6])
 }
 
 # reading data
 # treat = as.matrix(read.csv(paste("treat_", SEED, ".csv", sep = ""), row.names = NULL, header=FALSE))
 # control = as.matrix(read.csv(paste("control_", SEED, ".csv", sep = ""), row.names = NULL, header=FALSE)
-HYP = paste("rho_", sub("\\.", "", toString(RHO)),
-            '_uls_', ULS, '_els_', ELS, '_effect_', 
+HYP = paste("rho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
             sub("\\.", "", toString(EFFECT)), '_SEED_', SEED, sep="")
 
 data = read.csv(paste("data_", HYP,".csv", sep = ""), row.names = NULL)
