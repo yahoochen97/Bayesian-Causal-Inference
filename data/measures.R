@@ -11,7 +11,7 @@ if (length(args)==0) {
   EFFECT  = 0.1
   ELS = 30
 }
-if (length(args)==3){
+if (length(args)==5){
   MAXSEED = as.integer(args[1])
   ULS = as.integer(args[2])
   RHO = as.double(args[3])
