@@ -1,4 +1,4 @@
-function baseline(SEED, unit_length_scale, rho)
+function baseline(SEED, unit_length_scale, rho, effect, effect_length_scale)
 % change gpml path
 addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
 addpath("./model");
@@ -23,7 +23,7 @@ opthyp = table("noise", exp(theta.lik),...
     "effect os", exp(theta.cov(12)),...
     "x ls", exp(theta.cov(13)),...
     "x os", exp(theta.cov(14)),...
-    "b", exp(theta.cov(10)));
+    "b", theta.cov(10));
 writetable(opthyp,"data/synthetic/opthyp_" + HYP + "_SEED_" + SEED + ".csv");
 
 end

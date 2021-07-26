@@ -8,9 +8,12 @@ group_output_scale = 0.1;
 unit_output_scale = 0.02;
 noise_scale  = 0.01;
 % rho          = 0.8;
-effect       = 0.1;
+effect_output_scale = 0.1;
+% effect       = 0.1;
 
-HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+num2str(unit_length_scale);
+HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+...
+    num2str(unit_length_scale)+"_els_"+num2str(effect_length_scale)...
+    +"_effect_"+strrep(num2str(effect),'.','');
 
 % set data size
 num_days = 50;
@@ -54,7 +57,15 @@ xs = [(1:num_days)',ones(num_days,1); (1:num_days)',2*ones(num_days,1)];
 
 group_sample = reshape(group_sample,[],2);
 
+% plot group trends
+% fig = figure(1);
 % plot(1:num_days, group_sample(:,1)); hold on; plot(1:num_days, group_sample(:,2));
+% set(fig, 'PaperPosition', [0 0 10 10]); 
+% set(fig, 'PaperSize', [10 10]); 
+% 
+% filename = "data/synthetic/grouptrend_" + HYP + "_SEED_" + SEED + ".pdf";
+% print(fig, filename, '-dpdf','-r300');
+% close;
 
 % nonlinear unit bias
 % control then treat
@@ -109,8 +120,8 @@ effect_covariance = {@scaled_covariance, {@scaling_function}, treatment_kernel};
 theta.mean = 0;
 theta.cov = [treatment_day; ...         
              10; ...                    
-             log(30); ... 
-             log(0.1)];
+             log(effect_length_scale); ... 
+             log(effect_output_scale)];
 theta.lik = log(0);
 [~,~, effects, ~] = gp(theta, @infExact, mean_function,...
     effect_covariance, @likGauss, x, y, xs);

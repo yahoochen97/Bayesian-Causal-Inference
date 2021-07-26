@@ -8,21 +8,15 @@ if (length(args)==0) {
   MAXSEED = 1
   ULS = 21
   RHO = 0.8
-}
-if (length(args)==1){
-  MAXSEED = as.integer(args[1])
-  ULS = 21
-  RHO = 0.8
-}
-if (length(args)==2){
-  MAXSEED = as.integer(args[1])
-  ULS = as.integer(args[2])
-  RHO = 0.8
+  EFFECT  = 0.1
+  ELS = 30
 }
 if (length(args)==3){
   MAXSEED = as.integer(args[1])
   ULS = as.integer(args[2])
   RHO = as.double(args[3])
+  EFFECT = as.double(args[4])
+  ELS = as.integer(args[5])
 }
 
 ENoRMSE_score = function(true_effects, est_effects){
@@ -67,7 +61,9 @@ LL =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 for(i in 1:length(MODELS)){
   for(SEED in 1:MAXSEED){
     MODEL = MODELS[i]
-    HYP = paste("rho_", sub("\\.", "", toString(RHO)) , '_uls_', ULS, '_SEED_', SEED, sep="")
+    HYP = paste("rho_", sub("\\.", "", toString(RHO)),
+                '_uls_', ULS, '_els_', ELS, '_effect_', 
+                sub("\\.", "", toString(EFFECT)), '_SEED_', SEED, sep="")
 
     result = read.csv(paste(MODEL, "_", HYP, ".csv", sep=""))
     est_effects = result$mu
