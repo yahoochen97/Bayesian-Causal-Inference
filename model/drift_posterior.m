@@ -1,5 +1,5 @@
 function [mu, s2, days, counts]=drift_posterior(theta, non_drift_idx,...
-    mean_function, covariance_function, x, y)
+    mean_function, covariance_function, x, y, day_index)
      % drift process prior
     theta_drift = theta.cov;
     theta_drift(non_drift_idx) = log(0);
@@ -21,7 +21,7 @@ function [mu, s2, days, counts]=drift_posterior(theta, non_drift_idx,...
     % average over group
     results = table;
     results.m = m_post(x(:,end)~=0,:);
-    results.day = x(x(:,end)~=0,1);
+    results.day = x(x(:,end)~=0,day_index);
     tmp = diag(K_post);
     results.s2 = tmp(x(:,end)~=0,:);
     results.y = y(x(:,end)~=0,:);

@@ -4,7 +4,7 @@ num_samples = 1000;
 burn_in     = 500;
 jitter      = 1e-1;
 
-num_samples = 10;
+num_samples = 5;
 burn_in     = 5;
 
 % setup sampler
@@ -45,16 +45,17 @@ tic;
 toc;
 
 % iterate all posterior samples
-mus = cell(size(chain,1),1);
-s2s = cell(size(chain,1),1);
+clear mus;
+clear s2s;
+day_index = 3;
 for i=1:size(chain,1)
     
     theta_0 = unwrap(theta);
     theta_0(theta_ind)=chain(i,:);
     theta_0 = rewrap(theta, theta_0);
 
-    [mu, s2, days, counts]=drift_posterior(theta_0, non_drift_idx,...
-        mean_function, covariance_function, x, y);
+    [mu, s2, ~, counts]=drift_posterior(theta_0, non_drift_idx,...
+        mean_function, covariance_function, x, y, day_index);
     
     mus{i} = mu;
     s2s{i} = s2./counts;

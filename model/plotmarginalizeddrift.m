@@ -17,6 +17,7 @@ chain = chain(thin_ind,:);
 % iterate all posterior samples
 clear mus;
 clear s2s;
+day_index = 1;
 for i=1:size(chain,1)
     
     theta_0 = unwrap(theta);
@@ -24,7 +25,7 @@ for i=1:size(chain,1)
     theta_0 = rewrap(theta, theta_0);
 
     [mu, s2, days, counts]=drift_posterior(theta_0, non_drift_idx,...
-        mean_function, covariance_function, x, y);
+        mean_function, covariance_function, x, y, day_index);
     
     mus{i} = mu;
     s2s{i} = s2./counts;
