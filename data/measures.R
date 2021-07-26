@@ -31,6 +31,12 @@ RMSE_score = function(true_effects, est_effects){
   return(score)
 }
 
+BIAS_score = function(true_effects, est_effects){
+  mask = (true_effects!=0)
+  score = mean(est_effects[mask]-true_effects[mask])
+  return(score)
+}
+
 
 COVERAGE_score = function(true_effects, lowers, uppers){
   mask = (true_effects!=0)
@@ -53,6 +59,7 @@ MODELS = c("multigp", "ife", "tfe")
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 RMSE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
+BIAS =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 COVERAGE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 ENCIS =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 LL =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
@@ -77,9 +84,11 @@ for(i in 1:length(MODELS)){
     coverage = COVERAGE_score(true_effects, lowers, uppers)
     encis = ENCIS_score(true_effects, lowers, uppers)
     ll = ll_score(true_effects, est_effects, pstd)
+    bias = BIAS_score(true_effects, est_effects)
     
     ENORMSE[SEED,i] = enormse
     RMSE[SEED, i] = rmse
+    BIAS[SEED, i] = bias
     COVERAGE[SEED, i] = coverage
     ENCIS[SEED, i] = encis
     LL[SEED, i] = ll
@@ -93,6 +102,7 @@ for(i in 1:length(MODELS)){
 
 ENORMSE = colMeans(ENORMSE)
 RMSE = colMeans(RMSE)
+BIAS = colMeans(BIAS)
 COVERAGE = colMeans(COVERAGE)
 ENCIS = colMeans(ENCIS)
 LL = colMeans(LL)
@@ -100,6 +110,7 @@ LL = colMeans(LL)
 result = data.frame(
   ENORMSE,
   RMSE,
+  BIAS,
   COVERAGE,
   ENCIS,
   LL
@@ -116,7 +127,7 @@ dfDigits <- function(x, digits = 2) {
 
 result = dfDigits(result, 4)
 
-row.names(result) = c("ENORMSE", "RMSE",
+row.names(result) = c("ENORMSE", "RMSE", "BIAS",
                       "COVERAGE", "ENCIS", "LL")
 colnames(result) = MODELS
 write.csv(result, paste("measure_", HYP, ".csv", sep=""))

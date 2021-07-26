@@ -8,7 +8,7 @@ group_output_scale = 0.1;
 unit_output_scale = 0.02;
 noise_scale  = 0.01;
 % rho          = 0.8;
-effect_output_scale = 0.1;
+effect_output_scale = 0.01;
 % effect       = 0.1;
 
 HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+...
@@ -111,21 +111,29 @@ clear sigma;
 %     effect*ones(1,num_days-treatment_day-effect_time)];
 
 clear theta;
-x = [num_days, num_days+10]';
-y = [effect, effect]';
-xs = (1:num_days)';
 treatment_kernel = {@covSEiso};
 effect_covariance = {@scaled_covariance, {@scaling_function}, treatment_kernel};
-
+xs = (1:num_days)';
 theta.mean = 0;
 theta.cov = [treatment_day; ...         
              10; ...                    
              log(effect_length_scale); ... 
              log(effect_output_scale)];
 theta.lik = log(0);
-[~,~, effects, ~] = gp(theta, @infExact, mean_function,...
-    effect_covariance, @likGauss, x, y, xs);
-effects = effects';
+if effect~=0
+    x = [num_days, num_days+10]';
+    y = [effect, effect]';
+    
+
+   
+    [~,~, effects, ~] = gp(theta, @infExact, mean_function,...
+        effect_covariance, @likGauss, x, y, xs);
+    effects = effects';
+else
+    mu = zeros(size(xs));
+    cov = feval(effect_covariance{:}, theta.cov, xs);
+    effects = mvnrnd(mu,cov);
+end
 
 x = [repmat((1:num_days)',num_control_units,1),...
     ones(num_control_units*num_days,1),...
