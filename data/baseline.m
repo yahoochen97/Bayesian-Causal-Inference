@@ -11,6 +11,7 @@ synthetic;
 % optimize hyp for synthetic data
 synthetic_opt;
 
+% multi gp with effect process
 writetable(results((treatment_day+1):end,:),"data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".csv");
 
 opthyp = table("noise", exp(theta.lik),...
@@ -25,5 +26,9 @@ opthyp = table("noise", exp(theta.lik),...
     "x os", exp(theta.cov(14)),...
     "b", theta.cov(10));
 writetable(opthyp,"data/synthetic/opthyp_" + HYP + "_SEED_" + SEED + ".csv");
+
+% naive multi gp without effect process
+naive_cf;
+writetable(results((treatment_day+1):end,:),"data/synthetic/naivecf_" + HYP + "_SEED_" + SEED + ".csv");
 
 end

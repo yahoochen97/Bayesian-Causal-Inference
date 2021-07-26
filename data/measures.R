@@ -55,7 +55,7 @@ ll_score = function(true_effects, est_effects, pstd){
   return(mean(score))
 } 
 
-MODELS = c("multigp", "ife", "tfe")
+MODELS = c("multigp", "naivecf", "ife", "tfe")
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 RMSE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
