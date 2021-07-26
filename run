@@ -28,7 +28,7 @@ then
         for uls in ${ULS[@]}; do
             for rho in ${RHOS[@]}; do
                 for effect in ${EFFECTS[@]}; do
-                    bsub -G SEAS-Lab-Garnett -o "synthetic" -J "s${SEED}uls${uls}rho${rho}" "./onerun $SEED $uls $rho ${effect}"
+                    bsub -G SEAS-Lab-Garnett -o "synthetic.log" -J "s${SEED}uls${uls}rho${rho}" "./onerun $SEED $uls $rho ${effect}"
                 done
             done
         done
