@@ -129,6 +129,7 @@ if effect~=0
 else
     % white noise effect
     effects = normrnd(0, 0.01, 1, num_days);
+    effects(1,1:treatment_day) = 0;
 end
 
 x = [repmat((1:num_days)',num_control_units,1),...

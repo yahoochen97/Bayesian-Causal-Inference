@@ -14,7 +14,7 @@ results = data.frame(matrix(ncol = 5, nrow = 0))
 colnames(results) <- c("uls", "rho", "model", "TYPE", "measure")
 for (uls in ULS) {
   for (rho in RHOS) {
-      HYP = paste("rho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
+      HYP = paste("rho_", sub("\\.", "", toString(rho)), '_uls_', ULS, '_effect_', 
                 sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
       measures = read.csv(paste("measure", "_", HYP, ".csv", sep=""))
       measures$X = as.character(measures$X)
@@ -36,7 +36,7 @@ results$measure = as.numeric(results$measure)
 
 for(TYPE in measures$X){
   for (uls in ULS){
-    HYP = paste('_uls_', ULS, '_els_', ELS, '_effect_', 
+    HYP = paste('_uls_', uls, '_effect_', 
                 sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
     tmp = results[results$uls==uls & results$TYPE==TYPE, ]
     ggplot(tmp) +
