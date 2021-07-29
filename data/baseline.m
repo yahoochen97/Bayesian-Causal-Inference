@@ -28,8 +28,8 @@ opthyp = table("noise", exp(theta.lik),...
 writetable(opthyp,"data/synthetic/opthyp_" + HYP + "_SEED_" + SEED + ".csv");
 
 % multi gp fully bayesian
-baseline_fullbayesian;
-writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
+% baseline_fullbayesian;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
 
 % naive multi gp without effect process
 naive_cf;

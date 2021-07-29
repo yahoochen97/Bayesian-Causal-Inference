@@ -128,8 +128,38 @@ if effect~=0
     effects = effects';
 else
     % white noise effect
-    effects = normrnd(0, 0.01, 1, num_days);
-    effects(1,1:treatment_day) = 0;
+    % effects = normrnd(0, 0.01, 1, num_days);
+    % effects(1,1:treatment_day) = 0;
+    effect_length_scale = 5;
+    clear theta;
+    thin = 1;
+    x = (1:thin:num_days)';
+    mean_function = {@meanConst};
+    theta.mean = 0;
+
+    treatment_kernel = {@covSEiso};
+    treatment_effect_covariance = {@scaled_covariance, {@scaling_function}, treatment_kernel};
+
+    theta.cov = [treatment_day; ...      % 9
+             10; ...                     % 10
+             log(effect_length_scale); ...% 11
+             log(effect_output_scale)];   % 12
+    theta.lik = log(0);
+
+    mu = feval(mean_function{:},theta.mean,x);
+    sigma = feval(treatment_effect_covariance{:},theta.cov,x);
+    V = feval(treatment_effect_covariance{:},theta.cov,[num_days]);
+    K_int = feval(treatment_effect_covariance{:},theta.cov,x, [num_days]);
+    sigma = sigma - K_int*inv(V)*K_int';
+
+    T=size(sigma,1);
+    effect_sample = mvnrnd(mu, sigma);
+%     xs = ((treatment_day+1):num_days)';
+% 
+%     [~,~, effect_sample, ~] = gp(theta, @infExact, mean_function,...
+%         treatment_effect_covariance, @likGauss, x, effect_sample', xs);
+    effects = zeros(1, num_days);
+    effects(1:treatment_day) = effect_sample;
 end
 
 x = [repmat((1:num_days)',num_control_units,1),...
