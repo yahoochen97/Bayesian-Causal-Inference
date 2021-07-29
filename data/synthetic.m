@@ -153,13 +153,12 @@ else
     sigma = sigma - K_int*inv(V)*K_int';
 
     T=size(sigma,1);
-    effect_sample = mvnrnd(mu, sigma);
+    effects = mvnrnd(mu, sigma);
 %     xs = ((treatment_day+1):num_days)';
 % 
 %     [~,~, effect_sample, ~] = gp(theta, @infExact, mean_function,...
 %         treatment_effect_covariance, @likGauss, x, effect_sample', xs);
-    effects = zeros(1, num_days);
-    effects(1:treatment_day) = effect_sample;
+
 end
 
 x = [repmat((1:num_days)',num_control_units,1),...
