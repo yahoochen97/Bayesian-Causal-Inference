@@ -17,6 +17,11 @@ declare -a EFFECTS=(0.0)
 declare -a ULS=(21)
 declare -a RHOS=(0.1 0.3 0.5 0.7 0.9)
 
+MAXSEED=25
+declare -a EFFECTS=(0.1)
+declare -a ULS=(200)
+declare -a RHOS=(0.99)
+
 if [ $1 = "run" ]
 then
     for SEED in $(seq 1 1 $MAXSEED); do
