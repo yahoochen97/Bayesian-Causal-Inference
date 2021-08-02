@@ -38,8 +38,6 @@ BIAS_score = function(true_effects, est_effects){
 
 COVERAGE_score = function(true_effects, lowers, uppers){
   mask = (true_effects!=0)
-  mask = rep(0, 20)
-  mask[10] = 1
   score = mean( (true_effects[mask]>=lowers[mask]) & (true_effects[mask]<=uppers[mask]) )
   return(score)
 }
@@ -80,7 +78,7 @@ for(i in 1:length(MODELS)){
     
     enormse = ENoRMSE_score(true_effects, est_effects)
     rmse = RMSE_score(true_effects, est_effects)
-    coverage = COVERAGE_score(true_effects, lowers, uppers)
+    coverage = COVERAGE_score(c(true_effects[10]), c(lowers[10]), c(uppers[10]))
     encis = ENCIS_score(true_effects, lowers, uppers)
     ll = ll_score(true_effects, est_effects, pstd)
     bias = BIAS_score(true_effects, est_effects)
