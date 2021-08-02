@@ -30,9 +30,6 @@ results$uls = as.numeric(results$uls)
 results$rho = as.numeric(results$rho)
 results$measure = as.numeric(results$measure)
 
-# results = results %>%
-#   group_by(uls, rho, model, TYPE) %>%
-#   summarise(measure=mean(measure))
 
 for(TYPE in measures$X){
   for (uls in ULS){
@@ -45,3 +42,39 @@ for(TYPE in measures$X){
     ggsave(paste(TYPE, HYP, ".pdf", sep=""))
   }
 }
+
+for (uls in ULS) {
+  ENORMSE = matrix(0, nrow = length(RHOS), ncol=length(MODELS))
+  RMSE =  matrix(0, nrow = length(RHOS), ncol=length(MODELS))
+  BIAS =  matrix(0, nrow = length(RHOS), ncol=length(MODELS))
+  COVERAGE =  matrix(0, nrow = length(RHOS), ncol=length(MODELS))
+  ENCIS = matrix(0, nrow = length(RHOS), ncol=length(MODELS))
+  LL =  matrix(0, nrow = length(RHOS), ncol=length(MODELS))
+  
+  for (i in 1:length(RHOS)) {
+    rho = RHOS[i]
+    HYP = paste("rho_", sub("\\.", "", toString(rho)), '_uls_', ULS, '_effect_', 
+                sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
+    
+    measures = read.csv(paste("measure", "_", HYP, ".csv", sep=""))
+    measures$X = as.character(measures$X)
+    for(j in 1:length(MODELS)){
+      MODEL = MODELS[j]
+      ENORMSE[i,j] = measures[measures$X=='ENORMSE', MODEL]
+      RMSE[i,j] = measures[measures$X=='RMSE', MODEL]
+      BIAS[i,j] = measures[measures$X=='BIAS', MODEL]
+      COVERAGE[i,j] = measures[measures$X=='COVERAGE', MODEL]
+      ENCIS[i,j] = measures[measures$X=='ENCIS', MODEL]
+      LL[i,j] = measures[measures$X=='LL', MODEL]
+    }
+  }
+  HYP = paste('_uls_', uls, '_effect_', 
+              sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
+  write.csv(ENORMSE, paste('ENORMSE', HYP, ".csv", sep=""))
+  write.csv(RMSE, paste('RMSE', HYP, ".csv", sep=""))
+  write.csv(BIAS, paste('BIAS', HYP, ".csv", sep=""))
+  write.csv(COVERAGE, paste('COVERAGE', HYP, ".csv", sep=""))
+  write.csv(ENCIS, paste('ENCIS', HYP, ".csv", sep=""))
+  write.csv(LL, paste('LL', HYP, ".csv", sep=""))
+}
+
