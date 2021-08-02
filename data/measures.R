@@ -38,6 +38,8 @@ BIAS_score = function(true_effects, est_effects){
 
 COVERAGE_score = function(true_effects, lowers, uppers){
   mask = (true_effects!=0)
+  mask[10] = 1
+  mask[-10] = 0
   score = mean( (true_effects[mask]>=lowers[mask]) & (true_effects[mask]<=uppers[mask]) )
   return(score)
 }
