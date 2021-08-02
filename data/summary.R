@@ -68,6 +68,18 @@ for (uls in ULS) {
       LL[i,j] = measures[measures$X=='LL', MODEL]
     }
   }
+  row.names(ENORMSE) = RHOS
+  colnames(ENORMSE) = MODELS
+  row.names(RMSE) = RHOS
+  colnames(RMSE) = MODELS
+  row.names(BIAS) = RHOS
+  colnames(BIAS) = MODELS
+  row.names(COVERAGE) = RHOS
+  colnames(COVERAGE) = MODELS
+  row.names(ENCIS) = RHOS
+  colnames(ENCIS) = MODELS
+  row.names(LL) = RHOS
+  colnames(LL) = MODELS
   HYP = paste('_uls_', uls, '_effect_', 
               sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
   write.csv(ENORMSE, paste('ENORMSE', HYP, ".csv", sep=""))
