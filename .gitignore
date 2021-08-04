@@ -16,3 +16,4 @@ results
 *.log
 *.m~
 data/synthetic/*
+*.mat
