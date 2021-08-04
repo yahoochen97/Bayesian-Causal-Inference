@@ -1,14 +1,13 @@
 % initial hyperparameters
 mean_mu = mean(y,'all');
 mean_sigma   = 0.01;
-group_length_scale = 15;
-group_output_scale = 0.05;
-unit_length_scale = 30;
-unit_output_scale = 0.05;
-treat_length_scale = 20;
-treat_output_scale = 0.05;
-noise_scale  = 0.05;
-rho          = 0.0;
+group_length_scale = 7;
+group_output_scale = 0.1;
+unit_length_scale = 21;
+unit_output_scale = 0.02;
+white_output_scale = 10;
+noise_scale  = 0.01;
+rho          = 0.7;
 
 % data is:
 % 1: x1
@@ -56,21 +55,20 @@ theta.cov = [theta.cov; ...
              log(0.01)];                 % 8
 
 % treatment effect
-treatment_kernel = {@covSEiso};
+treatment_kernel = {@covNoise};
 treatment_effect_covariance = ...
     {@covMask, {6, {@scaled_covariance, {@scaling_function}, treatment_kernel}}};
 
 theta.cov = [theta.cov; ...
              treatment_day; ...          % 9
-             5; ...                      % 10
-             log(treat_length_scale); ...% 11
-             log(treat_output_scale)];   % 12
+             0; ...          % 10
+             log(white_output_scale)];   % 11
          
 % x covariance
 x_covariance = {@covMask, {[1,2], {@covSEiso}}};
 theta.cov = [theta.cov; ...
-             log(1); ...      % 13
-             log(0.01)];      % 14
+             log(1); ...      % 12
+             log(0.01)];      % 13
 
 covariance_function = {@covSum, {group_trend_covariance, ...
                                  unit_bias_covariance,   ...
@@ -90,15 +88,14 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 1:  gro
               {@priorSmoothBox2, -4, -1, 5}, ...    % 7:  unit output scale
               @priorDelta, ...                      % 8
               @priorDelta, ...                      % 9
-              {@priorGamma,10,2}, ...               % 10: full effect time
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,3}}, ... % 11: effect length scale
-              {@priorSmoothBox2, -4, -1, 5}, ...    % 12: effect output scale
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 13: x length scale
-              {@priorSmoothBox2, -4, -1, 5}};       % 14: x output scale
-prior.lik  = {{@priorSmoothBox2, -4, -1, 5}};       % 15: noise std
-prior.mean = {@priorDelta, [], []};                 % 16: mean
+              @priorDelta, ...                      % 10: full effect time
+              @priorDelta, ...                      % 11: effect output scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 12: x length scale
+              {@priorSmoothBox2, -4, -1, 5}};       % 13: x output scale
+prior.lik  = {{@priorSmoothBox2, -4, -1, 5}};       % 14: noise std
+prior.mean = {@priorDelta, [], []};                 % 15: mean
 
-non_drift_idx = [2,5,7,14];
+non_drift_idx = [2,5,7,13];
 
 inference_method = {@infPrior, @infExact, prior};
 
@@ -106,7 +103,7 @@ p.method = 'LBFGS';
 p.length = 100;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
-                    covariance_function, [], x, y);
+                     covariance_function, [], x, y);
 
 fprintf("noise: %.3f\n", exp(theta.lik));
 fprintf("Correlation: %.3f\n", 2*normcdf(theta.cov(3))-1);
@@ -114,12 +111,9 @@ fprintf("group ls: %.3f\n", exp(theta.cov(1)));
 fprintf("group os: %.3f\n", exp(theta.cov(2)));
 fprintf("unit ls: %.3f\n", exp(theta.cov(6)));
 fprintf("unit os: %.3f\n", exp(theta.cov(7)));
-fprintf("effect ls: %.3f\n", exp(theta.cov(11)));
-fprintf("effect os: %.3f\n", exp(theta.cov(12)));
-fprintf("x ls: %.3f\n", exp(theta.cov(13)));
-fprintf("x os: %.3f\n", exp(theta.cov(14)));
-fprintf("b: %.3f\n", theta.cov(10));
-          
+fprintf("effect os: %.3f\n", exp(theta.cov(11)));
+
+% theta.cov(11) = log(0.1)/2;
 % posterior of drift process conditioning on
 % summed observation of drift + counterfactual                
 theta_drift = theta.cov;
@@ -160,7 +154,7 @@ plot(days, effects, "--");
 set(fig, 'PaperPosition', [0 0 10 10]); 
 set(fig, 'PaperSize', [10 10]); 
 
-filename = "data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".pdf";
+filename = "data/synthetic/whitenoise_" + HYP + "_SEED_" + SEED + ".pdf";
 print(fig, filename, '-dpdf','-r300');
 close;
 
