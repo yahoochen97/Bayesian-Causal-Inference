@@ -36,11 +36,11 @@ synthetic;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/grouptrend_" + HYP + "_SEED_" + SEED + ".csv");
 
 % white noise
-whitenoise;
-writetable(results((treatment_day+1):end,:),"data/synthetic/whitenoise_" + HYP + "_SEED_" + SEED + ".csv");
+% whitenoise;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/whitenoise_" + HYP + "_SEED_" + SEED + ".csv");
 
 % naive multi gp without effect process
-% naive_cf;
-% writetable(results((treatment_day+1):end,:),"data/synthetic/naivecf_" + HYP + "_SEED_" + SEED + ".csv");
+naive_cf;
+writetable(results((treatment_day+1):end,:),"data/synthetic/naivecf_" + HYP + "_SEED_" + SEED + ".csv");
 
 end
