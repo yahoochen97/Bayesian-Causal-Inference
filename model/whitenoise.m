@@ -104,69 +104,85 @@ p.length = 100;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                      covariance_function, [], x, y);
+                 
+% sampler parameters
+num_chains  = 1;
+num_samples = 1000;
+burn_in     = 500;
+jitter      = 1e-1;
 
-fprintf("noise: %.3f\n", exp(theta.lik));
-fprintf("Correlation: %.3f\n", 2*normcdf(theta.cov(3))-1);
-fprintf("group ls: %.3f\n", exp(theta.cov(1)));
-fprintf("group os: %.3f\n", exp(theta.cov(2)));
-fprintf("unit ls: %.3f\n", exp(theta.cov(6)));
-fprintf("unit os: %.3f\n", exp(theta.cov(7)));
-fprintf("effect os: %.3f\n", exp(theta.cov(11)));
+% setup sampler
+% select index of hyperparameters to sample
+theta_ind = false(size(unwrap(theta)));
 
-% theta.cov(11) = log(0.1)/2;
-% posterior of drift process conditioning on
-% summed observation of drift + counterfactual                
-theta_drift = theta.cov;
-theta_drift(non_drift_idx) = log(0);
-m_drift = feval(mean_function{:}, theta.mean, x)*0;
-K_drift = feval(covariance_function{:}, theta_drift, x);
+theta_ind([1:3, 6:7, 12:13, 14]) = true;
 
-theta_sum = theta.cov;
-m_sum = feval(mean_function{:}, theta.mean, x);
-K_sum = feval(covariance_function{:}, theta_sum, x);
+theta_0 = unwrap(theta);
+theta_0 = theta_0(theta_ind);
 
-V = K_sum+exp(2*theta.lik)*eye(size(K_sum,1));
-inv_V = inv(V);
-m_post = m_drift + K_drift*inv_V*(y-m_sum);
-K_post = K_drift - K_drift*inv_V*K_drift; % + exp(2*theta.lik)*eye(size(K_drift,1));
+f = @(unwrapped_theta) ...
+    l(unwrapped_theta, theta_ind, theta, inference_method, mean_function, ...
+      covariance_function, x, y);  
+  
+% create and tune sampler
+hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
 
-results = table;
-results.m = m_post(x(:,end)~=0,:);
-results.day = x(x(:,end)~=0,3);
-tmp = diag(K_post);
-results.s2 = tmp(x(:,end)~=0,:);
-results.y = y(x(:,end)~=0,:);
-results = groupsummary(results, 'day', 'mean');
-mu = results.mean_m;
-s2 = results.mean_s2;
-s2(1:treatment_day) = 0;
-days = results.day;
-ys = results.mean_y;
-counts = results.GroupCount;
+tic;
+[hmc, tune_info] = ...
+    tuneSampler(hmc, ...
+                'verbositylevel', 2, ...
+                'numprint', 10, ...
+                'numstepsizetuningiterations', 100, ...
+                'numstepslimit', 500);
+toc;
 
-fig=figure(3);
+% use default seed for hmc sampler
+rng('default');
+tic;
+[chain, endpoint, acceptance_ratio] = ...
+  drawSamples(hmc, ...
+              'start', theta_0 + jitter * randn(size(theta_0)), ...
+              'burnin', burn_in, ...
+              'numsamples', num_samples, ...
+              'verbositylevel', 1, ...
+              'numprint', 10);
+toc;
+
+% iterate all posterior samples
+clear mus;
+clear s2s;
+day_index = 3;
+for i=1:size(chain,1)
+    
+    theta_0 = unwrap(theta);
+    theta_0(theta_ind)=chain(i,:);
+    theta_0 = rewrap(theta, theta_0);
+
+    [mu, s2, ~, counts]=drift_posterior(theta_0, non_drift_idx,...
+        mean_function, covariance_function, x, y, day_index);
+    
+    mus{i} = mu;
+    s2s{i} = s2./counts;
+end
+
+gmm_mean = mean(cell2mat(mus),2);
+gmm_s2 = mean(cell2mat(s2s),2);
+gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
+
+fig = figure(1);
 clf;
-f = [mu+2*sqrt(s2./counts); flipdim(mu-2*sqrt(s2./counts),1)];
-fill([days; flipdim(days,1)], f, [7 7 7]/8);
-hold on; plot(days, mu);
+f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
+fill([days; flip(days,1)], f, [7 7 7]/8);
+hold on; plot(days, gmm_mean);
 plot(days, effects, "--");
 
+filename = "./data/synthetic/whitenoise_" + HYP + "_SEED_" + SEED + ".pdf";
 set(fig, 'PaperPosition', [0 0 10 10]); 
-set(fig, 'PaperSize', [10 10]); 
-
-filename = "data/synthetic/whitenoise_" + HYP + "_SEED_" + SEED + ".pdf";
+set(fig, 'PaperSize', [10 10]);
 print(fig, filename, '-dpdf','-r300');
 close;
 
-clear inv_V;
-clear V;
-clear K_drift;
-clear K_post;
-clear K_sum;
-clear m_drift;
-clear m_post;
-clear m_sum;
-clear tmp;
+save("./data/synthetic/whitenoise_" + HYP + "_SEED_" + SEED + ".mat");
 
-results = table(mu,sqrt(s2./counts));
+results = table(gmm_mean,sqrt(gmm_var));
 results.Properties.VariableNames = {'mu','std'};
