@@ -66,11 +66,25 @@ if(NUM_INTER){
   lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
   upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
 }else{
-  fit <- gsynth(Y=c('y'),D=c('D'), X=c('x1','x2'), data = data, index=c("id","day"),
-                r = 1, CV=FALSE, force = "two-way", seed=1, se=TRUE, cores=1)
-  estimated_D = as.vector(fit$est.att[(T0+1):T_max,'ATT'])
-  lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
-  upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
+  # two way fixed effect
+  # fit <- gsynth(Y=c('y'),D=c('D'), X=c('x1','x2'), data = data, index=c("id","day"),
+  #               r = 1, CV=FALSE, force = "two-way", seed=1, se=TRUE, cores=1)
+  # estimated_D = as.vector(fit$est.att[(T0+1):T_max,'ATT'])
+  # lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
+  # upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
+  data$id = as.factor(data$id)
+  data$day = as.factor(data$day)
+  fit = lm(y ~ 1 + x1 + x2 + id + day + D:day, data = data)
+  estimated_D = rep(0, T_max)
+  for(i in (T0+1):T_max){
+    estimated_D[i] = fit$coefficients[[paste("day", i,":D", sep = "")]]
+  }
+  estimated_D = estimated_D[(T0+1):T_max]
+  out = summary(fit)
+  # Std. Errors for treatment effect are the same
+  estimated_sd = sapply((T0+1):T_max, function(t){out$coefficients[paste("day", t,":D", sep = ""), 2]})
+  lower = estimated_D - 1.96*estimated_sd
+  upper = estimated_D + 1.96*estimated_sd
 }
 
 result = data.frame(estimated_D, (upper-lower)/2/1.96)
