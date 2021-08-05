@@ -9,7 +9,7 @@ startup;
 synthetic;
 
 % % optimize hyp for synthetic data
-synthetic_opt;
+% synthetic_opt;
 % 
 % % multi gp with effect process
 % writetable(results((treatment_day+1):end,:),"data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".csv");
@@ -28,16 +28,16 @@ synthetic_opt;
 % writetable(opthyp,"data/synthetic/opthyp_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % bayesian linear regression model
-blr;
-writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
+% blr;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % % multi gp fully bayesian
 % baseline_fullbayesian;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
 
 % no unit trend/group trend only
-% baseline_grouptrend;
-% writetable(results((treatment_day+1):end,:),"data/synthetic/grouptrend_" + HYP + "_SEED_" + SEED + ".csv");
+baseline_grouptrend;
+writetable(results((treatment_day+1):end,:),"data/synthetic/grouptrend_" + HYP + "_SEED_" + SEED + ".csv");
 
 % white noise
 % whitenoise;

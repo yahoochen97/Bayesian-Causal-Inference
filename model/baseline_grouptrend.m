@@ -151,6 +151,8 @@ gmm_mean = mean(cell2mat(mus),2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
+days = (1:num_days)';
+
 fig = figure(1);
 clf;
 f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
