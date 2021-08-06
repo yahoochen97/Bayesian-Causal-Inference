@@ -10,8 +10,7 @@ T_effect = num_days-treatment_day;             % num of individual effects
 mu_effect = 0*ones(T_effect,1);                % prior mean of treatment effect
 var_effect =exp(2*theta.cov(12))*eye(T_effect);% prior var of treatment effect
 
-var_time = feval(@covSEiso, theta.cov(1:2), (1:num_days)');
-var_effect = feval(treatment_kernel{:}, theta.cov(9:12), ((treatment_day+1):num_days)');
+% var_time = feval(@covSEiso, theta.cov(1:2), (1:num_days)');
 
 x_blr = x(:,1:2);
 x_time = zeros(size(x,1), num_days);
