@@ -97,6 +97,38 @@ for(i in 1:length(MODELS)){
   }
 }
 
+
+# perform paired t-test
+
+for (i in 2:length(MODELS)) {
+  tmp = t.test(ENORMSE[,1], ENORMSE[, i], paired = TRUE)
+  p = tmp[["p.value"]]
+  if (p>=0.05){
+    print(paste(MODELS[i], " not significant worse in ENORMSE.", sep=""))
+  }
+  tmp = t.test(RMSE[,1], RMSE[, i], paired = TRUE)
+  p = tmp[["p.value"]]
+  if (p>=0.05){
+    print(paste(MODELS[i], " not significant worse in RMSE.", sep=""))
+  }
+  tmp = t.test(COVERAGE[,1], COVERAGE[, i], paired = TRUE)
+  p = tmp[["p.value"]]
+  if (p>=0.05){
+    print(paste(MODELS[i], " not significant worse in COVERAGE.", sep=""))
+  }
+  tmp = t.test(ENCIS[,1], ENCIS[, i], paired = TRUE)
+  p = tmp[["p.value"]]
+  if (p>=0.05){
+    print(paste(MODELS[i], " not significant worse in ENCISE.", sep=""))
+  }
+  tmp = t.test(LL[,1], LL[, i], paired = TRUE)
+  p = tmp[["p.value"]]
+  if (p>=0.05){
+    print(paste(MODELS[i], " not significant worse in LL.", sep=""))
+  }
+}
+
+
 ENORMSE = colMeans(ENORMSE)
 RMSE = colMeans(RMSE)
 BIAS = colMeans(BIAS)
