@@ -106,31 +106,26 @@ for (i in 2:length(MODELS)) {
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in ENORMSE.", sep=""))
-    print(tmp)
   }
   tmp = t.test(RMSE[,1], RMSE[, i], paired = TRUE)
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in RMSE.", sep=""))
-    print(tmp)
   }
   tmp = t.test(COVERAGE[,1], COVERAGE[, i], paired = TRUE)
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in COVERAGE.", sep=""))
-    print(tmp)
   }
   tmp = t.test(ENCIS[,1], ENCIS[, i], paired = TRUE)
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in ENCISE.", sep=""))
-    print(tmp)
   }
   tmp = t.test(LL[,1], LL[, i], paired = TRUE)
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in LL.", sep=""))
-    print(tmp)
   }
 }
 
@@ -139,7 +134,6 @@ for (i in c(1,3,4,5,6,7,8)) {
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in BIAS.", sep=""))
-    print(tmp)
   }
 }
 
