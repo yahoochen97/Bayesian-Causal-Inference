@@ -100,12 +100,12 @@ for(i in 1:length(MODELS)){
 
 # perform paired t-test
 
-print(paste("correlation: ", RHO , sep=""))
-for (i in 2:length(MODELS)) {
-  tmp = t.test(LL[,1], LL[, i], paired = TRUE)
-  p = tmp[["p.value"]]
-  print(tmp)
-}
+# print(paste("correlation: ", RHO , sep=""))
+# for (i in 2:length(MODELS)) {
+#   tmp = t.test(LL[,1], LL[, i], paired = TRUE)
+#   p = tmp[["p.value"]]
+#   print(tmp)
+# }
 
 # print(paste("correlation: ", RHO , sep=""))
 # for (i in 2:length(MODELS)) {
