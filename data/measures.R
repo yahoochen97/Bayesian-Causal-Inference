@@ -31,7 +31,7 @@ RMSE_score = function(true_effects, est_effects){
 
 BIAS_score = function(true_effects, est_effects){
   mask = (true_effects!=0)
-  score = mean(est_effects[mask]-true_effects[mask])
+  score = mean(abs(est_effects[mask]-true_effects[mask]))
   return(score)
 }
 
@@ -135,14 +135,14 @@ for(i in 1:length(MODELS)){
 #     print(paste(MODELS[i], " not significant worse in LL.", sep=""))
 #   }
 # }
-# 
-# for (i in c(1,3,4,5,6,7,8)) {
-#   tmp = t.test(BIAS[,2], BIAS[, i], paired = TRUE)
-#   p = tmp[["p.value"]]
-#   if (p>=0.05){
-#     print(paste(MODELS[i], " not significant worse in BIAS.", sep=""))
-#   }
-# }
+
+for (i in c(2,3,4,5,6,7,8)) {
+  tmp = t.test(BIAS[,1], BIAS[, i], paired = TRUE)
+  p = tmp[["p.value"]]
+  if (p>=0.05){
+    print(paste(MODELS[i], " not significant worse in BIAS.", sep=""))
+  }
+}
 
 
 ENORMSE = colMeans(ENORMSE)
