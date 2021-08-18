@@ -144,8 +144,8 @@ close all;
 
 % sampler parameters
 num_chains  = 1;
-num_samples = 1000;
-burn_in     = 500;
+num_samples = 3000;
+burn_in     = 1000;
 jitter      = 1e-1;
 
 % setup sampler
