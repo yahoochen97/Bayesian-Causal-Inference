@@ -53,7 +53,7 @@ ll_score = function(true_effects, est_effects, pstd){
   return(mean(score))
 } 
 
-MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "grouptrend", "ife", "tfe", "blr")
+MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "grouptrend", "ife", "tfe", "blr", "cmgp")
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 RMSE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
@@ -136,13 +136,13 @@ for(i in 1:length(MODELS)){
 #   }
 # }
 
-for (i in c(2,3,4,5,6,7,8)) {
-  tmp = t.test(BIAS[,1], BIAS[, i], paired = TRUE)
-  p = tmp[["p.value"]]
-  if (p>=0.05){
-    print(paste(MODELS[i], " not significant worse in BIAS.", sep=""))
-  }
-}
+# for (i in c(2,3,4,5,6,7,8,9)) {
+#   tmp = t.test(BIAS[,1], BIAS[, i], paired = TRUE)
+#   p = tmp[["p.value"]]
+#   if (p>=0.05){
+#     print(paste(MODELS[i], " not significant worse in BIAS.", sep=""))
+#   }
+# }
 
 
 ENORMSE = colMeans(ENORMSE)

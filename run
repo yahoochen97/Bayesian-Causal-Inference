@@ -12,36 +12,38 @@ mkdir -p results
 #     bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "synthetic_${chain}" -o "synthetic_${chain}".log "./onerun $chain"
 # done
 
-MAXSEED=25
-declare -a EFFECTS=(0.1)
-declare -a ULS=(21)
-declare -a RHOS=(0.1 0.3 0.5 0.7 0.9)
+# MAXSEED=25
+# declare -a EFFECTS=(0.1)
+# declare -a ULS=(21)
+# declare -a RHOS=(0.1 0.3 0.5 0.7 0.9)
 
-if [ $1 = "run" ]
-then
-    for SEED in $(seq 1 1 $MAXSEED); do
-        for uls in ${ULS[@]}; do
-            for rho in ${RHOS[@]}; do
-                for effect in ${EFFECTS[@]}; do
-                    bsub -G SEAS-Lab-Garnett -J "s${SEED}uls${uls}rho${rho}" "./onerun $SEED $uls $rho ${effect}"
-                done
-            done
-        done
-    done
-elif [ $1 = "measure" ]
-then
-    for uls in ${ULS[@]}; do
-        for rho in ${RHOS[@]}; do
-            for effect in ${EFFECTS[@]}; do
-                Rscript --vanilla data/measures.R $MAXSEED $uls $rho $effect
-            done
-        done
-    done
-elif [ $1 = "summary" ]
-then
-    for effect in ${EFFECTS[@]}; do
-        Rscript --vanilla data/summary.R $MAXSEED $effect "${ULS[@]}" "${RHOS[@]}"
-    done
-fi
+# if [ $1 = "run" ]
+# then
+#     for SEED in $(seq 1 1 $MAXSEED); do
+#         for uls in ${ULS[@]}; do
+#             for rho in ${RHOS[@]}; do
+#                 for effect in ${EFFECTS[@]}; do
+#                     bsub -G SEAS-Lab-Garnett -J "s${SEED}uls${uls}rho${rho}" "./onerun $SEED $uls $rho ${effect}"
+#                 done
+#             done
+#         done
+#     done
+# elif [ $1 = "measure" ]
+# then
+#     for uls in ${ULS[@]}; do
+#         for rho in ${RHOS[@]}; do
+#             for effect in ${EFFECTS[@]}; do
+#                 Rscript --vanilla data/measures.R $MAXSEED $uls $rho $effect
+#             done
+#         done
+#     done
+# elif [ $1 = "summary" ]
+# then
+#     for effect in ${EFFECTS[@]}; do
+#         Rscript --vanilla data/summary.R $MAXSEED $effect "${ULS[@]}" "${RHOS[@]}"
+#     done
+# fi
 
 # bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "marginalize drift" -o marginalizedrift.log "./onerun"
+
+bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "sigact" -o "sigact.log" "./onerun"
