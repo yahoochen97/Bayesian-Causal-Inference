@@ -2,6 +2,7 @@
 gpml_path = "/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07";
 addpath("model");
 addpath("data");
+addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
 addpath(gpml_path);
 startup;
 
