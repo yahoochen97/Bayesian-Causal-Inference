@@ -19,7 +19,7 @@ for g = 1:2
     days = results.day(results.group==g,:);
     ys = results.mean_y(results.group==g,:);
 
-    f = [mu+2*sqrt(s2); flip(mu-2*sqrt(s2),1)];
+    f = [mu+1.96*sqrt(s2); flip(mu-1.96*sqrt(s2),1)];
     h = fill([days; flip(days,1)], f, [6 8 6]/8);
     set(h,'facealpha', 0.25);
     hold on; plot(days, mu); scatter(days, ys);

@@ -16,7 +16,8 @@ def load_synthetic_data(data, true_effects):
     
     # Read the covariates and treatment assignments from the original study
     # ----------------------------------------------------------------------
-    X              = np.array(data[['x1','x2', 'day']])
+    X              = np.array(data[['x1','x2', 'day', 'day']])
+    Group          = np.array(data['group'])
     W              = np.array(data['D'])
     Y              = np.array(data['y'])
     Day            = np.array(data['day'])
@@ -28,7 +29,7 @@ def load_synthetic_data(data, true_effects):
 
     # Prepare the output dataset 
     # --------------------------
-    DatasetX       = pd.DataFrame(X,columns='X1 X2 Day'.split())
+    DatasetX       = pd.DataFrame(X,columns='X1 X2 Day Day2'.split())
     DatasetY       = pd.DataFrame(Y,columns='Treatment Response TE'.split())
     Dataset        = DatasetX.join(DatasetY)
     
@@ -40,7 +41,7 @@ def load_synthetic_data(data, true_effects):
 
 def sample_data(data, true_effects):
     Dataset     = load_synthetic_data(data, true_effects)
-    feat_name   = 'X1 X2 Day'
+    feat_name   = 'X1 X2 Day Day2'
     
     X_train       = np.array(Dataset[feat_name.split()])
     W_train       = np.array(Dataset['Treatment'])
@@ -60,7 +61,7 @@ def run_experiment(data, true_effects, mode="CMGP"):
     train_data                              = sample_data(data, true_effects)
     X_train, W_train, Y_train, T_true_train = train_data[0], train_data[1], train_data[2], train_data[6]
     
-    model = CMGP(dim=3, mode=mode)
+    model = CMGP(dim=4, mode=mode)
 
     model.fit(X_train, Y_train, W_train)
     TE_est_train, _, _, var_all = model.predict(X_train)
