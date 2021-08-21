@@ -20,6 +20,9 @@ for (uls in ULS) {
       measures$X = as.character(measures$X)
       for(TYPE in measures$X){
         for(MODEL in MODELS){
+          print(MODEL)
+          print(TYPE)
+          print(c(uls, rho, MODEL, TYPE, measures[measures$X==TYPE, MODEL]))
           results[nrow(results)+1,] = c(uls, rho, MODEL, TYPE, measures[measures$X==TYPE, MODEL])
       }
     }
