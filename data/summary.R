@@ -1,4 +1,3 @@
-library(ggplot2)
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 setwd("./data/synthetic")
@@ -32,17 +31,17 @@ results$rho = as.numeric(results$rho)
 results$measure = as.numeric(results$measure)
 
 
-for(TYPE in measures$X){
-  for (uls in ULS){
-    HYP = paste('_uls_', uls, '_effect_', 
-                sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
-    tmp = results[results$uls==uls & results$TYPE==TYPE, ]
-    ggplot(tmp) +
-      geom_line(aes(x = rho, y = measure, group = model, colour=model)) +
-      ylab(TYPE)
-    ggsave(paste(TYPE, HYP, ".pdf", sep=""))
-  }
-}
+# for(TYPE in measures$X){
+#   for (uls in ULS){
+#     HYP = paste('_uls_', uls, '_effect_', 
+#                 sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
+#     tmp = results[results$uls==uls & results$TYPE==TYPE, ]
+#     ggplot(tmp) +
+#       geom_line(aes(x = rho, y = measure, group = model, colour=model)) +
+#       ylab(TYPE)
+#     ggsave(paste(TYPE, HYP, ".pdf", sep=""))
+#   }
+# }
 
 for (uls in ULS) {
   ENORMSE = matrix(0, nrow = length(RHOS), ncol=length(MODELS))
