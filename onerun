@@ -22,7 +22,7 @@ effect=$4
 
 # python data/cmgp.py $SEED $uls $rho $effect
 
-Rscript --vanilla data/bgsc.R $SEED 1 $uls $rho $effect
+Rscript --vanilla data/bgsc.R $SEED 10 $uls $rho $effect
 
 # Rscript --vanilla data/ife.R $SEED 0 $uls $rho $effect
 # Rscript --vanilla data/ife.R $SEED 10 $uls $rho $effect
