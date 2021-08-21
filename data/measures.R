@@ -53,7 +53,8 @@ ll_score = function(true_effects, est_effects, pstd){
   return(mean(score))
 } 
 
-MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "grouptrend", "ife", "tfe", "blr", "cmgp")
+MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise",
+           "grouptrend", "ife", "tfe", "blr", "cmgp", "bgsc")
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 RMSE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
