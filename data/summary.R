@@ -8,8 +8,8 @@ inputs = as.double(args[-c(1,2)])
 ULS = as.integer(inputs[inputs>=1])
 RHOS = as.numeric(inputs[inputs<1])
 
-MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "grouptrend
-           ife", "tfe", "blr", "cmgp", "bgsc")
+MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "grouptrend", 
+           "ife", "tfe", "blr", "cmgp", "bgsc")
 results = data.frame(matrix(ncol = 5, nrow = 0))
 colnames(results) <- c("uls", "rho", "model", "TYPE", "measure")
 for (uls in ULS) {
@@ -20,9 +20,6 @@ for (uls in ULS) {
       measures$X = as.character(measures$X)
       for(TYPE in measures$X){
         for(MODEL in MODELS){
-          print(MODEL)
-          print(TYPE)
-          print(c(uls, rho, MODEL, TYPE, measures[measures$X==TYPE, MODEL]))
           results[nrow(results)+1,] = c(uls, rho, MODEL, TYPE, measures[measures$X==TYPE, MODEL])
       }
     }
