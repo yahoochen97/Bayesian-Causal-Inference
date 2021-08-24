@@ -31,6 +31,6 @@ effect=$4
 
 # matlab -nodisplay -nodesktop -r "addpath('model');plotmarginalizeddrift; exit;"
 
-matlab -nodisplay -nodesktop -r "BORDER=1; sigact; exit;"
+matlab -nodisplay -nodesktop -r "BORDER=0; sigact; exit;"
 
 conda deactivate
