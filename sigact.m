@@ -11,7 +11,20 @@ rng('default');
 
 % load
 sigacts = readtable("./data/sigacts_data.csv");
-sigacts = sigacts(ismember(sigacts.category, ["Direct Fire","Indirect Fire"]),:);
+CATEGORY = ["Direct Fire","Indirect Fire"];
+sigacts = sigacts(ismember(sigacts.category, CATEGORY),:);
+
+% provinces adjacent to Pakistan
+BORDER_PROVINCE = ["Nimroz",...
+                  "Hilmand",...
+                  "Kandahar",...
+                  "Zabul",...
+                  "Paktika",...
+                  "Khost",...
+                  "Nangarhar",...
+                  "Nuristan",...
+                  "Badakhshan",...
+                  "Kunar"];
 
 % set min/max date 
 date_min = datetime(2007,01,01, 'Format','yyyy-MM-dd');
@@ -19,25 +32,44 @@ date_max = datetime(2008,12,31, 'Format','yyyy-MM-dd');
 treatment_date = datetime(2008,8,12, 'Format','yyyy-MM-dd');
 treatment_day = caldays(between(date_min,treatment_date,'days')) + 1;
 num_days = caldays(between(date_min,date_max,'days')) + 1;
-data_direct = zeros(num_days,1);
-data_indirect = zeros(num_days,1);
+
+sigacts = sigacts(sigacts.date<=date_max & sigacts.date>=date_min, :);
+
+sigacts.border = ismember(sigacts.province, BORDER_PROVINCE);
+
+sigacts=groupcounts(sigacts, {'border','date','category'});
+
+treat = zeros(num_days,numel(CATEGORY));
+control = zeros(num_days,numel(CATEGORY));
 
 for t=date_min:date_max
     i = caldays(between(date_min,t,'days')) + 1;
-    data_direct(i)=size(sigacts(sigacts.date==t & strcmp(sigacts.category, 'Direct Fire'), :),1);
-    data_indirect(i)=size(sigacts(sigacts.date==t & strcmp(sigacts.category, 'Indirect Fire'), :),1);
+    for j=1:numel(CATEGORY)
+        tmp = sigacts.GroupCount(sigacts.date==t & ...
+            strcmp(sigacts.category, CATEGORY(j)) & ...
+            sigacts.border==1);
+        if numel(tmp), treat(i, j) = tmp; end
+        tmp = sigacts.GroupCount(sigacts.date==t & ...
+            strcmp(sigacts.category, CATEGORY(j)) & ...
+             sigacts.border==0);
+        if numel(tmp), control(i, j) = tmp; end
+    end
 end
 
 % data is:
 % 1: day number
-% 2: group id
+% 2: group id: 1 for control, 2 for treat
 % 3: day number (set to zero for task 1, used for drift process)
 x = [(1:num_days), (1:num_days);...
-    ones(1,num_days),ones(1,num_days)*2;...
-    (1:num_days), (1:num_days)]';
+    ones(1,num_days), ones(1,num_days)*2;...
+    (1:num_days),(1:num_days)]';
 
 x(x(:, 2) == 1, end) = 0;
-y = [data_indirect; data_direct];
+if BORDER
+    y = [treat(:, 2); treat(:,1)];
+else
+    y = [control(:, 2); control(:, 1)];
+end
 
 % init hyperparameter and define model
 group_length_scale = 100;
@@ -48,8 +80,10 @@ treat_output_scale = 0.5;
 rho               = 0.0;
 meanfunction = {@meanMask, [false, true, false], {@meanDiscrete, 2}}; % constant mean
 
-theta.mean = [mean(log(data_indirect(data_indirect~=0))),...
-              mean(log(data_direct(data_direct~=0)))]; % mean of log
+tmp=y(x(:,2)==1);
+theta.mean = [mean(log(tmp(tmp~=0)))];
+tmp=y(x(:,2)==2);
+theta.mean = [theta.mean, mean(log(tmp(tmp~=0)))]; % mean of log
 
 % time covariance for group trends
 time_covariance = {@covMask, {1, {@covSEiso}}};
@@ -227,7 +261,7 @@ gmm_mean = mean(cell2mat(mus),2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
-save("./data/sigact_fullbayes.mat");
+save("./data/sigact_fullbayes_BORDER_" + int2str(BORDER) + ".mat");
 
 fig = figure(1);
 clf;
@@ -235,7 +269,7 @@ f = [exp(gmm_mean+1.96*sqrt(gmm_var)); exp(flip(gmm_mean-1.96*sqrt(gmm_var),1))]
 fill([days; flip(days,1)], f, [7 7 7]/8);
 hold on; plot(days, exp(gmm_mean));
 
-filename = "./data/sigact_fullbayes.pdf";
+filename = "./data/sigact_fullbayes_BORDER_" + int2str(BORDER) + ".pdf";
 set(fig, 'PaperPosition', [0 0 10 10]); 
 set(fig, 'PaperSize', [10 10]);
 print(fig, filename, '-dpdf','-r300');
