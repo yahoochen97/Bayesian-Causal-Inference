@@ -18,14 +18,14 @@ uls=$2
 rho=$3
 effect=$4
 
-# matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho},${effect}); exit;"
+matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho},${effect}); exit;"
 
-# python data/cmgp.py $SEED $uls $rho $effect
+python data/cmgp.py $SEED $uls $rho $effect
 
-# Rscript --vanilla data/bgsc.R $SEED 10 $uls $rho $effect
+Rscript --vanilla data/bgsc.R $SEED 10 $uls $rho $effect
 
-# Rscript --vanilla data/ife.R $SEED 0 $uls $rho $effect
-# Rscript --vanilla data/ife.R $SEED 10 $uls $rho $effect
+Rscript --vanilla data/ife.R $SEED 0 $uls $rho $effect
+Rscript --vanilla data/ife.R $SEED 10 $uls $rho $effect
 
 # matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
 

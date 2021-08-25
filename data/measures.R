@@ -56,6 +56,8 @@ ll_score = function(true_effects, est_effects, pstd){
 MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise",
            "grouptrend", "ife", "tfe", "blr", "cmgp", "bgsc")
 
+MODELS = c("multigp", "ife", "tfe", "cmgp", "bgsc")
+
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 RMSE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 BIAS =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
