@@ -12,7 +12,7 @@ effect_output_scale = 0.01;
 effect_length_scale = 30;
 % effect       = 0.1;
 
-HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+...
+HYP="zigzagrho_"+strrep(num2str(rho),'.','')+"_uls_"+...
     num2str(unit_length_scale) + "_effect_"+strrep(num2str(effect),'.','');
 
 % set data size

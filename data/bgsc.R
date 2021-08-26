@@ -20,7 +20,7 @@ if (length(args)==5){
 }
 
 # reading data
-HYP = paste("rho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
+HYP = paste("zigzagrho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
             sub("\\.", "", toString(EFFECT)), '_SEED_', SEED, sep="")
 
 data = read.csv(paste("data_", HYP,".csv", sep = ""), row.names = NULL)

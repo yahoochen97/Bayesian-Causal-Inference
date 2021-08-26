@@ -23,7 +23,7 @@ if (length(args)==5){
 # reading data
 # treat = as.matrix(read.csv(paste("treat_", SEED, ".csv", sep = ""), row.names = NULL, header=FALSE))
 # control = as.matrix(read.csv(paste("control_", SEED, ".csv", sep = ""), row.names = NULL, header=FALSE)
-HYP = paste("rho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
+HYP = paste("zigzagrho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
             sub("\\.", "", toString(EFFECT)), '_SEED_', SEED, sep="")
 
 data = read.csv(paste("data_", HYP,".csv", sep = ""), row.names = NULL)
