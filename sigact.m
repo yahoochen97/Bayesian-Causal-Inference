@@ -115,6 +115,7 @@ theta.cov = [theta.cov; ...
              log(treat_output_scale)];   % 9
 
 covfunction = {@covSum, {group_trend_covariance, mean_covariance, treatment_effect_covariance}};
+
 likfunction = {@likPoisson,'exp'};
 theta.lik = [];
 
@@ -129,6 +130,10 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,8}}, ...
               {@priorSmoothBox2, -4, -1, 5}};  
 prior.lik  = {};
 prior.mean = {@priorDelta, @priorDelta};
+
+covfunction = {@covSum, {group_trend_covariance, mean_covariance}};
+theta.cov = theta.cov(1:5);
+prior.cov = prior.cov(1:5);
 
 inference_method = {@infPrior, @infLaplace, prior};
 non_drift_idx = [2, 5];

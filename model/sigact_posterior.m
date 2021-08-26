@@ -55,7 +55,7 @@ for g = 1:2
     ys = results.mean_y(results.group==g,:);
 
     f = [exp(mu+2*sqrt(s2)); exp(flip(mu-2*sqrt(s2),1))];
-    h = fill([days; flip(days,1)], f, [6 8 6]/8);
+    h = fill([days; flip(days,1)], f, [6 8 6]/8); hold on;
     set(h,'facealpha', 0.75);
-    plot(days, exp(mu));
+    plot(days, exp(mu));  scatter(days, ys);
 end
