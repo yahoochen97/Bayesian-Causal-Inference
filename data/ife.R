@@ -2,6 +2,8 @@ library(gsynth)
 library(estimatr)
 setwd("./data/synthetic")
 
+.libPaths(c("/home/research/chenyehu/R/x86_64-redhat-linux-gnu-library/4.0" , .libPaths()))
+
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 
