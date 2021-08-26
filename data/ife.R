@@ -1,4 +1,5 @@
 library(gsynth)
+library(estimatr)
 setwd("./data/synthetic")
 
 #!/usr/bin/env Rscript
@@ -6,9 +7,9 @@ args = commandArgs(trailingOnly=TRUE)
 
 if (length(args)==0) {
   SEED = 1
-  NUM_INTER = 10
-  ULS = 21
-  RHO = 0.7
+  NUM_INTER = 0
+  ULS = 100
+  RHO = 0.999
   EFFECT  = 0.1
 }
 if (length(args)==5){
@@ -67,14 +68,11 @@ if(NUM_INTER){
   upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
 }else{
   # two way fixed effect
-  # fit <- gsynth(Y=c('y'),D=c('D'), X=c('x1','x2'), data = data, index=c("id","day"),
-  #               r = 1, CV=FALSE, force = "two-way", seed=1, se=TRUE, cores=1)
-  # estimated_D = as.vector(fit$est.att[(T0+1):T_max,'ATT'])
-  # lower = as.vector(fit$est.att[(T0+1):T_max,'CI.lower'])
-  # upper = as.vector(fit$est.att[(T0+1):T_max,'CI.upper'])
   data$id = as.factor(data$id)
   data$day = as.factor(data$day)
-  fit = lm(y ~ 1 + x1 + x2 + id + day + D:day, data = data)
+  fit = lm_robust(y ~ 1 + x1 + x2 + id + day + D:day, data = data, clusters = id)
+  
+  # fit = lm(y ~ 1 + x1 + x2 + id + day + D:day, data = data)
   estimated_D = rep(0, T_max)
   for(i in (T0+1):T_max){
     estimated_D[i] = fit$coefficients[[paste("day", i,":D", sep = "")]]

@@ -21,13 +21,13 @@ effect=$4
 
 # Rscript --vanilla data/bgsc.R $SEED 10 $uls $rho $effect
 
-# Rscript --vanilla data/ife.R $SEED 0 $uls $rho $effect
+Rscript --vanilla data/ife.R $SEED 0 $uls $rho $effect
 # Rscript --vanilla data/ife.R $SEED 10 $uls $rho $effect
 
 # matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
 
 # matlab -nodisplay -nodesktop -r "addpath('model');plotmarginalizeddrift; exit;"
 
-matlab -nodisplay -nodesktop -r "sigact; exit;"
+# matlab -nodisplay -nodesktop -r "sigact; exit;"
 
 conda deactivate

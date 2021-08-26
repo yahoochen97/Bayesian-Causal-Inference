@@ -126,6 +126,7 @@ if effect~=0
     [~,~, effects, ~] = gp(theta, @infExact, mean_function,...
         effect_covariance, @likGauss, x, y, xs);
     effects = effects';
+    effects((treatment_day+1):end) = effects((treatment_day+1):end) + normrnd(0,0.01,1,20);
 else
     % white noise effect
     % effects = normrnd(0, 0.01, 1, num_days);

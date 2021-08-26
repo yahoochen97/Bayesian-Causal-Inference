@@ -1,6 +1,6 @@
-library(data.table)
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
+library(data.table)
 
 setwd("./data/synthetic")
 
