@@ -10,6 +10,9 @@ RHOS = as.numeric(inputs[inputs<1])
 
 MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "grouptrend", 
            "ife", "tfe", "blr", "cmgp", "bgsc")
+
+MODELS = c("fullbayes", "ife", "tfe", "cmgp", "bgsc")
+
 results = data.frame(matrix(ncol = 5, nrow = 0))
 colnames(results) <- c("uls", "rho", "model", "TYPE", "measure")
 for (uls in ULS) {
