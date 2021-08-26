@@ -17,8 +17,8 @@ declare -a EFFECTS=(0.1)
 declare -a ULS=(21)
 declare -a RHOS=(0.1 0.3 0.5 0.7 0.9)
 
-declare -a ULS=(100)
-declare -a RHOS=(0.999)
+# declare -a ULS=(100)
+# declare -a RHOS=(0.999)
 
 if [ $1 = "run" ]
 then
@@ -26,7 +26,7 @@ then
         for uls in ${ULS[@]}; do
             for rho in ${RHOS[@]}; do
                 for effect in ${EFFECTS[@]}; do
-                    bsub -G SEAS-Lab-Garnett -J "s${SEED}uls${uls}rho${rho}" "./onerun $SEED $uls $rho ${effect}"
+                    bsub -G SEAS-Lab-Garnett -J "cor${SEED}rho${rho}" "./onerun $SEED $uls $rho ${effect}"
                 done
             done
         done

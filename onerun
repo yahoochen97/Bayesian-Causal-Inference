@@ -8,9 +8,6 @@ export TMPDIR=/export/cluster-tmp/chenyehu
 module add seas-anaconda3
 conda activate chenyehu
 # module add gcc-6.5.0
-
-# matlab -nodisplay -nodesktop -r "addpath('model');addpath('data'); baseline; exit;"
-
 # python main.py -t localnews -i MCMC
 
 SEED=$1
@@ -20,17 +17,17 @@ effect=$4
 
 matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho},${effect}); exit;"
 
-python data/cmgp.py $SEED $uls $rho $effect
+# python data/cmgp.py $SEED $uls $rho $effect
 
-Rscript --vanilla data/bgsc.R $SEED 10 $uls $rho $effect
+# Rscript --vanilla data/bgsc.R $SEED 10 $uls $rho $effect
 
-Rscript --vanilla data/ife.R $SEED 0 $uls $rho $effect
-Rscript --vanilla data/ife.R $SEED 10 $uls $rho $effect
+# Rscript --vanilla data/ife.R $SEED 0 $uls $rho $effect
+# Rscript --vanilla data/ife.R $SEED 10 $uls $rho $effect
 
 # matlab -nodisplay -nodesktop -r "hmc_sample_chain(${chain}); exit;"
 
 # matlab -nodisplay -nodesktop -r "addpath('model');plotmarginalizeddrift; exit;"
 
-matlab -nodisplay -nodesktop -r "BORDER=0; sigact; exit;"
+# matlab -nodisplay -nodesktop -r "BORDER=0; sigact; exit;"
 
 conda deactivate
