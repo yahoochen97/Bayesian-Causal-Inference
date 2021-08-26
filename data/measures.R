@@ -1,4 +1,4 @@
-# library(data.table)
+library(data.table)
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 

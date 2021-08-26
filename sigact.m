@@ -11,7 +11,7 @@ rng('default');
 
 % load
 sigacts = readtable("./data/sigacts_data.csv");
-CATEGORY = ["Direct Fire","Indirect Fire"];
+CATEGORY = ["Direct Fire"];
 sigacts = sigacts(ismember(sigacts.category, CATEGORY),:);
 
 % provinces adjacent to Pakistan
@@ -65,11 +65,7 @@ x = [(1:num_days), (1:num_days);...
     (1:num_days),(1:num_days)]';
 
 x(x(:, 2) == 1, end) = 0;
-if BORDER
-    y = [treat(:, 2); treat(:,1)];
-else
-    y = [control(:, 2); control(:, 1)];
-end
+y = [control; treat];
 
 % init hyperparameter and define model
 group_length_scale = 100;
@@ -131,9 +127,6 @@ prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,8}}, ...
 prior.lik  = {};
 prior.mean = {@priorDelta, @priorDelta};
 
-covfunction = {@covSum, {group_trend_covariance, mean_covariance}};
-theta.cov = theta.cov(1:5);
-prior.cov = prior.cov(1:5);
 
 inference_method = {@infPrior, @infLaplace, prior};
 non_drift_idx = [2, 5];
@@ -266,7 +259,7 @@ gmm_mean = mean(cell2mat(mus),2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
-save("./data/sigact_fullbayes_BORDER_" + int2str(BORDER) + ".mat");
+save("./data/sigact_fullbayes" + ".mat");
 
 fig = figure(1);
 clf;
@@ -274,7 +267,7 @@ f = [exp(gmm_mean+1.96*sqrt(gmm_var)); exp(flip(gmm_mean-1.96*sqrt(gmm_var),1))]
 fill([days; flip(days,1)], f, [7 7 7]/8);
 hold on; plot(days, exp(gmm_mean));
 
-filename = "./data/sigact_fullbayes_BORDER_" + int2str(BORDER) + ".pdf";
+filename = "./data/sigact_fullbayes" + ".pdf";
 set(fig, 'PaperPosition', [0 0 10 10]); 
 set(fig, 'PaperSize', [10 10]);
 print(fig, filename, '-dpdf','-r300');
