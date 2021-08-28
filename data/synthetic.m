@@ -12,7 +12,7 @@ effect_output_scale = 0.01;
 effect_length_scale = 30;
 % effect       = 0.1;
 
-HYP="zigzagrho_"+strrep(num2str(rho),'.','')+"_uls_"+...
+HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+...
     num2str(unit_length_scale) + "_effect_"+strrep(num2str(effect),'.','');
 
 % set data size
@@ -126,7 +126,7 @@ if effect~=0
     [~,~, effects, ~] = gp(theta, @infExact, mean_function,...
         effect_covariance, @likGauss, x, y, xs);
     effects = effects';
-    effects((treatment_day+1):end) = effects((treatment_day+1):end) + normrnd(0,0.01,1,20);
+%     effects((treatment_day+1):end) = effects((treatment_day+1):end) + normrnd(0,0.01,1,20);
 else
     % white noise effect
     % effects = normrnd(0, 0.01, 1, num_days);

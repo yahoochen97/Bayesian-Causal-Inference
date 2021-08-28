@@ -24,6 +24,8 @@ results.group = x(:,2);
 results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
 fig = figure(2);
 clf;
+
+colors = ["green","green"];
 for g = 1:2
     mu = results.mean_m(results.group==g,:);
     s2 = results.mean_s2(results.group==g,:);
@@ -31,8 +33,8 @@ for g = 1:2
     ys = results.mean_y(results.group==g,:);
 
     f = [exp(mu+2*sqrt(s2)); exp(flip(mu-2*sqrt(s2),1))];
-    h = fill([days; flip(days,1)], f, [6 8 6]/8);
-    set(h,'facealpha', 0.25);
+    h = fill([days; flip(days,1)], f, colors(g));
+    set(h,'facealpha', 0.2);
     hold on; plot(days, exp(mu)); 
 end
 
@@ -57,6 +59,6 @@ for g = 1:2
 
     f = [exp(mu+2*sqrt(s2)); exp(flip(mu-2*sqrt(s2),1))];
     h = fill([days; flip(days,1)], f, colors(g)); hold on;
-    set(h,'facealpha', 0.5);
-    plot(days, exp(mu));  scatter(days, ys);
+    set(h,'facealpha', 0.2);
+    plot(days, exp(mu));  % scatter(days, ys);
 end

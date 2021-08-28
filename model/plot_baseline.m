@@ -6,7 +6,7 @@ addpath("data/synthetic/")
 
 MODELS = ["fullbayes", "ife", "tfe", "cmgp", "bgsc"];
 
-HYP="_rho_"+strrep(num2str(rho),'.','')+"_uls_"+...
+HYP="_zigzagrho_"+strrep(num2str(rho),'.','')+"_uls_"+...
     num2str(uls) + "_effect_"+strrep(num2str(effect),'.','')  + "_SEED_" + SEED;
 
 effects = load("effect"+HYP+".csv");

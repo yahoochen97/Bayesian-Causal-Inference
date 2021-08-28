@@ -99,7 +99,7 @@ def main():
 
     TE_est, std_est, PEHE_train = run_experiment(data, true_effects)
     
-    result_file = "data/synthetic/cmgp_zigzagrho_" + "".join(str(rho).split(".")) +\
+    result_file = "data/synthetic/cmgp_rho_" + "".join(str(rho).split(".")) +\
      "_uls_" + str(uls) + "_effect_" + "".join(str(effect).split("."))+ \
      "_SEED_" + str(SEED) + ".csv"
     result = pd.DataFrame({"mu" :TE_est[-effects.shape[1]::], "std": std_est[-effects.shape[1]::]})

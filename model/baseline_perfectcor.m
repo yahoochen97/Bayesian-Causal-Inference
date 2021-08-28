@@ -172,6 +172,8 @@ gmm_mean = mean(cell2mat(mus),2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
+days = (1:num_days)';
+
 fig = figure(1);
 clf;
 f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
@@ -179,7 +181,7 @@ fill([days; flip(days,1)], f, [7 7 7]/8);
 hold on; plot(days, gmm_mean);
 plot(days, effects, "--");
 
-filename = "./data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".pdf";
+filename = "./data/synthetic/perfect_" + HYP + "_SEED_" + SEED + ".pdf";
 set(fig, 'PaperPosition', [0 0 10 10]); 
 set(fig, 'PaperSize', [10 10]);
 print(fig, filename, '-dpdf','-r300');
