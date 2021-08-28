@@ -17,7 +17,7 @@ results = data.frame(matrix(ncol = 5, nrow = 0))
 colnames(results) <- c("uls", "rho", "model", "TYPE", "measure")
 for (uls in ULS) {
   for (rho in RHOS) {
-      HYP = paste("rho_", sub("\\.", "", toString(rho)), '_uls_', ULS, '_effect_', 
+      HYP = paste("zigzagrho_", sub("\\.", "", toString(rho)), '_uls_', ULS, '_effect_', 
                 sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
       measures = read.csv(paste("measure", "_", HYP, ".csv", sep=""))
       measures$X = as.character(measures$X)
@@ -56,7 +56,7 @@ for (uls in ULS) {
   
   for (i in 1:length(RHOS)) {
     rho = RHOS[i]
-    HYP = paste("rho_", sub("\\.", "", toString(rho)), '_uls_', ULS, '_effect_', 
+    HYP = paste("zigzagrho_", sub("\\.", "", toString(rho)), '_uls_', ULS, '_effect_', 
                 sub("\\.", "", toString(EFFECT)), '_SEED_', MAXSEED, sep="")
     
     measures = read.csv(paste("measure", "_", HYP, ".csv", sep=""))

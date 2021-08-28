@@ -71,7 +71,7 @@ LL =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 for(i in 1:length(MODELS)){
   for(SEED in 1:MAXSEED){
     MODEL = MODELS[i]
-    HYP = paste("rho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
+    HYP = paste("zigzagrho_", sub("\\.", "", toString(RHO)), '_uls_', ULS, '_effect_', 
                 sub("\\.", "", toString(EFFECT)), '_SEED_', SEED, sep="")
 
     result = read.csv(paste(MODEL, "_", HYP, ".csv", sep=""))
