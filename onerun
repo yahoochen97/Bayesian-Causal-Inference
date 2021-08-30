@@ -28,6 +28,6 @@ effect=$4
 
 # matlab -nodisplay -nodesktop -r "addpath('model');plotmarginalizeddrift; exit;"
 
-# matlab -nodisplay -nodesktop -r "sigact_sampple_treatment; exit;"
+matlab -nodisplay -nodesktop -r "sigact_sample_treatment; exit;"
 
 conda deactivate
