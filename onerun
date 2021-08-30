@@ -15,7 +15,7 @@ uls=$2
 rho=$3
 effect=$4
 
-matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho},${effect}); exit;"
+# matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho},${effect}); exit;"
 
 # python data/cmgp.py $SEED $uls $rho $effect
 
@@ -28,6 +28,6 @@ matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho},
 
 # matlab -nodisplay -nodesktop -r "addpath('model');plotmarginalizeddrift; exit;"
 
-# matlab -nodisplay -nodesktop -r "sigact; exit;"
+matlab -nodisplay -nodesktop -r "sigact_sampple_treatment; exit;"
 
 conda deactivate
