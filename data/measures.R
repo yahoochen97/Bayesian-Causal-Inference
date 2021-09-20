@@ -112,14 +112,13 @@ for(i in 1:length(MODELS)){
 #   print(tmp)
 # }
 print(paste("correlation: ", RHO , sep=""))
-for (i in 2:length(MODELS)) {
+for (i in 1:length(MODELS)) {
   tmp = t.test(RMSE[,1], RMSE[, i], paired = TRUE)
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in RMSE.", sep=""))
   }
-  print(tmp)
-  tmp = t.test(COVERAGE[,1], COVERAGE[, i], paired = TRUE)
+  tmp = t.test(COVERAGE[,3], COVERAGE[, i], paired = TRUE)
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in COVERAGE.", sep=""))
