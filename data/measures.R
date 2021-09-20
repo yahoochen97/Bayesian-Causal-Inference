@@ -111,27 +111,27 @@ for(i in 1:length(MODELS)){
 #   p = tmp[["p.value"]]
 #   print(tmp)
 # }
-print(paste("correlation: ", RHO , sep=""))
-for (i in c(1,2,4,5)) {
-  # tmp = t.test(RMSE[,1], RMSE[, i], paired = TRUE)
-  # p = tmp[["p.value"]]
-  # if (p>=0.05){
-  #   print(paste(MODELS[i], " not significant worse in RMSE.", sep=""))
-  # }
-  tmp = t.test(COVERAGE[,3], COVERAGE[, i], paired = TRUE)
-  p = tmp[["p.value"]]
-  print(tmp)
-  if (p>=0.05){
-    print(paste(MODELS[i], " not significant worse in COVERAGE.", sep=""))
-  }
-  # tmp = t.test(LL[,1], LL[, i], paired = TRUE)
-  # p = tmp[["p.value"]]
-  # if (p>=0.05){
-  #   print(paste(MODELS[i], " not significant worse in LL.", sep=""))
-  # }
-}
-
-q()
+# print(paste("correlation: ", RHO , sep=""))
+# for (i in c(1,2,4,5)) {
+#   # tmp = t.test(RMSE[,1], RMSE[, i], paired = TRUE)
+#   # p = tmp[["p.value"]]
+#   # if (p>=0.05){
+#   #   print(paste(MODELS[i], " not significant worse in RMSE.", sep=""))
+#   # }
+#   tmp = t.test(COVERAGE[,3], COVERAGE[, i], paired = TRUE)
+#   p = tmp[["p.value"]]
+#   print(tmp)
+#   if (p>=0.05){
+#     print(paste(MODELS[i], " not significant worse in COVERAGE.", sep=""))
+#   }
+#   # tmp = t.test(LL[,1], LL[, i], paired = TRUE)
+#   # p = tmp[["p.value"]]
+#   # if (p>=0.05){
+#   #   print(paste(MODELS[i], " not significant worse in LL.", sep=""))
+#   # }
+# }
+# 
+# q()
 
 ENORMSE = colMeans(ENORMSE)
 RMSE = colMeans(RMSE)
