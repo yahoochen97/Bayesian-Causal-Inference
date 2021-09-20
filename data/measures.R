@@ -118,13 +118,14 @@ for (i in 2:length(MODELS)) {
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in RMSE.", sep=""))
   }
+  print(tmp)
   tmp = t.test(COVERAGE[,1], COVERAGE[, i], paired = TRUE)
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in COVERAGE.", sep=""))
   }
   tmp = t.test(LL[,1], LL[, i], paired = TRUE)
-  print(tmp)
+  
   p = tmp[["p.value"]]
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in LL.", sep=""))
