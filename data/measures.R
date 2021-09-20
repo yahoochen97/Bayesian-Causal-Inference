@@ -58,6 +58,8 @@ ll_score = function(true_effects, est_effects, pstd){
 MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise",
            "grouptrend", "ife", "tfe", "blr", "cmgp", "bgsc", "perfectcor")
 
+MODELS = c("fullbayes", "ife", "tfe", "cmgp","bgsc")
+
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 RMSE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 BIAS =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
@@ -102,8 +104,6 @@ for(i in 1:length(MODELS)){
 
 
 # perform paired t-test
-
-MODELS = c("fullbayes", "ife", "tfe", "cmgp","bgsc")
 
 # print(paste("correlation: ", RHO , sep=""))
 # for (i in 2:length(MODELS)) {
