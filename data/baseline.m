@@ -28,15 +28,15 @@ synthetic;
 % writetable(opthyp,"data/synthetic/opthyp_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % bayesian linear regression model
-% blr;
-% writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
+blr;
+writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % % multi gp fully bayesian
 % baseline_fullbayesian;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
 
-baseline_perfectcor;
-writetable(results((treatment_day+1):end,:),"data/synthetic/perfectcor_" + HYP + "_SEED_" + SEED + ".csv");
+% baseline_perfectcor;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/perfectcor_" + HYP + "_SEED_" + SEED + ".csv");
 
 % no unit trend/group trend only
 % baseline_grouptrend;
