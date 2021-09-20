@@ -120,6 +120,7 @@ for (i in c(1,2,4,5)) {
   # }
   tmp = t.test(COVERAGE[,3], COVERAGE[, i], paired = TRUE)
   p = tmp[["p.value"]]
+  print(tmp)
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in COVERAGE.", sep=""))
   }
