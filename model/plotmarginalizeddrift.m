@@ -5,12 +5,12 @@ addpath("model");
 startup;
 
 i=1;
-load("results/synthetic" + int2str(i) + ".mat");
+load("results/drift" + int2str(i) + ".mat");
 
 tic;
 % thin samples
 rng('default');
-skip = 10;
+skip = 1;
 thin_ind = (randi(skip, size(chain,1),1) == 1);
 chain = chain(thin_ind,:);
 
@@ -29,28 +29,43 @@ for i=1:size(chain,1)
     
     mus{i} = mu;
     s2s{i} = s2./counts;
-%     uppers{i} = mu+1.96*sqrt(s2./counts);
-%     lowers{i} = flip(mu-1.96*sqrt(s2./counts),1);
 end
 
 gmm_mean = mean(cell2mat(mus),2);
-% gmm_s2 = mean(((cell2mat(uppers)- flip(cell2mat(lowers),1))/1.96/2).^2, 2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
+
+toc;
 
 fig = figure(1);
 clf;
 f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
 fill([days; flip(days,1)], f, [7 7 7]/8);
 hold on; plot(days, gmm_mean);
-plot(days, effects, "--");
+% plot(days, effects, "--");
 
-toc;
+
+
+BIN = 30;
+XTICK = BIN*[0:1:abs(210/BIN)];
+XTICKLABELS = ["Jun", "Jul", "Aug", "Sept",...
+    "Oct", "Nov", "Dec",];
+
+set(gca, 'xtick', XTICK, ...
+     'xticklabels', XTICKLABELS,...
+     'XTickLabelRotation',45);
+
+legend("Effect 95% CI",...
+     "Effect mean",...
+    'Location', 'Best');
+xlabel("Date"); ylabel("Effect in national news coverage");
+
 
 filename = "./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".pdf";
-set(fig, 'PaperPosition', [0 0 10 10]); %Position plot at left hand corner with width 5 and height 5.
-set(fig, 'PaperSize', [10 10]); %Set the paper to have width 5 and height 5.
+filename = "./results/localnewseffect" + "_skip_" + int2str(skip) + ".pdf";
+set(fig, 'PaperPosition', [0 0 10 5]); 
+set(fig, 'PaperSize', [10 5]);
 print(fig, filename, '-dpdf','-r300');
 close;
 
-save("./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".mat");
+% save("./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".mat");

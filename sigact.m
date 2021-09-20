@@ -228,13 +228,13 @@ for i=1:size(chain,1)
     theta_0 = rewrap(theta, theta_0);
 
     % effect process prior
-    theta_drift = theta;
+    theta_drift = theta_0;
     theta_drift.cov(non_drift_idx) = log(0);
     m_drift = feval(meanfunction{:}, theta_drift.mean, x)*0;
     K_drift = feval(covfunction{:}, theta_drift.cov, x);
 
     % effect posterior
-    [post, ~, ~] = infLaplace(theta, meanfunction, covfunction, likfunction, x, y);
+    [post, ~, ~] = infLaplace(theta_0, meanfunction, covfunction, likfunction, x, y);
     m_post = m_drift + K_drift*post.alpha;
     tmp = K_drift.*post.sW;
     K_post = K_drift - tmp'*solve_chol(post.L, tmp);
@@ -267,9 +267,23 @@ f = [exp(gmm_mean+1.96*sqrt(gmm_var)); exp(flip(gmm_mean-1.96*sqrt(gmm_var),1))]
 fill([days; flip(days,1)], f, [7 7 7]/8);
 hold on; plot(days, exp(gmm_mean));
 
+BIN = 90;
+XTICK = BIN*[0:1:abs(810/BIN)];
+XTICKLABELS = ["Jan 2007", "Apr 2007", "Jul 2007", "Oct 2007",...
+    "Jan 2008", "Apr 2008", "Jul 2008", "Oct 2008", "Jan 2009"];
+
+set(gca, 'xtick', XTICK, ...
+     'xticklabels', XTICKLABELS,...
+     'XTickLabelRotation',45);
+    
+legend("Effect 95% CI",...
+     "Effect mean",...
+    'Location', 'Best');
+xlabel("Date"); ylabel("Effect in ratio of density");
+
 filename = "./data/sigact_fullbayes" + ".pdf";
-set(fig, 'PaperPosition', [0 0 10 10]); 
-set(fig, 'PaperSize', [10 10]);
+set(fig, 'PaperPosition', [0 0 10 5]); 
+set(fig, 'PaperSize', [10 5]);
 print(fig, filename, '-dpdf','-r300');
 close;
 
