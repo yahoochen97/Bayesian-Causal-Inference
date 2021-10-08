@@ -2,7 +2,7 @@
 rng('default');
 
 LINEWIDTH = 4;
-FONTSIZE = 20;
+FONTSIZE = 12;
 
 % initial hyperparameters
 mean_mu = 0.5;
@@ -121,7 +121,8 @@ ylim([0.43,0.7]);
 
 axis off;
 
-legend('group 1', 'group 2', 'unit 1', 'unit 2','Location','northwest','NumColumns',2, 'FontSize',FONTSIZE);
+legend('control (group)','treatment (group)','control (unit)', 'treatment (unit)',...
+    'Location','northeast','NumColumns',2, 'FontSize',FONTSIZE);
 legend boxoff;
 
 set(fig, 'PaperPosition', [0 0 5 4]); 
@@ -173,8 +174,16 @@ ylim([-0.1,0.6]);
 
 axis off;
 
-legend('effect 1', 'effect 2', 'Location','northwest','NumColumns',2, 'FontSize',FONTSIZE);
-legend boxoff;
+% legend('effect (control)', 'effect (treatment)', 'Location','northwest','NumColumns',2, 'FontSize',FONTSIZE);
+
+% h = zeros(4, 1);
+% h(1) = plot(NaN,NaN,'b-');
+% h(2) = plot(NaN,NaN,'r-');
+% h(3) = plot(NaN,NaN,'b--');
+% h(4) = plot(NaN,NaN,'r--');
+% legend(h, 'group trend (control)','group trend (treatment)','unit variation (control)', 'unit variation (treatment)',...
+%     'Location','north','NumColumns',1, 'FontSize',FONTSIZE);
+% legend boxoff;
 
 set(fig, 'PaperPosition', [0 0 5 4]); 
 set(fig, 'PaperSize', [5 4]); 
@@ -194,8 +203,9 @@ for i=1:1
    plot(1:num_days,(2*group_sample(:,1)'+mean(group_sample(:,1)))/3+unit_sample(i,:),'b--');
 end
 
+
 for i=3:3
-   plot(1:num_days,(2*group_sample(:,2)'+mean(group_sample(:,2)))/3+unit_sample(i,:),'r--');
+   plot(1:num_days,(2*group_sample(:,2)'+mean(group_sample(:,2)))/3+unit_sample(i,:)+ effects/3,'r--');
 end
 
 for i=2:2
@@ -203,15 +213,15 @@ for i=2:2
 end
 
 for i=4:4
-   plot(1:num_days,(2*group_sample(:,2)'+mean(group_sample(:,2)))/3+unit_sample(i,:),'r--');
+   plot(1:num_days,(2*group_sample(:,2)'+mean(group_sample(:,2)))/3+unit_sample(i,:)+ effects/3,'r--');
 end
 
 ylim([0.43,0.7]);
 
 axis off;
 
-legend('observation 1', 'observation 2','Location','northwest','NumColumns',2, 'FontSize',FONTSIZE);
-legend boxoff;
+% legend('observed trend (control)', 'observed trend (treatment)','Location','northwest','NumColumns',2, 'FontSize',FONTSIZE);
+% legend boxoff;
 
 set(fig, 'PaperPosition', [0 0 5 4]); 
 set(fig, 'PaperSize', [5 4]); 

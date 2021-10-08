@@ -261,11 +261,13 @@ gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
 save("./data/sigact_fullbayes" + ".mat");
 
+idx = (1:num_days);
+
 fig = figure(1);
 clf;
-f = [exp(gmm_mean+1.96*sqrt(gmm_var)); exp(flip(gmm_mean-1.96*sqrt(gmm_var),1))];
-fill([days; flip(days,1)], f, [7 7 7]/8);
-hold on; plot(days, exp(gmm_mean));
+f = [exp(gmm_mean(idx)+1.96*sqrt(gmm_var(idx))); exp(flip(gmm_mean(idx)-1.96*sqrt(gmm_var(idx)),1))];
+fill([days(idx); flip(days(idx),1)], f, [7 7 7]/8, 'edgecolor', 'none');
+hold on; plot(days(idx), exp(gmm_mean(idx)));
 
 BIN = 90;
 XTICK = BIN*[0:1:abs(810/BIN)];
@@ -273,17 +275,24 @@ XTICKLABELS = ["Jan 2007", "Apr 2007", "Jul 2007", "Oct 2007",...
     "Jan 2008", "Apr 2008", "Jul 2008", "Oct 2008", "Jan 2009"];
 
 set(gca, 'xtick', XTICK, ...
-     'xticklabels', XTICKLABELS,...
-     'XTickLabelRotation',45);
-    
+         'xticklabels', XTICKLABELS,...
+         'XTickLabelRotation',45,...
+         'box', 'off', ...
+         'tickdir', 'out', ...
+    'FontSize',12);
+
+xlim([1, num_days]);
+
 legend("Effect 95% CI",...
      "Effect mean",...
-    'Location', 'Best');
-xlabel("Date"); ylabel("Effect in ratio of density");
+    'Location', 'northwest', 'NumColumns',2,'FontSize',FONTSIZE);
+legend('boxoff');
+ylabel("Effect (ratio of densities)",'FontSize',12);
 
-filename = "./data/sigact_fullbayes" + ".pdf";
-set(fig, 'PaperPosition', [0 0 10 5]); 
-set(fig, 'PaperSize', [10 5]);
+filename = "./data/sigactbot" + ".pdf";
+set(fig, 'PaperPosition', [-2 0 22 3]); 
+set(fig, 'PaperSize', [18 3]);
+% set(fig, 'OuterPosition', [0 0 0.8 1]);
 print(fig, filename, '-dpdf','-r300');
 close;
 

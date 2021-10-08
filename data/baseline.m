@@ -28,8 +28,8 @@ synthetic;
 % writetable(opthyp,"data/synthetic/opthyp_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % bayesian linear regression model
-blr;
-writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
+% blr;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % % multi gp fully bayesian
 % baseline_fullbayesian;
@@ -41,6 +41,11 @@ writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED
 % no unit trend/group trend only
 % baseline_grouptrend;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/grouptrend_" + HYP + "_SEED_" + SEED + ".csv");
+
+% group white noise trend (no unit trend but do not correlate group trends)
+whitenoisegroup;
+writetable(results((treatment_day+1):end,:),"data/synthetic/whitenoisegroup_" + HYP + "_SEED_" + SEED + ".csv");
+
 
 % white noise
 % whitenoise;

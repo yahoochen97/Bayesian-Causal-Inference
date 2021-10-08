@@ -1,8 +1,10 @@
 % load one chain
-addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
+% addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
 addpath("model");
-% addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
+
+FONTSIZE = 16;
 
 i=1;
 load("results/drift" + int2str(i) + ".mat");
@@ -10,7 +12,7 @@ load("results/drift" + int2str(i) + ".mat");
 tic;
 % thin samples
 rng('default');
-skip = 1;
+skip = 30;
 thin_ind = (randi(skip, size(chain,1),1) == 1);
 chain = chain(thin_ind,:);
 
@@ -35,16 +37,13 @@ gmm_mean = mean(cell2mat(mus),2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
-toc;
 
 fig = figure(1);
 clf;
 f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
-fill([days; flip(days,1)], f, [7 7 7]/8);
+h = fill([days; flip(days,1)], f, [7 7 7]/8,'edgecolor', 'none');
+% set(h,'facealpha', 0.2);
 hold on; plot(days, gmm_mean);
-% plot(days, effects, "--");
-
-
 
 BIN = 30;
 XTICK = BIN*[0:1:abs(210/BIN)];
@@ -52,20 +51,23 @@ XTICKLABELS = ["Jun", "Jul", "Aug", "Sept",...
     "Oct", "Nov", "Dec",];
 
 set(gca, 'xtick', XTICK, ...
-     'xticklabels', XTICKLABELS,...
-     'XTickLabelRotation',45);
+         'xticklabels', XTICKLABELS,...
+         'XTickLabelRotation',45,...
+         'box', 'off', ...
+         'tickdir', 'out', ...
+    'FontSize',FONTSIZE);
+    
+xlim([1, num_days]);
 
 legend("Effect 95% CI",...
      "Effect mean",...
-    'Location', 'Best');
-xlabel("Date"); ylabel("Effect in national news coverage");
+    'Location', 'northwest','NumColumns',2,  'FontSize',FONTSIZE);
+legend('boxoff');
+ylabel("Effect",'FontSize',FONTSIZE);
 
-
-filename = "./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".pdf";
-filename = "./results/localnewseffect" + "_skip_" + int2str(skip) + ".pdf";
-set(fig, 'PaperPosition', [0 0 10 5]); 
-set(fig, 'PaperSize', [10 5]);
+filename = "./results/localnewsbot.pdf";
+set(fig, 'PaperPosition', [-1.8 0 22.2 3]); 
+set(fig, 'PaperSize', [18.4 3]);
 print(fig, filename, '-dpdf','-r300');
 close;
 
-% save("./results/marginalizeddrift" + "_skip_" + int2str(skip) + ".mat");

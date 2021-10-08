@@ -267,9 +267,9 @@ f = [exp(gmm_mean+1.96*sqrt(gmm_var)); exp(flip(gmm_mean-1.96*sqrt(gmm_var),1))]
 fill([days; flip(days,1)], f, [7 7 7]/8);
 hold on; plot(days, exp(gmm_mean));
 
-filename = "./data/sigact_sample_treatment" + ".pdf";
-set(fig, 'PaperPosition', [0 0 10 10]); 
-set(fig, 'PaperSize', [10 10]);
+filename = "./data/sigactbot.pdf";
+set(fig, 'PaperPosition', [0 0 20 4]); 
+set(fig, 'PaperSize', [20 4]);
 print(fig, filename, '-dpdf','-r300');
 close;
 

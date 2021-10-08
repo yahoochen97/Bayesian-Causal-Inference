@@ -5,11 +5,20 @@ startup;
 likfunction = {@likGauss};
 load("results/drift1.mat");
 
+FONTSIZE = 16;
+
+% xs = zeros(num_days*2*num_units,3);
+% for i=1:num_days
+%    for j=1:num_units
+%        xs()
+%    end
+% end
+
 % plot group trend of multitask gp model
 
 % thin samples
 rng('default');
-skip = 100;
+skip = 30;
 thin_ind = (randi(skip, size(chain,1),1) == 1);
 chain = chain(thin_ind,:);
 
@@ -52,6 +61,7 @@ for i=1:size(chain,1)
     
     % remove day/weekday
     theta_drift.cov([10,12]) = log(0);
+    theta_drift.cov([5,7]) = log(0);
     m_drift = feval(mean_function{:}, theta_drift.mean, x);
     K_drift = feval(covariance_function{:}, theta_drift.cov, x);
 
@@ -66,30 +76,23 @@ for i=1:size(chain,1)
     s2s{i} = diag(K_post);
 end
 
+fmu = mean(cell2mat(mus),2);
+gmm_s2 = mean(cell2mat(s2s),2);
+gmm_mean = fmu;
+fs2 = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
+
 % plot posterior g
 results = table;
-results.m = m_post;
+results.m = fmu;
 results.day = x(:,1);
-results.s2 = diag(K_post);
+results.s2 = fs2;
 results.y = y;
 results.group = x(:,2);
+results.unit = x(:,3);
+counterfactuals = results;
 results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
-fig = figure(2);
-clf;
 
-colors = ["yellow","green"];
-for g = 2:2
-    mu = results.mean_m(results.group==g,:);
-    s2 = results.mean_s2(results.group==g,:);
-    days = results.day(results.group==g,:);
-    ys = results.mean_y(results.group==g,:);
-
-    f = [(mu+1.96*sqrt(s2)); (flip(mu-1.96*sqrt(s2),1))];
-    h = fill([days; flip(days,1)], f, colors(g));
-    set(h,'facealpha', 0.15);
-    hold on; plot(days, (mu)); 
-end
-                
+counterfactuals = groupsummary(counterfactuals, {'day','group'}, 'mean',{'m','s2', 'y'});
                 
 clear mus;
 clear s2s;
@@ -100,20 +103,22 @@ for i=1:size(chain,1)
     theta_0(theta_ind)=chain(i,:);
     theta_0 = rewrap(theta, theta_0);
 
+
     % f+g posterior 
-%     [~,~,m_post,fs2] = gp(theta, inference_method, mean_function, ...
+%     [~,~,m_post,fs2] = gp(theta_0, inference_method, mean_function, ...
 %                     covariance_function, likfunction, x, y, x);
 
-% localnews g prior
+    % localnews g prior
     theta_drift = theta_0;
 %     theta_drift.cov(16) = log(0);
     
     % remove day/weekday
     theta_drift.cov([10,12]) = log(0);
+    theta_drift.cov([5,7]) = log(0);
     m_drift = feval(mean_function{:}, theta_drift.mean, x);
     K_drift = feval(covariance_function{:}, theta_drift.cov, x);
 
-    % g posterior 
+%     % g posterior 
     [post, ~, ~] = infExact(theta_0, mean_function, covariance_function, likfunction, x, y);
     m_post = m_drift + K_drift*post.alpha;
     tmp = K_drift.*post.sW;
@@ -122,7 +127,7 @@ for i=1:size(chain,1)
 
     % remove control group
     mus{i} = m_post;
-    s2s{i} = fs2;
+    s2s{i} = diag(K_post);
 end
 
 fmu = mean(cell2mat(mus),2);
@@ -136,19 +141,31 @@ results.day = x(:,1);
 results.s2 = fs2;
 results.y = y;
 results.group = x(:,2);
+results.unit = x(:,3);
+factuals = results;
 results = groupsummary(results, {'day','group'}, 'mean',{'m','s2', 'y'});
+factuals = groupsummary(factuals, {'day','group'}, 'mean',{'m','s2', 'y'});
 
-colors = ["red","blue"];
-for g = 2:2
+fig = figure(2);
+clf;
+
+colors = ["blue"];
+results = factuals;
+for g = 1:1
     mu = results.mean_m(results.group==g,:);
     s2 = results.mean_s2(results.group==g,:);
     days = results.day(results.group==g,:);
     ys = results.mean_y(results.group==g,:);
+    
+    mu = mu(2:end);
+    s2 = s2(2:end);
+    days = days(2:end);
+    ys = ys(2:end);
 
     f = [(mu+1.96*sqrt(s2)); (flip(mu-1.96*sqrt(s2),1))];
-    h = fill([days; flip(days,1)], f, colors(g)); hold on;
-    set(h,'facealpha', 0.15);
-    plot(days, (mu));
+    h = fill([days; flip(days,1)], f, colors(g),'edgecolor', 'none');
+    set(h,'facealpha', 0.2);
+    hold on; plot(days, (mu)); 
 end
 
 BIN = 30;
@@ -157,17 +174,91 @@ XTICKLABELS = ["Jun", "Jul", "Aug", "Sept",...
     "Oct", "Nov", "Dec",];
 
 set(gca, 'xtick', XTICK, ...
-     'xticklabels', XTICKLABELS,...
-     'XTickLabelRotation',45);
+         'xticklabels', [],...
+         'XTickLabelRotation',45,...
+         'box', 'off', ...
+         'tickdir', 'out', ...
+    'FontSize',FONTSIZE);
     
-legend("Acquired counterfactual 95% CI",...
-     "Acquired counterfactual mean",...
-    "Acquired factual 95% CI","Acquired factual mean",...
-    'Location', 'Best');
-xlabel("Date"); ylabel("Proportion of localnews coverage.");
+xlim([1, num_days]);
+ylim([0.05,0.25]);
+    
+legend("Factual 95% CI",...
+     "Factual mean",...
+    'Location', 'northwest','NumColumns',2, 'FontSize',FONTSIZE);
+legend('boxoff');
+ylabel("News coverage (control)",'FontSize',FONTSIZE);
 
-filename = "./results/localnewsgrouptrend.pdf";
-set(fig, 'PaperPosition', [0 0 20 10]); 
-set(fig, 'PaperSize', [20 10]);
+filename = "./results/localnewstop.pdf";
+set(fig, 'PaperPosition', [-1.8 0 22.2 3]); 
+set(fig, 'PaperSize', [18.4 3]);
+print(fig, filename, '-dpdf','-r300');
+close;
+
+fig = figure(2);
+clf;
+
+colors = ["black","blue"];
+for g = 2:2
+    mu = results.mean_m(results.group==g,:);
+    s2 = results.mean_s2(results.group==g,:);
+    days = results.day(results.group==g,:);
+    ys = results.mean_y(results.group==g,:);
+   
+    mu = mu(2:end);
+    s2 = s2(2:end);
+    days = days(2:end);
+    ys = ys(2:end);
+
+    f = [(mu+1.96*sqrt(s2)); (flip(mu-1.96*sqrt(s2),1))];
+    h = fill([days; flip(days,1)], f, colors(g),'edgecolor', 'none'); hold on;
+    set(h,'facealpha', 0.2);
+    plot(days, (mu));
+end
+
+colors=["black","green"];
+results = counterfactuals;
+for g = 2:2
+    mu = results.mean_m(results.group==g,:);
+    s2 = results.mean_s2(results.group==g,:);
+    days = results.day(results.group==g,:);
+    ys = results.mean_y(results.group==g,:);
+    
+    mu = mu(days>=treatment_day);
+    s2 = s2(days>=treatment_day);
+    ys = ys(days>=treatment_day);
+    days = days(days>=treatment_day);
+
+    f = [(mu+1.96*sqrt(s2)); (flip(mu-1.96*sqrt(s2),1))];
+    h = fill([days; flip(days,1)], f, colors(g),'edgecolor', 'none'); hold on;
+    set(h,'facealpha', 0.2);
+    plot(days, (mu));
+end
+
+
+BIN = 30;
+XTICK = BIN*[0:1:abs(210/BIN)];
+XTICKLABELS = ["Jun", "Jul", "Aug", "Sept",...
+    "Oct", "Nov", "Dec",];
+
+set(gca, 'xtick', XTICK, ...
+         'xticklabels', [],...
+         'XTickLabelRotation',45,...
+         'box', 'off', ...
+         'tickdir', 'out', ...
+    'FontSize',FONTSIZE);
+    
+xlim([1, num_days]);
+    
+legend("Factual 95% CI",...
+     "Factual mean",...
+    "Counteractual 95% CI","Counterfactual mean",...
+    'Location', 'northwest', 'NumColumns',4, 'FontSize',FONTSIZE);
+legend('boxoff');
+ylabel("News coverage (treated)",'FontSize',FONTSIZE);
+
+filename = "./results/localnewsmid.pdf";
+set(fig, 'PaperPosition', [-1.8 0 22.2 3]); 
+set(fig, 'PaperSize', [18.4 3]);
 print(fig, filename, '-dpdf','-r300');
 close;
