@@ -43,8 +43,12 @@ synthetic;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/grouptrend_" + HYP + "_SEED_" + SEED + ".csv");
 
 % group white noise trend (no unit trend but do not correlate group trends)
-whitenoisegroup;
-writetable(results((treatment_day+1):end,:),"data/synthetic/whitenoisegroup_" + HYP + "_SEED_" + SEED + ".csv");
+% whitenoisegroup;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/whitenoisegroup_" + HYP + "_SEED_" + SEED + ".csv");
+
+% uncorrelated trends and effects
+uncorreffecttrend;
+writetable(results((treatment_day+1):end,:),"data/synthetic/uncorreffecttrend_" + HYP + "_SEED_" + SEED + ".csv");
 
 
 % white noise
