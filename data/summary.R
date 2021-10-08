@@ -8,7 +8,7 @@ inputs = as.double(args[-c(1,2)])
 ULS = as.integer(inputs[inputs>=1])
 RHOS = as.numeric(inputs[inputs<1])
 
-MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "grouptrend", 
+MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup","grouptrend", 
            "ife", "tfe", "blr", "cmgp", "bgsc", "perfectcor")
 
 results = data.frame(matrix(ncol = 5, nrow = 0))
