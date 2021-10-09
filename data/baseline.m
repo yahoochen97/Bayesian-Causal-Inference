@@ -50,7 +50,6 @@ synthetic;
 uncorreffecttrend;
 writetable(results((treatment_day+1):end,:),"data/synthetic/uncorreffecttrend_" + HYP + "_SEED_" + SEED + ".csv");
 
-
 % white noise
 % whitenoise;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/whitenoise_" + HYP + "_SEED_" + SEED + ".csv");

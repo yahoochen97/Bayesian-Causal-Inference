@@ -55,7 +55,7 @@ ll_score = function(true_effects, est_effects, pstd){
   return(mean(score))
 } 
 
-MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup",
+MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup","uncorreffecttrend",
            "grouptrend", "ife", "tfe", "blr", "cmgp", "bgsc", "perfectcor")
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
