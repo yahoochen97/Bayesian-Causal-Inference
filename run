@@ -15,7 +15,7 @@ mkdir -p results
 MAXSEED=25
 declare -a EFFECTS=(0.1)
 declare -a ULS=(1000)
-declare -a RHOS=(0.999)
+declare -a RHOS=(0.9999)
 
 # declare -a ULS=(100)
 # declare -a RHOS=(0.999)
