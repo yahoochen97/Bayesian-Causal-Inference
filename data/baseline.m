@@ -9,8 +9,8 @@ startup;
 synthetic;
 
 % % optimize hyp for synthetic data
-% synthetic_opt;
-% 
+synthetic_opt;
+ 
 % multi gp with effect process
 % writetable(results((treatment_day+1):end,:),"data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".csv");
 % 
@@ -32,8 +32,8 @@ synthetic;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % % multi gp fully bayesian
-% baseline_fullbayesian;
-% writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
+baseline_fullbayesian;
+writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
 
 % baseline_perfectcor;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/perfectcor_" + HYP + "_SEED_" + SEED + ".csv");
@@ -47,8 +47,8 @@ synthetic;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/whitenoisegroup_" + HYP + "_SEED_" + SEED + ".csv");
 
 % uncorrelated trends and effects
-uncorreffecttrend;
-writetable(results((treatment_day+1):end,:),"data/synthetic/uncorreffecttrend_" + HYP + "_SEED_" + SEED + ".csv");
+% uncorreffecttrend;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/uncorreffecttrend_" + HYP + "_SEED_" + SEED + ".csv");
 
 % white noise
 % whitenoise;

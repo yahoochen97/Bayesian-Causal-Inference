@@ -162,6 +162,12 @@ else
 
 end
 
+% plot(1:50, group_sample(:,1)'+unit_sample(1,:)); hold on
+% plot(1:50, group_sample(:,1)'+unit_sample(2,:));
+% plot(1:50, group_sample(:,2)'+unit_sample(29,:)+effects);
+% plot(1:50, group_sample(:,2)'+unit_sample(30,:)+effects);
+
+
 x = [repmat((1:num_days)',num_control_units,1),...
     ones(num_control_units*num_days,1),...
     reshape(repmat([1:num_control_units], num_days,1), [],1)];
