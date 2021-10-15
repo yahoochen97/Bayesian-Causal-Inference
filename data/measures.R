@@ -124,7 +124,6 @@ print(paste("correlation: ", RHO , sep=""))
 for (i in c(1,2,3,4)) {
   tmp = t.test(COVERAGE[,5], COVERAGE[, i], paired = TRUE)
   p = tmp[["p.value"]]
-  print(tmp)
   if (p>=0.05){
     print(paste(MODELS[i], " not significant worse in COVERAGE.", sep=""))
   }
