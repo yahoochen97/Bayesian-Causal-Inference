@@ -56,7 +56,7 @@ xs = [(1:num_days)',ones(num_days,1); (1:num_days)',2*ones(num_days,1)];
     group_trend_covariance, @likGauss, x, group_sample', xs);
 
 group_sample = reshape(group_sample,[],2);
-group_sample(:,1) = group_sample(:,2);
+% group_sample(:,1) = group_sample(:,2);
 
 % plot group trends
 % fig = figure(1);
