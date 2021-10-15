@@ -110,7 +110,9 @@ for(i in 1:length(MODELS)){
 for (i in 2:length(MODELS)) {
   tmp = t.test(LL[,1], LL[, i], paired = TRUE)
   p = tmp[["p.value"]]
-  print(tmp)
+  if (p>=0.05){
+    print(paste(MODELS[i], " not significant worse in RMSE.", sep=""))
+  }
   
   tmp = t.test(RMSE[,1], RMSE[, i], paired = TRUE)
   p = tmp[["p.value"]]
