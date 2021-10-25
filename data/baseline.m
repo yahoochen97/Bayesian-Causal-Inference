@@ -8,8 +8,8 @@ startup;
 % generate synthetic data
 synthetic;
 
-% % optimize hyp for synthetic data
-synthetic_opt;
+% optimize hyp for synthetic data
+% synthetic_opt;
  
 % multi gp with effect process
 % writetable(results((treatment_day+1):end,:),"data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".csv");
@@ -32,8 +32,8 @@ synthetic_opt;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % % multi gp fully bayesian
-baseline_fullbayesian;
-writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
+% baseline_fullbayesian;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
 
 % baseline_perfectcor;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/perfectcor_" + HYP + "_SEED_" + SEED + ".csv");
@@ -57,5 +57,8 @@ writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + 
 % naive multi gp without effect process
 % naive_cf;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/naivecf_" + HYP + "_SEED_" + SEED + ".csv");
+
+naiveICM;
+writetable(results((treatment_day+1):end,:),"data/synthetic/naiveICM_" + HYP + "_SEED_" + SEED + ".csv");
 
 end
