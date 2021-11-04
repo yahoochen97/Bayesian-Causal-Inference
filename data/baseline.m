@@ -58,7 +58,10 @@ synthetic;
 % naive_cf;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/naivecf_" + HYP + "_SEED_" + SEED + ".csv");
 
-naiveICM;
-writetable(results((treatment_day+1):end,:),"data/synthetic/naiveICM_" + HYP + "_SEED_" + SEED + ".csv");
+% naiveICM;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/naiveICM_" + HYP + "_SEED_" + SEED + ".csv");
+
+naiveICMMAP;
+writetable(results((treatment_day+1):end,:),"data/synthetic/naiveICMMAP_" + HYP + "_SEED_" + SEED + ".csv");
 
 end

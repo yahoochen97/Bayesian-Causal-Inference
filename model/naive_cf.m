@@ -147,7 +147,7 @@ for i=1:size(chain,1)
     theta_0(theta_ind)=chain(i,:);
     theta_0 = rewrap(theta, theta_0);
 
-    [~, ~, m_post, s2_post] = gp(theta, inference_method, mean_function,...
+    [~, ~, m_post, s2_post] = gp(theta_0, inference_method, mean_function,...
                         covariance_function, [], x_train, y_train, x_test);
 
     results = table;
