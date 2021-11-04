@@ -71,7 +71,7 @@ prior.mean = {@priorDelta, [], []};                 % 9: mean
 inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
-p.length = 100;
+p.length = 10;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x_train, y_train);
