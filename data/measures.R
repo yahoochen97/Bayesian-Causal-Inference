@@ -107,22 +107,16 @@ for(i in 1:length(MODELS)){
 # perform paired t-test
 
 # print(paste("correlation: ", RHO , sep=""))
-for (i in 2:length(MODELS)) {
-  tmp = t.test(LL[,1], LL[, i], paired = TRUE)
-  p = tmp[["p.value"]]
-  if (p>=0.05){
-    print(paste(MODELS[i], " not significant worse in LL.", sep=""))
-  }
-  else{
-    print(mean(LL[,1])-mean(LL[,i]))
-  }
-  
-  # tmp = t.test(RMSE[,1], RMSE[, i], paired = TRUE)
-  # p = tmp[["p.value"]]
-  # if (p>=0.05){
-  #   print(paste(MODELS[i], " not significant worse in RMSE.", sep=""))
-  # }
-}
+# for (i in 2:length(MODELS)) {
+#   tmp = t.test(LL[,1], LL[, i], paired = TRUE)
+#   p = tmp[["p.value"]]
+#   if (p>=0.05){
+#     print(paste(MODELS[i], " not significant worse in LL.", sep=""))
+#   }
+#   else{
+#     print(mean(LL[,1])-mean(LL[,i]))
+#   }
+# }
 # print(paste("correlation: ", RHO , sep=""))
 # for (i in c(1,2,3,4)) {
 #   tmp = t.test(COVERAGE[,5], COVERAGE[, i], paired = TRUE)
@@ -137,7 +131,6 @@ for (i in 2:length(MODELS)) {
 #   # }
 # }
 
-q()
 
 ENORMSE = colMeans(ENORMSE)
 RMSE = colMeans(RMSE)
