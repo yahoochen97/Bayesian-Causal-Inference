@@ -71,7 +71,8 @@ prior.mean = {@priorDelta, [], []};                 % 9: mean
 inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
-p.length = 100;
+% learn less extreme ls
+p.length = 10;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x_train, y_train);
@@ -80,13 +81,17 @@ theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
 num_chains  = 1;
 num_samples = 1000;
 burn_in     = 500;
-jitter      = 1e-1;
+% use a larger jitter
+jitter      = 1;
 
 % setup sampler
 % select index of hyperparameters to sample
 theta_ind = false(size(unwrap(theta)));
 
 theta_ind([3:4, 5:(4+num_units*J), (5+num_units*J):(5+num_units*J+2)]) = true;
+% marginalize x mean
+theta_ind(end)= true;
+theta_ind(end-1)=true;
 
 theta_0 = unwrap(theta);
 theta_0 = theta_0(theta_ind);
@@ -152,12 +157,6 @@ gmm_mean = mean(cell2mat(mus),2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
-fig = figure(1);
-clf;
-f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
-fill([days; flip(days,1)], f, [7 7 7]/8);
-hold on; plot(days, gmm_mean);
-plot(days, effects, "--");
 
 filename = "./data/synthetic/naiveICM_" + HYP + "_SEED_" + SEED + ".pdf";
 set(fig, 'PaperPosition', [0 0 10 10]); 
