@@ -61,7 +61,7 @@ prior.cov  = {@priorDelta, ...                      % 1
               {@priorTransform,@exp,@exp,@log,{@priorGamma,2,5}}, ... % 3:  unit length scale
               @priorDelta};    % 4:  unit output scale
 for i=1:num_units*J
-    prior.cov{end+1} = {@priorDelta}; % {@priorGauss, 0, unit_output_scale^2}; % 5: ICM
+    prior.cov{end+1} = {@priorGauss, 0, unit_output_scale^2}; % 5: ICM
 end
 prior.cov{end+1}= {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}; ... % 6: x length scale
 prior.cov{end+1}= {@priorSmoothBox2, -4, -1, 5};       % 7: x output scale
