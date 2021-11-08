@@ -87,8 +87,7 @@ jitter      = 1;
 % select index of hyperparameters to sample
 theta_ind = false(size(unwrap(theta)));
 
-% 5:(4+num_units*J)
-theta_ind([3, (5+num_units*J):(5+num_units*J+2)]) = true;
+theta_ind([3, 5:(4+num_units*J), (5+num_units*J):(5+num_units*J+2)]) = true;
 % marginalize x mean
 theta_ind(end)= true;
 theta_ind(end-1)=true;
