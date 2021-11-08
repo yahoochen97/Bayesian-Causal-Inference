@@ -40,8 +40,8 @@ unit_error_covariance = {@covProd, {{@covMask, {3, {@covSEiso}}}, ...
                                     {@covMask, {5, {@covDiscreteICM, num_units, J}}}}};
 theta.cov = [theta.cov; ...
              log(unit_length_scale); ... % 3
-             log(unit_output_scale); ... % 4
-             normrnd(0,1,[num_units*J,1])];%5
+             log(1); ... % 4
+             unit_output_scale*normrnd(0,1,[num_units*J,1])];%5
 
 % x covariance
 x_covariance = {@covMask, {[1,2], {@covSEiso}}};
@@ -58,10 +58,10 @@ theta.lik = log(noise_scale);
 % fix some hyperparameters and mildly constrain others
 prior.cov  = {@priorDelta, ...                      % 1
               @priorDelta, ...                      % 2  
-              {@priorTransform,@exp,@exp,@log,{@priorGamma,2,10}}, ... % 3:  unit length scale
-              {@priorSmoothBox2, -4, -1, 5}};    % 4:  unit output scale
+              {@priorTransform,@exp,@exp,@log,{@priorGamma,2,5}}, ... % 3:  unit length scale
+              @priorDelta};    % 4:  unit output scale
 for i=1:num_units*J
-    prior.cov{end+1} = {@priorGauss, 0, 1}; % 5: ICM
+    prior.cov{end+1} = {@priorGauss, 0, unit_output_scale^2}; % 5: ICM
 end
 prior.cov{end+1}= {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}; ... % 6: x length scale
 prior.cov{end+1}= {@priorSmoothBox2, -4, -1, 5};       % 7: x output scale
@@ -88,7 +88,7 @@ jitter      = 1;
 % select index of hyperparameters to sample
 theta_ind = false(size(unwrap(theta)));
 
-theta_ind([3:4, 5:(4+num_units*J), (5+num_units*J):(5+num_units*J+2)]) = true;
+theta_ind([3, 5:(4+num_units*J), (5+num_units*J):(5+num_units*J+2)]) = true;
 % marginalize x mean
 theta_ind(end)= true;
 theta_ind(end-1)=true;
@@ -98,12 +98,11 @@ theta_0 = theta_0(theta_ind);
 
 f = @(unwrapped_theta) ...
     l(unwrapped_theta, theta_ind, theta, inference_method, mean_function, ...
-      covariance_function, x_train, y_train);  
+      covariance_function, x_train, y_train);
+
   
 % create and tune sampler
-hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter,...
-    'StepSize', pretrainedhmc.StepSize,...
-    'NumSteps', pretrainedhmc.NumSteps);
+hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
 
 % tic;
 % [hmc, tune_info] = ...
@@ -113,10 +112,6 @@ hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter,...
 %                 'numstepsizetuningiterations', 100, ...
 %                 'numstepslimit', 500);
 % toc;
-
-% hmc.StepSize = pretrainedhmc.StepSize;
-% hmc.NumSteps = pretrainedhmc.NumSteps;
-hmc.MassVector = pretrainedhmc.MassVector;
 
 % use default seed for hmc sampler
 rng('default');
