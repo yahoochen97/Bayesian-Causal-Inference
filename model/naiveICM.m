@@ -14,7 +14,7 @@ mean_sigma   = 0.01;
 unit_length_scale = 30;
 unit_output_scale = 0.05;
 noise_scale  = 0.05;
-J = 1; % number of ICM samples
+J = 5; % number of ICM samples
 
 % data is:
 % 1: x1
@@ -72,7 +72,7 @@ inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
 % learn less extreme ls
-p.length = 100;
+p.length = 10;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x_train, y_train);
@@ -101,7 +101,9 @@ f = @(unwrapped_theta) ...
       covariance_function, x_train, y_train);  
   
 % create and tune sampler
-hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
+hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter,...
+    'StepSize', pretrainedhmc.StepSize,...
+    'NumSteps', pretrainedhmc.NumSteps);
 
 % tic;
 % [hmc, tune_info] = ...
@@ -112,8 +114,8 @@ hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
 %                 'numstepslimit', 500);
 % toc;
 
-hmc.StepSize = pretrainedhmc.StepSize;
-hmc.NumSteps = pretrainedhmc.NumSteps;
+% hmc.StepSize = pretrainedhmc.StepSize;
+% hmc.NumSteps = pretrainedhmc.NumSteps;
 hmc.MassVector = pretrainedhmc.MassVector;
 
 % use default seed for hmc sampler
