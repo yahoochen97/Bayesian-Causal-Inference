@@ -17,8 +17,8 @@ declare -a EFFECTS=(0.1)
 declare -a ULS=(1000)
 declare -a RHOS=(0.9999)
 
-declare -a ULS=(21)
-declare -a RHOS=(0.1 0.5 0.9)
+# declare -a ULS=(21)
+# declare -a RHOS=(0.1 0.5 0.9)
 
 if [ $1 = "run" ]
 then
