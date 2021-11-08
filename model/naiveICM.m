@@ -14,7 +14,7 @@ mean_sigma   = 0.01;
 unit_length_scale = 30;
 unit_output_scale = 0.05;
 noise_scale  = 0.05;
-J = 1; % number of ICM samples
+J = 3; % number of ICM samples
 
 % data is:
 % 1: x1
@@ -61,7 +61,7 @@ prior.cov  = {@priorDelta, ...                      % 1
               {@priorTransform,@exp,@exp,@log,{@priorGamma,2,5}}, ... % 3:  unit length scale
               @priorDelta};    % 4:  unit output scale
 for i=1:num_units*J
-    prior.cov{end+1} = {@priorGauss, 0, unit_output_scale^2}; % 5: ICM
+    prior.cov{end+1} = {@priorDelta}; % {@priorGauss, 0, unit_output_scale^2}; % 5: ICM
 end
 prior.cov{end+1}= {@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}; ... % 6: x length scale
 prior.cov{end+1}= {@priorSmoothBox2, -4, -1, 5};       % 7: x output scale
@@ -69,10 +69,9 @@ prior.lik  = {{@priorSmoothBox2, -4, -1, 5}};       % 8: noise std
 prior.mean = {@priorDelta, [], []};                 % 9: mean
 
 inference_method = {@infPrior, @infExact, prior};
-
+ 
 p.method = 'LBFGS';
-% learn less extreme ls
-p.length = 10;
+p.length = 100;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x_train, y_train);
@@ -88,7 +87,8 @@ jitter      = 1;
 % select index of hyperparameters to sample
 theta_ind = false(size(unwrap(theta)));
 
-theta_ind([3, 5:(4+num_units*J), (5+num_units*J):(5+num_units*J+2)]) = true;
+% 5:(4+num_units*J)
+theta_ind([3, (5+num_units*J):(5+num_units*J+2)]) = true;
 % marginalize x mean
 theta_ind(end)= true;
 theta_ind(end-1)=true;
