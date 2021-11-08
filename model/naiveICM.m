@@ -1,7 +1,7 @@
 % initial hyperparameters
 % train data: all control + pre-treatment treated
 % test data: treated
-train_flag = (x(:,3)<treatment_day) | (x(:,4)==1);
+train_flag = (x(:,3)<=treatment_day) | (x(:,4)==1);
 test_flag = (x(:,4)==2);
 x_train = x(train_flag,:);
 x_test = x(test_flag,:);
@@ -14,7 +14,7 @@ mean_sigma   = 0.01;
 unit_length_scale = 30;
 unit_output_scale = 0.05;
 noise_scale  = 0.05;
-J = 5; % number of ICM samples
+J = 1; % number of ICM samples
 
 % data is:
 % 1: x1
@@ -72,7 +72,7 @@ inference_method = {@infPrior, @infExact, prior};
 
 p.method = 'LBFGS';
 % learn less extreme ls
-p.length = 10;
+p.length = 100;
 
 theta = minimize_v2(theta, @gp, p, inference_method, mean_function, ...
                     covariance_function, [], x_train, y_train);
@@ -103,14 +103,18 @@ f = @(unwrapped_theta) ...
 % create and tune sampler
 hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
 
-tic;
-[hmc, tune_info] = ...
-    tuneSampler(hmc, ...
-                'verbositylevel', 2, ...
-                'numprint', 10, ...
-                'numstepsizetuningiterations', 100, ...
-                'numstepslimit', 500);
-toc;
+% tic;
+% [hmc, tune_info] = ...
+%     tuneSampler(hmc, ...
+%                 'verbositylevel', 2, ...
+%                 'numprint', 10, ...
+%                 'numstepsizetuningiterations', 100, ...
+%                 'numstepslimit', 500);
+% toc;
+
+hmc.StepSize = pretrainedhmc.StepSize;
+hmc.NumSteps = pretrainedhmc.NumSteps;
+hmc.MassVector = pretrainedhmc.MassVector;
 
 % use default seed for hmc sampler
 rng('default');
@@ -157,6 +161,12 @@ gmm_mean = mean(cell2mat(mus),2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
+fig = figure(1);
+clf;
+f = [gmm_mean+1.96*sqrt(gmm_var); flip(gmm_mean-1.96*sqrt(gmm_var),1)];
+fill([days; flip(days,1)], f, [7 7 7]/8);
+hold on; plot(days, gmm_mean);
+plot(days, effects, "--");
 
 filename = "./data/synthetic/naiveICM_" + HYP + "_SEED_" + SEED + ".pdf";
 set(fig, 'PaperPosition', [0 0 10 10]); 

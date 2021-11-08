@@ -5,6 +5,10 @@ addpath("./model");
 addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
+% load hmc
+load("data/synthetic/naiveICM_rho_09_uls_21_effect_01_SEED_2.mat");
+pretrainedhmc = hmc;
+
 % generate synthetic data
 synthetic;
 
