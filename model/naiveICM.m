@@ -14,7 +14,7 @@ mean_sigma   = 0.01;
 unit_length_scale = 30;
 unit_output_scale = 0.05;
 noise_scale  = 0.05;
-J = 3; % number of ICM samples
+J = 5; % number of ICM samples
 
 % data is:
 % 1: x1
@@ -89,8 +89,8 @@ theta_ind = false(size(unwrap(theta)));
 
 theta_ind([3, 5:(4+num_units*J), (5+num_units*J):(5+num_units*J+2)]) = true;
 % marginalize x mean
-theta_ind(end)= true;
-theta_ind(end-1)=true;
+% theta_ind(end)= true;
+% theta_ind(end-1)=true;
 
 theta_0 = unwrap(theta);
 theta_0 = theta_0(theta_ind);
@@ -101,16 +101,19 @@ f = @(unwrapped_theta) ...
 
   
 % create and tune sampler
-hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter);
+hmc = hmcSampler(f, theta_0 + randn(size(theta_0)) * jitter, ...
+ 'NumSteps', pretrainedhmc.NumSteps,...
+ 'StepSize', pretrainedhmc.StepSize,...
+ 'MassVector', pretrainedhmc.MassVector([1,3:end]));
 
-tic;
-[hmc, tune_info] = ...
-    tuneSampler(hmc, ...
-                'verbositylevel', 2, ...
-                'numprint', 1, ...
-                'numstepsizetuningiterations', 100, ...
-                'numstepslimit', 500);
-toc;
+% tic;
+% [hmc, tune_info] = ...
+%     tuneSampler(hmc, ...
+%                 'verbositylevel', 2, ...
+%                 'numprint', 1, ...
+%                 'numstepsizetuningiterations', 100, ...
+%                 'numstepslimit', 500);
+% toc;
 
 % use default seed for hmc sampler
 rng('default');
