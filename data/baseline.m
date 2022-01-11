@@ -6,8 +6,8 @@ addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-
 startup;
 
 % load hmc
-load("data/synthetic/naiveICM_rho_09_uls_21_effect_01_SEED_2.mat", "hmc");
-pretrainedhmc = hmc;
+% load("data/synthetic/naiveICM_rho_09_uls_21_effect_01_SEED_2.mat", "hmc");
+% pretrainedhmc = hmc;
 
 % generate synthetic data
 synthetic;
@@ -45,6 +45,10 @@ synthetic;
 % no unit trend/group trend only
 % baseline_grouptrend;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/grouptrend_" + HYP + "_SEED_" + SEED + ".csv");
+
+% no group trend/unit trend only
+baseline_unittrend;
+writetable(results((treatment_day+1):end,:),"data/synthetic/unittrend_" + HYP + "_SEED_" + SEED + ".csv");
 
 % group white noise trend (no unit trend but do not correlate group trends)
 % whitenoisegroup;
