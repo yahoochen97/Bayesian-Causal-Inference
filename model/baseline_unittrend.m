@@ -30,8 +30,8 @@ theta.mean = [mean_mu;2;2];
 % nonlinear unit bias
 unit_error_covariance = {@covProd, {{@covMask, {3, {@covSEiso}}}, ...
                                     {@covMask, {5, {@covSEisoU}}}}};
-theta.cov = [log(unit_length_scale); ... % 1
-             log(unit_output_scale); ... % 2
+theta.cov = [log(group_length_scale); ... % 1
+             log(group_output_scale); ... % 2
              log(0.01)];                 % 3
 
 % treatment effect
@@ -58,7 +58,7 @@ covariance_function = {@covSum, {unit_error_covariance, ...
 theta.lik = log(noise_scale);
 
 % fix some hyperparameters and mildly constrain others
-prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,2,10}}, ... % 1:  unit trend length scale
+prior.cov  = {{@priorTransform,@exp,@exp,@log,{@priorGamma,10,2}}, ... % 1:  unit trend length scale
               {@priorSmoothBox2, -4, -1, 5},...     % 2:  unit trend output scale
               @priorDelta, ...                      % 3:  
               @priorDelta, ...                      % 4
