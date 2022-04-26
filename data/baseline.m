@@ -47,8 +47,13 @@ synthetic;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/grouptrend_" + HYP + "_SEED_" + SEED + ".csv");
 
 % no group trend/unit trend only
-baseline_unittrend;
-writetable(results((treatment_day+1):end,:),"data/synthetic/unittrend_" + HYP + "_SEED_" + SEED + ".csv");
+% baseline_unittrend;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/unittrend_" + HYP + "_SEED_" + SEED + ".csv");
+
+% no group trend/unit trend with individual hyps
+% individual model in Xu 2017
+baseline_unit_ITR;
+writetable(results((treatment_day+1):end,:),"data/synthetic/individual_" + HYP + "_SEED_" + SEED + ".csv");
 
 % group white noise trend (no unit trend but do not correlate group trends)
 % whitenoisegroup;
@@ -66,8 +71,9 @@ writetable(results((treatment_day+1):end,:),"data/synthetic/unittrend_" + HYP + 
 % naive_cf;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/naivecf_" + HYP + "_SEED_" + SEED + ".csv");
 
-naiveICM;
-writetable(results((treatment_day+1):end,:),"data/synthetic/naiveICM_" + HYP + "_SEED_" + SEED + ".csv");
+% intrinsic coregionalization model 
+% naiveICM;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/naiveICM_" + HYP + "_SEED_" + SEED + ".csv");
 
 % naiveICMMAP;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/naiveICMMAP_" + HYP + "_SEED_" + SEED + ".csv");
