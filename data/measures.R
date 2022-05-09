@@ -131,12 +131,12 @@ for(i in 1:length(MODELS)){
 #   # }
 # }
 
-ENORMSE_ERR = apply(ENORMSE, 2, sd)
-RMSE_ERR =  apply(RMSE, 2, sd)
-BIAS_ERR =  apply(BIAS, 2, sd)
-COVERAGE_ERR =  apply(COVERAGE, 2, sd)
-ENCIS_ERR = apply(ENCIS, 2, sd)
-LL_ERR =  apply(LL, 2, sd)
+ENORMSE_ERR = apply(ENORMSE, 2, sd)/sqrt(MAXSEED)
+RMSE_ERR =  apply(RMSE, 2, sd)/sqrt(MAXSEED)
+BIAS_ERR =  apply(BIAS, 2, sd)/sqrt(MAXSEED)
+COVERAGE_ERR =  apply(COVERAGE, 2, sd)/sqrt(MAXSEED)
+ENCIS_ERR = apply(ENCIS, 2, sd)/sqrt(MAXSEED)
+LL_ERR =  apply(LL, 2, sd)/sqrt(MAXSEED)
 
 ENORMSE = colMeans(ENORMSE)
 RMSE = colMeans(RMSE)
