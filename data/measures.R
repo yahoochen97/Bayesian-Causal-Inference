@@ -170,7 +170,7 @@ dfDigits <- function(x, digits = 2) {
   return(x)
 }
 
-result = dfDigits(result, 4)
+result = dfDigits(result, 5)
 
 row.names(result) = c("ENORMSE", "RMSE", "BIAS",
                       "COVERAGE", "ENCIS", "LL",
