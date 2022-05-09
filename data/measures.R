@@ -55,7 +55,7 @@ ll_score = function(true_effects, est_effects, pstd){
   return(mean(score))
 } 
 
-MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup","uncorreffecttrend",
+MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup",
            "grouptrend", "blr", "perfectcor")
 
 # MODELS = c("fullbayes",  "ife", "tfe", "cmgp", "bgsc", "naiveICM", "unittrend","individual")
