@@ -8,10 +8,10 @@ inputs = as.double(args[-c(1,2)])
 ULS = as.integer(inputs[inputs>=1])
 RHOS = as.numeric(inputs[inputs<1])
 
-MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup","uncorreffecttrend","grouptrend", 
-           "ife", "tfe", "blr", "cmgp", "bgsc", "perfectcor")
+MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup","uncorreffecttrend",
+           "grouptrend", "ife", "tfe", "blr", "cmgp", "bgsc", "perfectcor", "naiveICM", "unittrend","individual")
 
-MODELS = c("fullbayes",  "ife", "tfe", "cmgp", "bgsc", "naiveICM", "unittrend", "individual")
+# MODELS = c("fullbayes",  "ife", "tfe", "cmgp", "bgsc", "naiveICM", "unittrend", "individual")
 
 results = data.frame(matrix(ncol = 5, nrow = 0))
 colnames(results) <- c("uls", "rho", "model", "TYPE", "measure")

@@ -56,9 +56,9 @@ ll_score = function(true_effects, est_effects, pstd){
 } 
 
 MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup","uncorreffecttrend",
-           "grouptrend", "ife", "tfe", "blr", "cmgp", "bgsc", "perfectcor")
+           "grouptrend", "ife", "tfe", "blr", "cmgp", "bgsc", "perfectcor", "naiveICM", "unittrend","individual")
 
-MODELS = c("fullbayes",  "ife", "tfe", "cmgp", "bgsc", "naiveICM", "unittrend","individual")
+# MODELS = c("fullbayes",  "ife", "tfe", "cmgp", "bgsc", "naiveICM", "unittrend","individual")
 
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
@@ -139,13 +139,27 @@ COVERAGE = colMeans(COVERAGE)
 ENCIS = colMeans(ENCIS)
 LL = colMeans(LL)
 
+ENORMSE_ERR = sqrt(colVars(ENORMSE))
+RMSE_ERR =  sqrt(colVars(RMSE))
+BIAS_ERR =  sqrt(colVars(BIAS))
+COVERAGE_ERR =  sqrt(colVars(COVERAGE))
+ENCIS_ERR =  sqrt(colVars(ENCIS))
+LL_ERR =  sqrt(colVars(LL))
+
+
 result = data.frame(
   ENORMSE,
   RMSE,
   BIAS,
   COVERAGE,
   ENCIS,
-  LL
+  LL,
+  ENORMSE_ERR,
+  RMSE_ERR,
+  BIAS_ERR,
+  COVERAGE_ERR,
+  ENCIS_ERR,
+  LL_ERR
 )
 
 result = transpose(result)
@@ -160,7 +174,9 @@ dfDigits <- function(x, digits = 2) {
 result = dfDigits(result, 4)
 
 row.names(result) = c("ENORMSE", "RMSE", "BIAS",
-                      "COVERAGE", "ENCIS", "LL")
+                      "COVERAGE", "ENCIS", "LL",
+                      "ENORMSE_ERR", "RMSE_ERR", "BIAS_ERR",
+                      "COVERAGE_ERR", "ENCIS_ERR", "LL_ERR")
 colnames(result) = MODELS
 write.csv(result, paste("measure_", HYP, ".csv", sep=""))
 
