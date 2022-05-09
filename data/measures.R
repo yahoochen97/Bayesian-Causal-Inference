@@ -58,7 +58,7 @@ ll_score = function(true_effects, est_effects, pstd){
 MODELS = c("fullbayes", "multigp", "naivecf", "whitenoise", "whitenoisegroup","uncorreffecttrend",
            "grouptrend", "ife", "tfe", "blr", "cmgp", "bgsc", "perfectcor", "naiveICM", "unittrend","individual")
 
-# MODELS = c("fullbayes",  "ife", "tfe", "cmgp", "bgsc", "naiveICM", "unittrend","individual")
+MODELS = c("fullbayes",  "ife", "tfe", "cmgp", "bgsc", "naiveICM", "unittrend","individual")
 
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
