@@ -139,12 +139,12 @@ COVERAGE = colMeans(COVERAGE)
 ENCIS = colMeans(ENCIS)
 LL = colMeans(LL)
 
-ENORMSE_ERR = sqrt(colVars(ENORMSE))
-RMSE_ERR =  sqrt(colVars(RMSE))
-BIAS_ERR =  sqrt(colVars(BIAS))
-COVERAGE_ERR =  sqrt(colVars(COVERAGE))
-ENCIS_ERR =  sqrt(colVars(ENCIS))
-LL_ERR =  sqrt(colVars(LL))
+ENORMSE_ERR = sqrt(diag(cov(ENORMSE)))
+RMSE_ERR =  sqrt(diag(cov(RMSE)))
+BIAS_ERR =  sqrt(diag(cov(BIAS)))
+COVERAGE_ERR =  sqrt(diag(cov(COVERAGE)))
+ENCIS_ERR =  sqrt(diag(cov(ENCIS)))
+LL_ERR =  sqrt(diag(cov(LL)))
 
 
 result = data.frame(
