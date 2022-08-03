@@ -1,6 +1,7 @@
 #!/bin/bash
 
 mkdir -p log
+mkdir -p results
 
 # bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnews" -o localnews.log "./onerun"
 
