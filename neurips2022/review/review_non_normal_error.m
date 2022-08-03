@@ -2,6 +2,7 @@ function review_non_normal_error(SEED, unit_length_scale, rho, effect, fn_name_)
 % change gpml path
 addpath("../code");
 addpath("../code/model");
+addpath("../code/data");
 addpath("../code/gpml-matlab-v3.6-2015-07-07");
 
 startup;
