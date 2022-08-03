@@ -13,7 +13,7 @@ MODEL_NAME=$3
 
 if [ $3 = 'ours' ]
 then
-    matlab -nodisplay -nodesktop -r "review_non_normal_error(${SEED},21,0.9,0.1,${DATA_NAME}); exit;"
+    matlab -nodisplay -nodesktop -r "fn_name_=${DATA_NAME};review_non_normal_error(${SEED},21,0.9,0.1,fn_name_); exit;"
 elif [ $3 = "others" ]
 then
     Rscript --vanilla bgsc.R ${DATA_NAME} "rho_09_uls_21_effect_01_SEED_${SEED}"
@@ -22,8 +22,8 @@ then
     python cmgp.py ${DATA_NAME} "rho_09_uls_21_effect_01_SEED_${SEED}"
 elif [ $3 = "icm" ]
 then
-    matlab -nodisplay -nodesktop -r "review_icm(${SEED},21,0.9,0.1,${DATA_NAME}); exit;"
+    matlab -nodisplay -nodesktop -r "fn_name_=${DATA_NAME};review_icm(${SEED},21,0.9,0.1,fn_name_); exit;"
 elif [ $3 = "ltr" ]
 then
-    matlab -nodisplay -nodesktop -r "review_ltr(${SEED},21,0.9,0.1,${DATA_NAME}); exit;"
+    matlab -nodisplay -nodesktop -r "fn_name_=${DATA_NAME};review_ltr(${SEED},21,0.9,0.1,fn_name_); exit;"
 fi
