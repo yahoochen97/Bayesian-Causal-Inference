@@ -153,16 +153,16 @@ treat = zeros(num_treatment_units,num_days);
 
 % non normal error
 % use student t error with heavier tails
-% degree of freedom nu = 5
+% degree of freedom nu = 4
 for i=1:num_control_units
-   tmp = noise_scale*trnd(5,1, num_days);
+   tmp = noise_scale*trnd(4,1, num_days);
    control(i,:) = x1(i,:) + x2(i,:)*3 + ...
        + unit_sample(i,:) + group_sample(:,1)' ...
        + tmp;
 end
 
 for i=1:num_treatment_units
-   tmp = noise_scale*trnd(5,1, num_days);
+   tmp = noise_scale*trnd(4,1, num_days);
    treat(i,:) = x1(i+num_control_units,:) + x2(i+num_control_units,:)*3 + ...
        group_sample(:,2)'+ unit_sample(i+num_control_units,:) + ...
        tmp + effects;
