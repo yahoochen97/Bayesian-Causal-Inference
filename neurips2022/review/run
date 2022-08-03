@@ -8,7 +8,7 @@ mkdir -p results
 # bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesynthetic" -o tunesynthetic.log "./onerun"
 
 MAXSEED=25
-declare -a DATA_NAMES=("non_normal_error" "non_smooth" "fewer_unit" "indepedent_gp")
+declare -a DATA_NAMES=("non_normal_error" "non_smooth" "fewer_unit" "independent_gp")
 declare -a MODEL_NAMES=('ours' 'others' 'icm' 'ltr')
 declare -a MODEL_NAMES=('ours')
 
