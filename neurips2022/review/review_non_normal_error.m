@@ -6,8 +6,10 @@ addpath("../code/data");
 addpath("../code/gpml-matlab-v3.6-2015-07-07");
 
 startup;
-
-synthetic_fn_name = "synthetic_" + convertCharsToStrings(fn_name_);
+fn_name_ = convertCharsToStrings(fn_name_);
+synthetic_fn_name = "synthetic_" + fn_name_;
+disp(fn_name_);
+disp(synthetic_fn_name);
 
 % generate synthetic data
 feval(synthetic_fn_name);
