@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "localnews" -o localnews.log "./onerun"
+
+# bsub -R 'span[hosts=1]' -G SEAS-Lab-Garnett -J "tunesynthetic" -o tunesynthetic.log "./onerun"
+
+MAXSEED=25
+declare -a DATA_NAMES=('non_normal_eror' 'non_smooth' 'fewer_unit' 'indepedent_gp')
+declare -a MODEL_NAMES=('ours' 'others' 'icm' 'ltr')
+declare -a MODEL_NAMES=('ours')
+
+if [ $1 = "run" ]
+then
+    for SEED in $(seq 1 1 $MAXSEED); do
+        for DATA_NAME in ${DATA_NAMES[@]}; do 
+            for MODEL_NAME in ${MODEL_NAMES[@]}; do
+                bsub -G SEAS-Lab-Garnett -o "${DATA_NAME}_${SEED}_${MODEL_NAME}.log" -J "${DATA_NAME}_${SEED}_${MODEL_NAME}" "./onerun $SEED ${DATA_NAME} ${MODEL_NAME}"
+            done
+        done
+    done
+elif [ $1 = "measure" ]
+then
+    for DATA_NAME in ${DATA_NAMES[@]}; do 
+        Rscript --vanilla measures.R ${DATA_NAME} $MAXSEED
+    done
+fi

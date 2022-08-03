@@ -6,12 +6,12 @@ library(data.table)
 
 if (length(args)==0) {
   DATA_NAME = "non_normal_error"
+  SEED = 1
 }
-if (length(args)==1){
+if (length(args)==2){
   DATA_NAME = args[1]
+  SEED = as.integer(args[2])
 }
-
-HYP = "rho_09_uls_21_effect_01_SEED_1"
 
 ENoRMSE_score = function(true_effects, est_effects){
   mask = (true_effects!=0)
@@ -54,8 +54,8 @@ MODELS = c("non_normal_error",
            "fewer_unit",
            "independent_gp")
 
-MODELS = c("fullbayes", "ife", "tfe", "cmgp", "bgsc")
-MAXSEED = 1
+MODELS = c("fullbayes", "ife", "tfe", "cmgp", "bgsc", "icm", "ltr")
+MAXSEED = SEED
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 RMSE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
@@ -67,7 +67,7 @@ LL =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 for(i in 1:length(MODELS)){
   for(SEED in 1:MAXSEED){
     MODEL = MODELS[i]
-
+    HYP = paste("rho_09_uls_21_effect_01_SEED_", SEED, sep="")
     result = read.csv(paste("./results/", DATA_NAME, "_", MODEL,"_", HYP, ".csv", sep=""))
     est_effects = result$mu
     pstd = result$std
@@ -117,5 +117,6 @@ result = dfDigits(result, 5)
 row.names(result) = c("RMSE", 
                       "COVERAGE","LL")
 colnames(result) = MODELS
+HYP = paste("rho_09_uls_21_effect_01_SEED_", MAXSEED, sep="")  
 write.csv(result, paste("./results/", DATA_NAME, "_measure_", HYP, ".csv", sep=""))
 
