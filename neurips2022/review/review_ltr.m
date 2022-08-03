@@ -7,10 +7,10 @@ addpath("../code/gpml-matlab-v3.6-2015-07-07");
 
 startup;
 
-fn_name = "synthetic_" + fn_name_;
+synthetic_fn_name = "./synthetic_" + fn_name_;
 
 % generate synthetic data
-feval(fn_name);
+feval(synthetic_fn_name);
 
 % initial hyperparameters
 mean_mu = mean(y,'all');
