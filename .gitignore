@@ -17,4 +17,4 @@ results
 *.m~
 data/synthetic/*
 *.mat
-neurips2022/
+neurips2022/*.pdf
