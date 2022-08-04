@@ -6,7 +6,7 @@ addpath("../../code/gpml-matlab-v3.6-2015-07-07");
 
 startup;
 
-fn_name = "localnews";
+fn_name_ = "localnews";
 
 % set random seed
 rng('default');
@@ -41,7 +41,7 @@ mean_sigma   = 0.01;
 unit_length_scale = 30;
 unit_output_scale = 0.05;
 noise_scale  = 0.05;
-J = 2; % number of ICM samples
+J = 5; % number of ICM samples
 
 clear theta;
 % setup model

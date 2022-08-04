@@ -6,7 +6,7 @@ addpath("../../code/gpml-matlab-v3.6-2015-07-07");
 
 startup;
 
-fn_name = "localnews";
+fn_name_ = "localnews";
 
 % set random seed
 rng('default');
