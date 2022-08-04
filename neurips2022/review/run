@@ -10,7 +10,7 @@ mkdir -p results
 MAXSEED=25
 declare -a DATA_NAMES=("non_normal_error" "non_smooth" "fewer_unit" "independent_gp")
 declare -a MODEL_NAMES=('others' 'icm' 'ltr')
-# declare -a MODEL_NAMES=('ours')
+declare -a MODEL_NAMES=('others')
 
 if [ $1 = "run" ]
 then
