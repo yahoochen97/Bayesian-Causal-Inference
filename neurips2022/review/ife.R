@@ -1,3 +1,4 @@
+.libPaths("../../../R/x86_64-redhat-linux-gnu-library/4.0/")
 library(gsynth)
 library(estimatr)
 
