@@ -154,7 +154,7 @@ toc;
 % iterate all posterior samples
 clear mus;
 clear s2s;
-day_index = 3;
+day_index = 1;
 for i=1:size(chain,1)
     
     theta_0 = unwrap(theta);
