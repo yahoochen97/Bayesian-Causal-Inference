@@ -55,7 +55,7 @@ for i=1:size(chain,1)
         mean_function, covariance_function, x, y, day_index);
     
     mus{i} = mu;
-    s2s{i} = s2./counts;
+    s2s{i} = s2./counts + exp(2*theta_0.lik);
 end
 
 gmm_mean = mean(cell2mat(mus),2);
