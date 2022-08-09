@@ -54,7 +54,7 @@ MODELS = c("non_normal_error",
            "fewer_unit",
            "independent_gp")
 
-MODELS = c("fullbayes", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
+MODELS = c("MAP", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
 MAXSEED = SEED
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
@@ -133,7 +133,7 @@ dfDigits <- function(x, digits = 2) {
 result = dfDigits(result, 5)
 row.names(result) = c("RMSE", 
                       "COVERAGE","LL")
-colnames(result) = MODELS
+colnames(result) = c("fullbayes", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
 HYP = paste("rho_09_uls_21_effect_01_SEED_", MAXSEED, sep="")  
 write.csv(result, paste("./results/", DATA_NAME, "_measure_", HYP, ".csv", sep=""))
 
