@@ -54,7 +54,7 @@ MODELS = c("non_normal_error",
            "fewer_unit",
            "independent_gp")
 
-MODELS = c("fullbayes", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
+MODELS = c("MAP", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
 MAXSEED = SEED
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
