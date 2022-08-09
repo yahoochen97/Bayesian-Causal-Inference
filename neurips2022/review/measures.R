@@ -68,26 +68,42 @@ for(i in 1:length(MODELS)){
   for(SEED in 1:MAXSEED){
     MODEL = MODELS[i]
     HYP = paste("rho_09_uls_21_effect_01_SEED_", SEED, sep="")
-    result = read.csv(paste("./results/", DATA_NAME, "_", MODEL,"_", HYP, ".csv", sep=""))
-    est_effects = result$mu
-    pstd = result$std
-    lowers = est_effects - 1.96*pstd
-    uppers = est_effects + 1.96*pstd
-    true_effects = c(as.matrix(read.csv(paste("./data/", DATA_NAME, "_effect_", HYP, ".csv", sep = ""), row.names = NULL, header=FALSE)))
-    
-    enormse = ENoRMSE_score(true_effects, est_effects)
-    rmse = RMSE_score(true_effects, est_effects)
-    coverage = COVERAGE_score(true_effects, lowers, uppers)
-    encis = ENCIS_score(true_effects, lowers, uppers)
-    ll = ll_score(true_effects, est_effects, pstd)
-    bias = BIAS_score(true_effects, est_effects)
-    
-    ENORMSE[SEED,i] = enormse
-    RMSE[SEED, i] = rmse
-    BIAS[SEED, i] = bias
-    COVERAGE[SEED, i] = coverage
-    ENCIS[SEED, i] = encis
-    LL[SEED, i] = ll
+    tryCatch(
+      expr = {
+          result = read.csv(paste("./results/", DATA_NAME, "_", MODEL,"_", HYP, ".csv", sep=""))
+          est_effects = result$mu
+          pstd = result$std
+          lowers = est_effects - 1.96*pstd
+          uppers = est_effects + 1.96*pstd
+          true_effects = c(as.matrix(read.csv(paste("./data/", DATA_NAME, "_effect_", HYP, ".csv", sep = ""), row.names = NULL, header=FALSE)))
+          
+          enormse = ENoRMSE_score(true_effects, est_effects)
+          rmse = RMSE_score(true_effects, est_effects)
+          coverage = COVERAGE_score(true_effects, lowers, uppers)
+          encis = ENCIS_score(true_effects, lowers, uppers)
+          ll = ll_score(true_effects, est_effects, pstd)
+          bias = BIAS_score(true_effects, est_effects)
+          
+          ENORMSE[SEED,i] = enormse
+          RMSE[SEED, i] = rmse
+          BIAS[SEED, i] = bias
+          COVERAGE[SEED, i] = coverage
+          ENCIS[SEED, i] = encis
+          LL[SEED, i] = ll
+      },
+      error = function(e){ 
+          # (Optional)
+          # Do this if an error is caught...
+      },
+      warning = function(w){
+          # (Optional)
+          # Do this if an warning is caught...
+      },
+      finally = {
+          # (Optional)
+          # Do this at the end before quitting the tryCatch structure...
+      }
+    )
   }
 }
 
