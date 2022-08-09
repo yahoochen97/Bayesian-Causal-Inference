@@ -54,7 +54,7 @@ MODELS = c("non_normal_error",
            "fewer_unit",
            "independent_gp")
 
-MODELS = c("MAP", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
+MODELS = c("fullbayes", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
 MAXSEED = SEED
 
 ENORMSE = matrix(0, nrow = MAXSEED, ncol=length(MODELS))
@@ -73,7 +73,7 @@ for(i in 1:length(MODELS)){
           result = read.csv(paste("./results/", DATA_NAME, "_", MODEL,"_", HYP, ".csv", sep=""))
           est_effects = result$mu
           pstd = result$std
-          pstd[pstd<=1e-4] = 1e-4
+          pstd[pstd<=1e-3] = 1e-2
           lowers = est_effects - 1.96*pstd
           uppers = est_effects + 1.96*pstd
           true_effects = c(as.matrix(read.csv(paste("./data/", DATA_NAME, "_effect_", HYP, ".csv", sep = ""), row.names = NULL, header=FALSE)))
