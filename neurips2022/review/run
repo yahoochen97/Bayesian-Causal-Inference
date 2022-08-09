@@ -27,3 +27,5 @@ then
         Rscript --vanilla measures.R ${DATA_NAME} $MAXSEED
     done
 fi
+
+# bsub -G SEAS-Lab-Garnett -J "localnew ltr" "matlab -nodisplay -nodesktop -r 'localnews_ltr;exit;'"
