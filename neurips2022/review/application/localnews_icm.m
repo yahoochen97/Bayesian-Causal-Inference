@@ -154,7 +154,7 @@ toc;
 % iterate all posterior samples
 clear mus;
 clear s2s;
-day_index = 3;
+day_index = 1;
 for i=1:size(chain,1)
     
     theta_0 = unwrap(theta);
@@ -187,4 +187,4 @@ gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 results = table(gmm_mean,sqrt(gmm_var));
 results.Properties.VariableNames = {'mu','std'};
 
-writetable(results((treatment_day+1):end,:),"../results/" + fn_name_ + "_ICM.csv");
+writetable(results((63+1):end,:),"../results/" + fn_name_ + "_ICM.csv");

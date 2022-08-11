@@ -163,6 +163,8 @@ for i=1:size(chain,1)
 
     [mu, s2, ~, counts]=drift_posterior(theta_0, non_drift_idx,...
         mean_function, covariance_function, x, y, day_index);
+
+    s2 = s2 + exp(2*theta_0.lik);
     
     mus{i} = mu;
     s2s{i} = s2./counts;
@@ -175,4 +177,4 @@ gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 results = table(gmm_mean,sqrt(gmm_var));
 results.Properties.VariableNames = {'mu','std'};
 
-writetable(results((treatment_day+1):end,:),"../results/" + fn_name_ + "_LTR.csv");
+writetable(results((63+1):end,:),"../results/" + fn_name_ + "_LTR.csv");

@@ -20,6 +20,34 @@ fprintf("mg-panel last two weeks avg std: %4f\n", mean((pstd(122:136))));
 % fprintf("localnews avg effect: %4f\n", mean(true_effects(true_effects~=0)));
 % fprintf("localnews avg std: %4f\n", mean(pstd(pstd~=0)));
 
+% plot ICM
+localnews_icm = readmatrix("../results/localnews_ICM.csv");
+mu = localnews_icm(:,1);
+s2 = localnews_icm(:,2).^2;
+mu = mu(mu~=0);
+s2 = s2(s2~=0);
+
+fprintf("icm first two weeks avg effect: %4f\n", mean(mu(1:11)));
+fprintf("icm last two weeks avg effect: %4f\n", mean(mu(34:47)));
+fprintf("icm first two weeks avg std: %4f\n", mean(sqrt(s2(1:14))));
+fprintf("icm last two weeks avg std: %4f\n", mean(sqrt(s2(34:47))));
+fprintf("icm 6 weeks avg effect: %4f\n", mean(mu(29:)));
+fprintf("icm 6 weeks avg std: %4f\n", mean(sqrt(s2(29:108))));
+
+% plot ltr
+localnews_ltr = readmatrix("../results/localnews_LTR.csv");
+mu = localnews_ltr(:,1);
+s2 = localnews_ltr(:,2).^2;
+mu = mu(mu~=0);
+s2 = s2(s2~=0);
+
+fprintf("ltr first two weeks avg effect: %4f\n", mean(mu(1:11)));
+fprintf("ltr last two weeks avg effect: %4f\n", mean(mu(63:73)));
+fprintf("ltr first two weeks avg std: %4f\n", mean(sqrt(s2(1:11))));
+fprintf("ltr last two weeks avg std: %4f\n", mean(sqrt(s2(63:73))));
+fprintf("ltr 6 weeks avg effect: %4f\n", mean(mu(31:41)));
+fprintf("ltr 6 weeks avg std: %4f\n", mean(sqrt(s2(31:41))));
+
 % plot ife
 localnews_ife = readmatrix("../results/localnews_ife.csv");
 mu = localnews_ife(:,1);
