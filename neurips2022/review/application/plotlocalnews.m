@@ -28,11 +28,11 @@ mu = mu(mu~=0);
 s2 = s2(s2~=0);
 
 fprintf("icm first two weeks avg effect: %4f\n", mean(mu(1:11)));
-fprintf("icm last two weeks avg effect: %4f\n", mean(mu(34:47)));
-fprintf("icm first two weeks avg std: %4f\n", mean(sqrt(s2(1:14))));
-fprintf("icm last two weeks avg std: %4f\n", mean(sqrt(s2(34:47))));
-fprintf("icm 6 weeks avg effect: %4f\n", mean(mu(29:)));
-fprintf("icm 6 weeks avg std: %4f\n", mean(sqrt(s2(29:108))));
+fprintf("icm last two weeks avg effect: %4f\n", mean(mu(63:73)));
+fprintf("icm first two weeks avg std: %4f\n", mean(sqrt(s2(1:11))));
+fprintf("icm last two weeks avg std: %4f\n", mean(sqrt(s2(63:73))));
+fprintf("icm 6 weeks avg effect: %4f\n", mean(mu(31:41)));
+fprintf("icm 6 weeks avg std: %4f\n", mean(sqrt(s2(31:41))));
 
 % plot ltr
 localnews_ltr = readmatrix("../results/localnews_LTR.csv");
