@@ -126,7 +126,7 @@ dfDigits <- function(x, digits = 2) {
 result = dfDigits(result, 5)
 row.names(result) = c("RMSE", 
                       "COVERAGE","LL")
-colnames(result) = c("fullbayes", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
+colnames(result) = c("fullbayes", "MAP", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
 HYP = paste("rho_09_uls_21_effect_01_SEED_", MAXSEED, sep="")  
 write.csv(result, paste("./results/", DATA_NAME, "_measure_", HYP, ".csv", sep=""))
 
