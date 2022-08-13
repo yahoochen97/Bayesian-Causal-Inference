@@ -55,22 +55,13 @@ for i=1:size(chain,1)
         mean_function, covariance_function, x, y, day_index);
     
     mus{i} = mu;
-    s2s{i} = s2./counts + exp(2*theta_0.lik);
+    s2s{i} = s2./counts;
 end
 
 gmm_mean = mean(cell2mat(mus),2);
 gmm_s2 = mean(cell2mat(s2s),2);
 gmm_var = gmm_s2 + mean(cell2mat(mus).^2,2) - gmm_mean.^2;
 
-% fn_name = "non_normal_error";
-% effects = readmatrix("./data/" + fn_name + "_effect_rho_09_uls_21_effect_01_SEED_1.csv");
-% results = readmatrix("./results/" + fn_name + "_fullbayes_rho_09_uls_21_effect_01_SEED_1.csv");
-% gmm_mean = results(:,1);
-% gmm_var = results(:,2);
-% effects = [zeros(30,1); effects'];
-% gmm_mean = [zeros(30,1); gmm_mean];
-% gmm_var = [zeros(30,1); gmm_var];
-gmm_var = gmm_var.^2;
 days = (1:50)';
 fig = figure(1);
 clf;

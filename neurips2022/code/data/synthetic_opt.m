@@ -144,7 +144,7 @@ results.s2 = tmp(x(:,end)~=0,:);
 results.y = y(x(:,end)~=0,:);
 results = groupsummary(results, 'day', 'mean');
 mu = results.mean_m;
-s2 = results.mean_s2 + exp(2*theta.lik);
+s2 = results.mean_s2;
 s2(1:treatment_day) = 0;
 days = results.day;
 ys = results.mean_y;
