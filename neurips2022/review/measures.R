@@ -90,6 +90,9 @@ for(i in 1:length(MODELS)){
           }
           encis = ENCIS_score(true_effects, lowers, uppers)
           ll = ll_score(true_effects, est_effects, pstd)
+          if(is.na(ll)){
+            ll = -10000
+          }
           bias = BIAS_score(true_effects, est_effects)
           
           ENORMSE[SEED,i] = enormse
