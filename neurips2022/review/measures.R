@@ -108,13 +108,6 @@ for(i in 1:length(MODELS)){
   }
 }
 
-ENORMSE = colMeans(ENORMSE)
-RMSE = colMeans(RMSE)
-BIAS = colMeans(BIAS)
-COVERAGE = colMeans(COVERAGE)
-ENCIS = colMeans(ENCIS)
-LL = colMeans(LL)
-
 for(i in 1:length(MODELS)){
   test = t.test(RMSE[,1],RMSE[,i])
   p = test[["p.value"]]
@@ -141,6 +134,13 @@ for(i in 1:length(MODELS)){
     TEST_LL[i] = 0
   }
 }
+
+ENORMSE = colMeans(ENORMSE)
+RMSE = colMeans(RMSE)
+BIAS = colMeans(BIAS)
+COVERAGE = colMeans(COVERAGE)
+ENCIS = colMeans(ENCIS)
+LL = colMeans(LL)
 
 result = data.frame(
   RMSE,
