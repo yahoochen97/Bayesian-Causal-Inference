@@ -63,6 +63,9 @@ BIAS =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 COVERAGE =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 ENCIS =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
 LL =  matrix(0, nrow = MAXSEED, ncol=length(MODELS))
+TEST_RMSE =  rep(0, n=length(MODELS))
+TEST_LL =  rep(0, n=length(MODELS))
+TEST_COVERAGE =  rep(0, n=length(MODELS))
 
 for(i in 1:length(MODELS)){
   for(SEED in 1:MAXSEED){
@@ -112,10 +115,40 @@ COVERAGE = colMeans(COVERAGE)
 ENCIS = colMeans(ENCIS)
 LL = colMeans(LL)
 
+for(i in 1:length(MODELS)){
+  test = t.test(RMSE[,1],RMSE[,i])
+  p = test[["p.value"]]
+  if(p>0.05){
+    # reject
+    TEST_RMSE[i] = 1
+  }else{
+    TEST_RMSE[i] = 0
+  }
+  test = t.test(COVERAGE[,1],COVERAGE[,i])
+  p = test[["p.value"]]
+  if(p>0.05){
+    # reject
+    TEST_COVERAGE[i] = 1
+  }else{
+    TEST_COVERAGE[i] = 0
+  }
+  test = t.test(LL[,1],LL[,i])
+  p = test[["p.value"]]
+  if(p>0.05){
+    # reject
+    TEST_LL[i] = 1
+  }else{
+    TEST_LL[i] = 0
+  }
+}
+
 result = data.frame(
   RMSE,
+  TEST_RMSE,
   COVERAGE,
-  LL
+  TEST_COVERAGE,
+  LL,
+  TEST_LL
 )
 
 result = transpose(result)
@@ -128,8 +161,8 @@ dfDigits <- function(x, digits = 2) {
 }
 
 result = dfDigits(result, 5)
-row.names(result) = c("RMSE", 
-                      "COVERAGE","LL")
+row.names(result) = c("RMSE","TEST_RMSE",
+                      "COVERAGE","TEST_COVERAGE", "LL", "TEST_LL")
 colnames(result) = c("fullbayes", "MAP", "ife", "tfe", "cmgp", "bgsc", "ICM", "LTR")
 HYP = paste("rho_09_uls_21_effect_01_SEED_", MAXSEED, sep="")  
 write.csv(result, paste("./results/", DATA_NAME, "_measure_", HYP, ".csv", sep=""))

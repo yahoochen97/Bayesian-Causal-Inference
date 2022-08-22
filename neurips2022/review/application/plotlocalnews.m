@@ -21,7 +21,7 @@ fprintf("mg-panel last two weeks avg std: %4f\n", mean((pstd(122:136))));
 % fprintf("localnews avg std: %4f\n", mean(pstd(pstd~=0)));
 
 % plot ICM
-localnews_icm = readmatrix("../results/localnews_ICM.csv");
+localnews_icm = readmatrix("../results/localnewsMAP_ICM.csv");
 mu = localnews_icm(:,1);
 s2 = localnews_icm(:,2).^2;
 mu = mu(mu~=0);
@@ -60,9 +60,9 @@ f = [mu+2*sqrt(s2); flipdim(mu-2*sqrt(s2),1)];
 fill([days; flipdim(days,1)], f, [7 7 7]/8);
 hold on; plot(days, mu);
 % plot(days, true_effects(days), "--");
-
-title('Estimated treatment effects from GSC','FontSize', FONTSIZE);
 FONTSIZE = 14;
+title('Estimated treatment effects from GSC','FontSize', FONTSIZE);
+
 BIN = 30;
 XTICK = BIN*[0:1:abs(210/BIN)];
 XTICKLABELS = ["Jun", "Jul", "Aug", "Sept",...
