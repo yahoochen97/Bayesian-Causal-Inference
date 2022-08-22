@@ -162,12 +162,19 @@ for(i in 1:length(MODELS)){
   }
 }
 
-ENORMSE = colMeans(ENORMSE)
-RMSE = colMeans(RMSE)
-BIAS = colMeans(BIAS)
-COVERAGE = colMeans(COVERAGE)
-ENCIS = colMeans(ENCIS)
-LL = colMeans(LL)
+# ENORMSE = colMeans(ENORMSE)
+# RMSE = colMeans(RMSE)
+# BIAS = colMeans(BIAS)
+# COVERAGE = colMeans(COVERAGE)
+# ENCIS = colMeans(ENCIS)
+# LL = colMeans(LL)
+MAXSEED=5
+ENORMSE = apply(ENORMSE, 2, sd)/sqrt(MAXSEED)
+RMSE =  apply(RMSE, 2, sd)/sqrt(MAXSEED)
+BIAS =  apply(BIAS, 2, sd)/sqrt(MAXSEED)
+COVERAGE =  apply(COVERAGE, 2, sd)/sqrt(MAXSEED)
+ENCIS = apply(ENCIS, 2, sd)/sqrt(MAXSEED)
+LL =  apply(LL, 2, sd)/sqrt(MAXSEED)
 
 result = data.frame(
   RMSE,
