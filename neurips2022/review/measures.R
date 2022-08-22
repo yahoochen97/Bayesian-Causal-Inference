@@ -114,11 +114,29 @@ for(i in 1:length(MODELS)){
   }
 }
 
+mycolMeans = function(data){
+  n = nrow(data)
+  m = ncol(data)
+  results = matrix(0, nrow=5,ncol=m)
+  for(i in 1:m){
+    tmp = tail(sort(data[,i]),5)
+    results[, i] = tmp
+  }
+  return(results)
+}
+
+ENORMSE = mycolMeans(ENORMSE)
+RMSE = mycolMeans(RMSE)
+BIAS = mycolMeans(BIAS)
+COVERAGE = mycolMeans(COVERAGE)
+ENCIS = mycolMeans(ENCIS)
+LL = mycolMeans(LL)
+
 for(i in 1:length(MODELS)){
   test = t.test(RMSE[,1],RMSE[,i])
   p = test[["p.value"]]
   if(p>0.05){
-    # reject
+    # fail to reject
     TEST_RMSE[i] = 1
   }else{
     TEST_RMSE[i] = 0
@@ -126,7 +144,7 @@ for(i in 1:length(MODELS)){
   test = t.test(COVERAGE[,1],COVERAGE[,i])
   p = test[["p.value"]]
   if(p>0.05){
-    # reject
+    # fail to reject
     TEST_COVERAGE[i] = 1
   }else{
     TEST_COVERAGE[i] = 0
@@ -134,7 +152,7 @@ for(i in 1:length(MODELS)){
   test = t.test(LL[,1],LL[,i])
   p = test[["p.value"]]
   if(p>0.05){
-    # reject
+    # fail to reject
     TEST_LL[i] = 1
   }else{
     TEST_LL[i] = 0
