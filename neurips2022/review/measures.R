@@ -84,6 +84,9 @@ for(i in 1:length(MODELS)){
           
           enormse = ENoRMSE_score(true_effects, est_effects)
           rmse = RMSE_score(true_effects, est_effects)
+          if(is.na(rmse)){
+            rmse=1
+          }
           coverage = COVERAGE_score(true_effects, lowers, uppers)
           if(is.na(coverage)){
             coverage=0
@@ -114,23 +117,23 @@ for(i in 1:length(MODELS)){
   }
 }
 
-mycolMeans = function(data){
+mycolMeans = function(data, descend){
   n = nrow(data)
   m = ncol(data)
   results = matrix(0, nrow=5,ncol=m)
   for(i in 1:m){
-    tmp = tail(sort(data[,i]),5)
+    tmp = tail(sort(data[,i], decreasing = descend),5)
     results[, i] = tmp
   }
   return(results)
 }
 
-ENORMSE = mycolMeans(ENORMSE)
-RMSE = mycolMeans(RMSE)
-BIAS = mycolMeans(BIAS)
-COVERAGE = mycolMeans(COVERAGE)
-ENCIS = mycolMeans(ENCIS)
-LL = mycolMeans(LL)
+# ENORMSE = mycolMeans(ENORMSE)
+RMSE = mycolMeans(RMSE, TRUE)
+# BIAS = mycolMeans(BIAS)
+COVERAGE = mycolMeans(COVERAGE, FALSE)
+# ENCIS = mycolMeans(ENCIS)
+LL = mycolMeans(LL, FALSE)
 
 for(i in 1:length(MODELS)){
   test = t.test(RMSE[,1],RMSE[,i])
