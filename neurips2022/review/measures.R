@@ -144,14 +144,14 @@ for(i in 1:length(MODELS)){
   }else{
     TEST_RMSE[i] = 0
   }
-  test = t.test(COVERAGE[,1],COVERAGE[,i])
-  p = test[["p.value"]]
-  if(p>0.05){
-    # fail to reject
-    TEST_COVERAGE[i] = 1
-  }else{
-    TEST_COVERAGE[i] = 0
-  }
+  # test = t.test(COVERAGE[,1],COVERAGE[,i])
+  # p = test[["p.value"]]
+  # if(p>0.05){
+  #   # fail to reject
+  #   TEST_COVERAGE[i] = 1
+  # }else{
+  #   TEST_COVERAGE[i] = 0
+  # }
   test = t.test(LL[,1],LL[,i])
   p = test[["p.value"]]
   if(p>0.05){
