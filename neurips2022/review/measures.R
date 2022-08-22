@@ -96,6 +96,10 @@ for(i in 1:length(MODELS)){
       error = function(e){ 
           # (Optional)
           # Do this if an error is caught...
+      },
+      warning = function(e){ 
+        # (Optional)
+        # Do this if a warning is caught...
       }
     )
   }
