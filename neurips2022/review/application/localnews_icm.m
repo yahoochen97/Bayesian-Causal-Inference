@@ -171,8 +171,6 @@ for i=1:size(chain,1)
     results = groupsummary(results, 'day', 'mean');
     mu = results.mean_m;
     s2 = results.mean_s2;
-    mu(1:treatment_day) = 0;
-    s2(1:treatment_day) = 0;
     days = results.day;
     counts = results.GroupCount;
     
