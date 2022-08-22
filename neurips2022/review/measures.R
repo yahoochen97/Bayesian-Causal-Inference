@@ -85,16 +85,16 @@ for(i in 1:length(MODELS)){
           enormse = ENoRMSE_score(true_effects, est_effects)
           rmse = RMSE_score(true_effects, est_effects)
           if(is.na(rmse)){
-            rmse=1
+            rmse=1 + 0.01*rnorm(1)
           }
           coverage = COVERAGE_score(true_effects, lowers, uppers)
           if(is.na(coverage)){
-            coverage=0
+            coverage=0+ 0.01*rnorm(1)
           }
           encis = ENCIS_score(true_effects, lowers, uppers)
           ll = ll_score(true_effects, est_effects, pstd)
           if(is.na(ll)){
-            ll = -10000
+            ll = -10000+ 0.01*rnorm(1)
           }
           bias = BIAS_score(true_effects, est_effects)
           
