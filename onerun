@@ -5,8 +5,8 @@
 mkdir -p /export/cluster-tmp/chenyehu
 export TMPDIR=/export/cluster-tmp/chenyehu
 
-module add seas-anaconda3
-conda activate chenyehu
+# module add seas-anaconda3
+# conda activate chenyehu
 # module add gcc-6.5.0
 # python main.py -t localnews -i MCMC
 
@@ -30,4 +30,4 @@ matlab -nodisplay -nodesktop -r "addpath('data');baseline(${SEED},${uls},${rho},
 
 # matlab -nodisplay -nodesktop -r "sigact_sample_treatment; exit;"
 
-conda deactivate
+# conda deactivate

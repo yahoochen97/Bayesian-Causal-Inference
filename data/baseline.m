@@ -13,7 +13,7 @@ startup;
 synthetic;
 
 % optimize hyp for synthetic data
-% synthetic_opt;
+synthetic_opt;
  
 % multi gp with effect process
 % writetable(results((treatment_day+1):end,:),"data/synthetic/multigp_" + HYP + "_SEED_" + SEED + ".csv");
