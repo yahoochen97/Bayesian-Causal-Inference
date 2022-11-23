@@ -2,7 +2,7 @@ function baseline(SEED, unit_length_scale, rho, effect)
 % change gpml path
 addpath("../CNNForecasting/gpml-matlab-v3.6-2015-07-07");
 addpath("./model");
-addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
+% addpath("/Users/yahoo/Documents/WashU/CSE515T/Code/Gaussian Process/gpml-matlab-v3.6-2015-07-07");
 startup;
 
 % load hmc
@@ -36,8 +36,8 @@ synthetic;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/blr_" + HYP + "_SEED_" + SEED + ".csv");
 %
 % % multi gp fully bayesian
-% baseline_fullbayesian;
-% writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
+baseline_fullbayesian;
+writetable(results((treatment_day+1):end,:),"data/synthetic/fullbayes_" + HYP + "_SEED_" + SEED + ".csv");
 
 % baseline_perfectcor;
 % writetable(results((treatment_day+1):end,:),"data/synthetic/perfectcor_" + HYP + "_SEED_" + SEED + ".csv");
@@ -52,8 +52,8 @@ synthetic;
 
 % no group trend/unit trend with individual hyps
 % individual model in Xu 2017
-baseline_unit_ITR;
-writetable(results((treatment_day+1):end,:),"data/synthetic/individual_" + HYP + "_SEED_" + SEED + ".csv");
+% baseline_unit_ITR;
+% writetable(results((treatment_day+1):end,:),"data/synthetic/individual_" + HYP + "_SEED_" + SEED + ".csv");
 
 % group white noise trend (no unit trend but do not correlate group trends)
 % whitenoisegroup;
