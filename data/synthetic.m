@@ -18,8 +18,8 @@ HYP="rho_"+strrep(num2str(rho),'.','')+"_uls_"+...
 % set data size
 num_days = 50;
 treatment_day = 30;
-num_control_units = 20;
-num_treatment_units = 10;
+num_control_units = 50;
+num_treatment_units = 50;
 num_units = num_control_units + num_treatment_units;
 
 % correlated group trend

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+declare -a DATA_NAMES=("non_normal_error" "non_smooth" "fewer_unit" "independent_gp")
+
+for DATA_NAME in ${DATA_NAMES[@]}; do
+    # matlab -nodisplay -nodesktop -r "addpath('data');review_non_normal_error(1,21,0.9,0.1,${DATA_NAME}); exit;"
+    # Rscript --vanilla bgsc.R ${DATA_NAME} "rho_09_uls_21_effect_01_SEED_1"
+    # Rscript --vanilla ife.R ${DATA_NAME} "rho_09_uls_21_effect_01_SEED_1" 0
+    # Rscript --vanilla ife.R ${DATA_NAME} "rho_09_uls_21_effect_01_SEED_1" 10
+    # python cmgp.py ${DATA_NAME} "rho_09_uls_21_effect_01_SEED_1"
+    Rscript --vanilla measures.R ${DATA_NAME}
+done
