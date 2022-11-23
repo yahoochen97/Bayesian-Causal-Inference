@@ -18,3 +18,7 @@ results
 data/synthetic/*
 *.mat
 neurips2022/*.pdf
+neurips2022/
+aistats2023_supplement
+*.zip
+*.history
